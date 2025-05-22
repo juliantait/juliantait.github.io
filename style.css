@@ -158,6 +158,24 @@ ul.education-list li i {
   margin-top: 1rem;
 }
 
+.contact-info {
+  margin-top: 1.5rem;
+  line-height: 2;
+}
+
+.contact-info p {
+  margin: 0.4rem 0;
+}
+
+.contact-link {
+  text-decoration: none;
+  color: #444;
+  border-bottom: 1px solid #669bbc;
+}
+
+.contact-link:hover {
+  color: #669bbc;
+}
 footer {
   text-align: center;
   padding: 2rem;
