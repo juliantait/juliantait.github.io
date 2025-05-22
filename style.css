@@ -1,0 +1,101 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #ffffff;
+    color: #222;
+    line-height: 1.6;
+  }
+  
+  header.hero {
+    background: #f0f4f8;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+  
+  .profile {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 900px;
+    width: 100%;
+  }
+  
+  .profile-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .profile-text h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .profile-text p {
+    margin: 0.2rem 0;
+  }
+  
+  nav {
+    margin-top: 1rem;
+  }
+  
+  nav a {
+    margin-right: 1rem;
+    text-decoration: none;
+    color: #0077cc;
+    font-weight: bold;
+  }
+  
+  nav a:hover {
+    text-decoration: underline;
+  }
+  
+  header.nav-header {
+    background: #f9f9f9;
+    padding: 1rem 2rem;
+  }
+  
+  main {
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+  }
+  
+  h2 {
+    color: #333;
+    margin-top: 2rem;
+  }
+  
+  ul {
+    padding-left: 1.2rem;
+  }
+  
+  .quick-info {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .quick-info > div {
+    flex: 1;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.9rem;
+    color: #666;
+    background: #f0f0f0;
+  }
+  
