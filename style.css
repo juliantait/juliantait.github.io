@@ -176,6 +176,7 @@ ul.education-list li i {
 .contact-link:hover {
   color: #669bbc;
 }
+
 footer {
   text-align: center;
   padding: 2rem;
@@ -184,5 +185,3 @@ footer {
   background: #f0f0f0;
   border-top: 1px solid #ddd;
 }
-
-
