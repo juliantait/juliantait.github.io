@@ -27,6 +27,7 @@ REM === Starting the OTree project up on the server ===
 
 REM === !!! ADOPT PATH TO YOUR OTREE PROJECT FOLDER!!! ===
 cd "C:\Users\Admin\Desktop\TAIT\my great experiment"
+echo Type 'y' to reset database (advised)
 otree resetdb
 
 REM Start the server in a new terminal
