@@ -1,0 +1,47 @@
+{{ block content }} 
+<link rel="stylesheet" href="{% static 'global/style.css' %}">
+
+<div class="instructions">
+<h2>Quiz</h2>
+
+Answer the questions below before continuing.
+<br><br>
+
+{{if player.num_failed_attempts >= 2}}
+<div style="text-align: center;">
+    {{ if player.round_number < C.NUM_ROUNDS}}
+    <input type="submit" value="Re-read Instruction" class="next-button" onclick="redoInstructions()">
+    {{ else }}
+    <div id="instructionsReminder" style="color: red; font-weight: bold;" >
+        If you are unsure, please raise your hand and speak to the experimenter.
+    </div>
+    {{ endif }}
+</div>
+{{endif}}
+</div>
+<br>
+<div>
+    {% for field in form %}
+        {% if field.name != 'redoinstructions' %}
+            <p>{{ field.label }}</p>
+            {{ field }}
+            <br>
+        {% endif %}
+    {% endfor %}
+
+    <form method="post">
+        <input type="hidden" name="redoinstructions" id="redoinstructions">
+    </form>
+</div>
+
+<div class="next">
+    <input type="submit" value="Next" class="next-button" onclick="setValue('redoinstructions',0)">
+</div>
+
+<script id="quiz-solutions-data" type="application/json">
+    {{ quiz_solutions_json|safe }}
+</script>
+<script src="{% static 'global/js/quiz.js' %}"></script>
+<script src="{% static 'global/js/global.js' %}"></script>
+
+{{ endblock }}
