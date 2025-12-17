@@ -1,5 +1,6 @@
 from otree.api import *
 import json
+from .quiz_items import QUIZ_ITEMS
 
 doc = """
 Intro
@@ -17,40 +18,6 @@ class Subsession(BaseSubsession):
       
 class Group(BaseGroup):
     pass
-
-# --- Central quiz configuration: update this to change questions, choices, and solutions in one place ---
-QUIZ_ITEMS = [
-    # dict(
-    #     field='quiz1',
-    #     prompt='Did you read and understand the instructions?',
-    #     choices=['YES', 'NO'],
-    #     answer='YES'
-    # ),
-    # dict(
-    #     field='quiz2',
-    #     prompt='Quiz question 2 (placeholder)',
-    #     choices=['A', 'B', 'C'],
-    #     answer='B'
-    # ),
-    # dict(
-    #     field='quiz3',
-    #     prompt='Quiz question 3 (placeholder)',
-    #     choices=['A', 'B', 'C'],
-    #     answer='C'
-    # ),
-    # dict(
-    #     field='quiz4',
-    #     prompt='Quiz question 4 (placeholder)',
-    #     choices=['A', 'B', 'C'],
-    #     answer='A'
-    # ),
-    # dict(
-    #     field='quiz5',
-    #     prompt='Quiz question 5 (placeholder)',
-    #     choices=['A', 'B', 'C'],
-    #     answer='B'
-    # ),
-]
 
 # Dynamically generate Player fields from QUIZ_ITEMS
 def make_quiz_fields():
@@ -80,31 +47,18 @@ def common_template_vars(session, group):
     }  
 
 # PAGES    
-class instr_1(Page):
-    def before_next_page(player, timeout_happened):
-        pass
+class instructing(Page):
+    template_name = 'intro/templates/instructing.html'
 
-    def vars_for_template(self):
-        return {
-
-        }     
-
-class instr_2(Page):
-    def before_next_page(player, timeout_happened):
-        pass
-
-    def vars_for_template(self):
-        return {
-
-        } 
-    
 class prequiz(Page):
+    template_name = 'intro/templates/prequiz.html'
     form_model = 'player'
     form_fields = ['redoinstructions']
     def is_displayed(player):
         return player.group.round_number == 1
         
 class quiz(Page):
+    template_name = 'intro/templates/quiz.html'
     form_model = 'player'
     # Dynamically include only the quiz items that have corresponding Player fields
     quiz_items = [item for item in QUIZ_ITEMS if hasattr(Player, item['field'])]
@@ -150,5 +104,5 @@ class quiz(Page):
         if player.redoinstructions ==0:
             return app_sequence[0]
         
-page_sequence = [instr_1, instr_2, prequiz, quiz]
+page_sequence = [instructing, prequiz, quiz]
 
