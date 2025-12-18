@@ -4,71 +4,61 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contact – Julian Tait</title>
-  <link rel="stylesheet" href="static/style.css" />
+  <link rel="stylesheet" href="static/css/style.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-  <header class="nav-header">
-    <div class="nav-container">
-      <div class="nav-logo"><a href="index.html">JULIAN TAIT</a></div>
-      <nav>
-        <a href="index.html">Home</a>
-        <a href="research.html">Research</a>
-        <a href="teaching.html">Teaching</a>
-        <a href="cv.html">CV</a>
-      </nav>
+  <div data-nav></div>
+
+  <main class="page-container contact-page">
+    <div class="page-title">
+      <h1>Contact</h1>
+      <p class="page-lead">The best way to reach me for research, teaching, or collaborations.</p>
     </div>
-  </header>
 
-<main class="page-container contact-page">
-  <h1>Contact</h1>
+    <section class="contact-layout">
+      <div class="contact-primary">
+        <p>For questions about research, teaching, or potential collaborations, the best way to reach me is by email.</p>
 
-  <section class="contact-layout">
-    <div class="contact-primary">
-      <p>
-        For questions about research, teaching, or potential collaborations, the best way to reach me is by email.
-      </p>
+        <div class="contact-grid">
+          <a class="contact-card" href="mailto:j.tait@uva.nl">
+            <div class="contact-method-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="contact-card-body">
+              <div class="contact-card-label">Email</div>
+              <div class="contact-card-main">j.tait@uva.nl</div>
+              <div class="contact-card-meta">Typically the fastest way to reach me</div>
+            </div>
+          </a>
 
-      <div class="contact-grid">
-        <a class="contact-card" href="mailto:j.tait@uva.nl">
-          <div class="contact-method-icon">
-            <i class="fas fa-envelope"></i>
-          </div>
-          <div class="contact-card-body">
-            <div class="contact-card-label">Email</div>
-            <div class="contact-card-main">j.tait@uva.nl</div>
-            <div class="contact-card-meta">Typically the fastest way to reach me</div>
-          </div>
-        </a>
+          <a class="contact-card" href="https://www.linkedin.com/in/juliantait" target="_blank" rel="noopener">
+            <div class="contact-method-icon">
+              <i class="fab fa-linkedin-in"></i>
+            </div>
+            <div class="contact-card-body">
+              <div class="contact-card-label">LinkedIn</div>
+              <div class="contact-card-main">linkedin.com/in/juliantait</div>
+              <div class="contact-card-meta">Professional updates &amp; networking</div>
+            </div>
+          </a>
 
-        <a class="contact-card" href="https://www.linkedin.com/in/juliantait" target="_blank" rel="noopener">
-          <div class="contact-method-icon">
-            <i class="fab fa-linkedin-in"></i>
-          </div>
-          <div class="contact-card-body">
-            <div class="contact-card-label">LinkedIn</div>
-            <div class="contact-card-main">linkedin.com/in/juliantait</div>
-            <div class="contact-card-meta">Professional updates &amp; networking</div>
-          </div>
-        </a>
-
-        <a class="contact-card" href="https://juliantait.github.io" target="_blank" rel="noopener">
-          <div class="contact-method-icon">
-            <i class="fas fa-globe-europe"></i>
-          </div>
-          <div class="contact-card-body">
-            <div class="contact-card-label">Website</div>
-            <div class="contact-card-main">juliantait.github.io</div>
-            <div class="contact-card-meta">More about my research and teaching</div>
-          </div>
-        </a>
+          <a class="contact-card" href="https://juliantait.github.io" target="_blank" rel="noopener">
+            <div class="contact-method-icon">
+              <i class="fas fa-globe-europe"></i>
+            </div>
+            <div class="contact-card-body">
+              <div class="contact-card-label">Website</div>
+              <div class="contact-card-main">juliantait.github.io</div>
+              <div class="contact-card-meta">More about my research and teaching</div>
+            </div>
+          </a>
+        </div>
       </div>
-    </div>
-  </section>
-</main>
+    </section>
+  </main>
 
-  <footer>
-    <p>&copy; 2025 Julian Tait</p>
-  </footer>
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
 </body>
 </html>

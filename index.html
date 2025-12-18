@@ -5,24 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="google-site-verification" content="dTGXb1-qPw_tlqSa1XOd42FP-dNkVsbjYwUAmYOwEiI" />
   <title>Julian Tait – Behavioural Economist</title>
-  <link rel="stylesheet" href="static/style.css" />
+  <link rel="stylesheet" href="static/css/style.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-  <header class="nav-header">
-    <div class="nav-container">
-      <div class="nav-logo"><a href="index.html">JULIAN TAIT</a></div>
-      <nav>
-        <a href="index.html">Home</a>
-        <a href="research.html">Research</a>
-        <a href="teaching.html">Teaching</a>
-        <a href="cv.html">CV</a>
-      </nav>
-    </div>
-  </header>
+  <div data-nav></div>
 
-  <main class="home-container">
-    <div class="home-left">
+  <main class="page-container home-container">
+    <aside class="home-left">
       <img src="images/profile.jpg" alt="Profile Photo - Julian Tait" class="home-photo" />
       <h1>Julian Tait</h1>
       <p class="subtitle">PhD Student</p>
@@ -35,12 +25,13 @@
         <a href="https://scholar.google.com/"><i class="fas fa-graduation-cap"></i></a>
         <a href="https://github.com/"><i class="fab fa-github"></i></a>
       </div>
-    </div>
+    </aside>
 
     <div class="home-right">
       <section>
         <h2>About Me</h2>
-<p>I’m a PhD student in Behavioural Economics at the <b>University of Amsterdam</b> working under the supervision of <a href="https://www.uva.nl/en/profile/s/l/r.sloof/r.sloof.html?cb" target="_blank" class="supervisor-link">Randolph Sloof</a> and <a href="https://sites.google.com/site/jeroenvandevensite/Home" target="_blank" class="supervisor-link">Jeroen van de Ven</a>. I apply experimental methods to explore how reputation concerns impact communication; such as giving advice or admitting mistakes in teams. I am interested in applying these methods to behaviour with an environmental component.</p>      </section>
+        <p>I’m a PhD student in Behavioural Economics at the <b>University of Amsterdam</b> working under the supervision of <a href="https://www.uva.nl/en/profile/s/l/r.sloof/r.sloof.html?cb" target="_blank" class="supervisor-link">Randolph Sloof</a> and <a href="https://sites.google.com/site/jeroenvandevensite/Home" target="_blank" class="supervisor-link">Jeroen van de Ven</a>. I apply experimental methods to explore how reputation concerns impact communication; such as giving advice or admitting mistakes in teams. I am interested in applying these methods to behaviour with an environmental component.</p>
+      </section>
 
       <section class="two-col">
         <div>
@@ -90,8 +81,7 @@
     </div>
   </main>
 
-  <footer>
-    <p>&copy; 2025 Julian Tait</p>
-  </footer>
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
 </body>
 </html>
