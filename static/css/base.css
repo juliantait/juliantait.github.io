@@ -19,6 +19,11 @@
   --radius-lg: 14px;
 
   --shadow-soft: 0 6px 18px rgba(15, 23, 42, 0.06);
+  --page-edge-padding: 2.5rem;
+}
+
+html {
+  background: #fff; /* same as header so top overscroll stays white */
 }
 
 * {
@@ -28,6 +33,8 @@
 body {
   margin: 0;
   min-height: 100vh;
+  padding-top: var(--page-edge-padding);
+  padding-bottom: var(--page-edge-padding);
   font-family: var(--font-sans);
   background:
     radial-gradient(circle at top left, rgba(15, 23, 42, 0.06), transparent 55%),
@@ -79,8 +86,8 @@ h1 {
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
-  align-items: flex-end;
-  gap: 0.8rem;
+  align-items: baseline;
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
 
@@ -96,9 +103,4 @@ h1 {
   color: var(--text-muted);
 }
 
-.page-lead {
-  margin: 0.2rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.98rem;
-}
 

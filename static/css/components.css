@@ -45,3 +45,144 @@ a[role='button']:hover {
   background: #1d4ed8 !important;
 }
 
+/* Download button styling */
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-left: 0.75rem;
+}
+
+.download-btn:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.download-btn:active {
+  transform: translateY(0);
+}
+
+.download-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Table of Contents styling */
+.toc {
+  background: var(--bg-page-top);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 2rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.toc h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: var(--heading);
+}
+
+.toc ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+.toc li {
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.toc a {
+  display: inline-block;
+  color: var(--text-main);
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  margin-left: -0.75rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  font-weight: 400;
+}
+
+.toc a:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* GitHub button styling */
+.github-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 999px;
+  background: #24292f;
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  box-shadow: 0 4px 12px rgba(36, 41, 47, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-left: 0.75rem;
+}
+
+.github-btn:hover {
+  background: #1b1f23;
+  box-shadow: 0 6px 16px rgba(36, 41, 47, 0.4);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.github-btn:active {
+  transform: translateY(0);
+}
+
+.github-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Section header with buttons */
+.section-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.section-header .btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-header .download-btn,
+.section-header .github-btn {
+  margin-left: 0;
+}
+
