@@ -1,33 +1,58 @@
 :root {
-  --font-sans: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: 'Playfair Display', 'Times New Roman', serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Cormorant Garamond', 'Georgia', 'Times New Roman', serif;
 
-  --bg-page: #e5e7eb;
-  --bg-page-top: #f9fafb;
+  --bg-page: #f0f1f3;
+  --bg-page-top: #fafbfc;
   --bg-card: #ffffff;
 
-  --heading: #111827;
-  --text-main: #111827;
+  --heading: #1a1a2e;
+  --text-main: #2d2d3a;
   --text-muted: #6b7280;
 
-  --border-subtle: #e5e7eb;
-  --accent: #2563eb;
-  --accent-soft: #dbeafe;
+  --border-subtle: #e8e9ed;
+  --accent: #3b5998;
+  --accent-hover: #2d4373;
+  --accent-soft: #e8eef7;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
 
-  --shadow-soft: 0 6px 18px rgba(15, 23, 42, 0.06);
+  --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.05);
+  --shadow-hover: 0 12px 32px rgba(15, 23, 42, 0.08);
   --page-edge-padding: 2.5rem;
+
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.15s var(--transition-smooth);
+  --transition-medium: 0.25s var(--transition-smooth);
+  --transition-slow: 0.4s var(--transition-smooth);
 }
 
 html {
-  background: #fff; /* same as header so top overscroll stays white */
+  background: #fff;
+  scroll-behavior: smooth;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+
+::-moz-selection {
+  background: var(--accent-soft);
+  color: var(--heading);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 body {
@@ -36,27 +61,34 @@ body {
   padding-top: var(--page-edge-padding);
   padding-bottom: var(--page-edge-padding);
   font-family: var(--font-sans);
+  font-weight: 400;
+  font-optical-sizing: auto;
   background:
-    radial-gradient(circle at top left, rgba(15, 23, 42, 0.06), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.03), transparent 55%),
+    radial-gradient(ellipse at 20% 0%, rgba(59, 89, 152, 0.04), transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(59, 89, 152, 0.03), transparent 50%),
     linear-gradient(to bottom, var(--bg-page-top), var(--bg-page));
   color: var(--text-main);
-  line-height: 1.7;
+  line-height: 1.75;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
 }
 
 a {
   color: var(--accent);
   text-decoration: none;
-  transition: color 0.15s ease-out, border-color 0.15s ease-out, background-color 0.15s ease-out;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), opacity var(--transition-fast);
 }
 
 a:hover {
-  color: #1d4ed8;
+  color: var(--accent-hover);
 }
 
 p {
-  margin: 0.3rem 0 0.7rem;
-  font-size: 0.97rem;
+  margin: 0.3rem 0 0.85rem;
+  font-size: 0.9375rem;
 }
 
 h1,
@@ -64,43 +96,74 @@ h2,
 h3 {
   margin-top: 0;
   color: var(--heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 h1 {
   font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+}
+
+h3 {
+  font-size: 1.05rem;
 }
 
 .page-container {
   max-width: 1100px;
   margin: 2.5rem auto 2.25rem;
-  padding: 2rem 2.25rem;
+  padding: 2.25rem 2.5rem;
   background: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   border-top: 3px solid var(--accent-soft);
   box-shadow: var(--shadow-soft);
+  transition: box-shadow var(--transition-medium);
 }
 
 .page-title {
-  margin-bottom: 1.4rem;
-  padding-bottom: 0.6rem;
+  margin-bottom: 1.6rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
 .page-title h1 {
   margin: 0;
+  font-size: 1.85rem;
 }
 
 .page-kicker {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   color: var(--text-muted);
+}
+
+/* Smooth appearance for images */
+img {
+  opacity: 1;
+  transition: opacity var(--transition-slow);
+}
+
+img[loading="lazy"] {
+  opacity: 0;
+}
+
+img[loading="lazy"].loaded,
+img:not([loading="lazy"]) {
+  opacity: 1;
 }
 
 

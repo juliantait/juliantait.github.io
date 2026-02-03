@@ -56,15 +56,24 @@
   }
 
   .nav-link {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .home-photo {
-    width: 78%;
+    width: 65%;
+    max-width: 160px;
   }
 
   .page-title h1 {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .affiliations {
+    font-size: 0.8rem;
   }
 }
 

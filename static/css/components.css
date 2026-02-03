@@ -3,10 +3,11 @@
   font-weight: 500;
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 1px;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .supervisor-link:hover {
-  color: var(--heading);
+  color: var(--accent);
   border-bottom-color: var(--accent);
 }
 
@@ -15,9 +16,9 @@
   height: 900px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   background: #ffffff;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
 .contact-link {
@@ -31,18 +32,23 @@
 
 a[role='button'] {
   font-family: var(--font-sans);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   border-radius: 999px !important;
   background: var(--accent) !important;
   color: #ffffff !important;
   border: none !important;
-  padding: 0.35rem 0.95rem !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  padding: 0.4rem 1rem !important;
+  box-shadow: 0 4px 14px rgba(59, 89, 152, 0.25);
   cursor: pointer;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-medium), transform var(--transition-medium);
 }
 
 a[role='button']:hover {
-  background: #1d4ed8 !important;
+  background: var(--accent-hover) !important;
+  box-shadow: 0 6px 18px rgba(59, 89, 152, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Download button styling */
@@ -51,29 +57,31 @@ a[role='button']:hover {
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
   border-radius: 999px;
   background: var(--accent);
   color: #ffffff;
   border: none;
-  padding: 0.6rem 1.2rem;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  padding: 0.55rem 1.15rem;
+  box-shadow: 0 4px 14px rgba(59, 89, 152, 0.25);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-medium), transform var(--transition-medium);
   text-decoration: none;
   margin-left: 0.75rem;
 }
 
 .download-btn:hover {
-  background: #1d4ed8;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
-  transform: translateY(-1px);
+  background: var(--accent-hover);
+  box-shadow: 0 6px 20px rgba(59, 89, 152, 0.35);
+  transform: translateY(-2px);
   color: #ffffff;
 }
 
 .download-btn:active {
   transform: translateY(0);
+  transition-duration: 0.1s;
 }
 
 .download-btn svg {
@@ -94,7 +102,9 @@ a[role='button']:hover {
 .toc h2 {
   margin-top: 0;
   margin-bottom: 1rem;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--heading);
 }
 
@@ -116,13 +126,14 @@ a[role='button']:hover {
   padding: 0.4rem 0.75rem;
   margin-left: -0.75rem;
   border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
-  font-weight: 400;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  font-weight: 450;
 }
 
 .toc a:hover {
   background: var(--accent-soft);
   color: var(--accent);
+  transform: translateX(3px);
 }
 
 /* GitHub button styling */
@@ -131,29 +142,31 @@ a[role='button']:hover {
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
   border-radius: 999px;
   background: #24292f;
   color: #ffffff;
   border: none;
-  padding: 0.6rem 1.2rem;
-  box-shadow: 0 4px 12px rgba(36, 41, 47, 0.3);
+  padding: 0.55rem 1.15rem;
+  box-shadow: 0 4px 14px rgba(36, 41, 47, 0.25);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-medium), transform var(--transition-medium);
   text-decoration: none;
   margin-left: 0.75rem;
 }
 
 .github-btn:hover {
   background: #1b1f23;
-  box-shadow: 0 6px 16px rgba(36, 41, 47, 0.4);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(36, 41, 47, 0.35);
+  transform: translateY(-2px);
   color: #ffffff;
 }
 
 .github-btn:active {
   transform: translateY(0);
+  transition-duration: 0.1s;
 }
 
 .github-btn svg {

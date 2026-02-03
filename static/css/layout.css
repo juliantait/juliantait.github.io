@@ -3,17 +3,19 @@
 }
 
 .page-container section h2 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin: 0 0 0.7rem;
-  padding-bottom: 0.2rem;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.8rem;
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .page-container section h3 {
   font-size: 1rem;
   font-weight: 600;
-  margin: 0.5rem 0 0.4rem;
+  letter-spacing: -0.01em;
+  margin: 0.5rem 0 0.45rem;
 }
 
 ul.research-list {
@@ -45,11 +47,13 @@ ul.education-list li i {
 
 .education-title {
   font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .education-location {
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: var(--text-muted);
+  letter-spacing: 0;
 }
 
 .two-col {

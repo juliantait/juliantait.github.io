@@ -1,10 +1,11 @@
 header.nav-header {
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.92);
   border-bottom: 1px solid var(--border-subtle);
   margin-top: calc(-1 * var(--page-edge-padding));
-  padding: 0.85rem 2.25rem;
-  box-shadow: 0 1px 8px rgba(15, 23, 42, 0.04);
-  backdrop-filter: blur(6px);
+  padding: 0.9rem 2.25rem;
+  box-shadow: 0 1px 12px rgba(15, 23, 42, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .nav-container {
@@ -18,12 +19,18 @@ header.nav-header {
 
 .nav-logo a {
   font-family: var(--font-serif);
-  letter-spacing: 0.18em;
-  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  font-size: 1.1rem;
+  font-weight: 500;
   color: var(--heading);
   text-decoration: none;
   text-transform: uppercase;
   white-space: nowrap;
+  transition: opacity var(--transition-fast);
+}
+
+.nav-logo a:hover {
+  opacity: 0.7;
 }
 
 nav {
@@ -33,15 +40,15 @@ nav {
 }
 
 .nav-link {
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--text-muted);
   font-weight: 500;
-  padding-bottom: 0.25rem;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s ease-out, border-color 0.15s ease-out;
+  padding-bottom: 0.3rem;
+  border-bottom: 1.5px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-medium), transform var(--transition-fast);
 }
 
 .nav-link:hover {
@@ -57,9 +64,11 @@ nav {
 .site-footer {
   width: 100%;
   margin-bottom: calc(-1 * var(--page-edge-padding));
-  padding: 0.6rem 2.25rem var(--page-edge-padding);
-  background: var(--bg-page);
-  font-size: 0.85rem;
+  padding: 1rem 2.25rem var(--page-edge-padding);
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 450;
+  letter-spacing: 0.01em;
   color: var(--text-muted);
 }
 
