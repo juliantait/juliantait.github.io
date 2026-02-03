@@ -1,178 +1,134 @@
+/* Supervisor/inline links - inherits animated underline from base */
 .supervisor-link {
-  color: var(--heading);
+  color: var(--accent);
   font-weight: 500;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 1px;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
 .supervisor-link:hover {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--accent-hover);
 }
 
+/* CV embed */
 .cv-embed {
   width: 100%;
   height: 900px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  margin-top: 1.25rem;
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-3);
+  background: var(--bg-surface);
 }
 
+/* Contact link - inherits animated underline from base */
 .contact-link {
   color: var(--accent);
-  border-bottom: 1px solid transparent;
+  text-decoration: none;
 }
 
 .contact-link:hover {
-  border-bottom-color: var(--accent);
+  color: var(--accent-hover);
 }
 
-a[role='button'] {
-  font-family: var(--font-sans);
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  border-radius: 999px !important;
-  background: var(--accent) !important;
-  color: #ffffff !important;
-  border: none !important;
-  padding: 0.4rem 1rem !important;
-  box-shadow: 0 4px 14px rgba(59, 89, 152, 0.25);
-  cursor: pointer;
-  transition: background-color var(--transition-fast), box-shadow var(--transition-medium), transform var(--transition-medium);
-}
-
-a[role='button']:hover {
-  background: var(--accent-hover) !important;
-  box-shadow: 0 6px 18px rgba(59, 89, 152, 0.3);
-  transform: translateY(-1px);
-}
-
-/* Download button styling */
-.download-btn {
+/* Buttons - minimal academic style */
+a[role='button'],
+.download-btn,
+.github-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   font-family: var(--font-sans);
-  font-size: 0.85rem;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #ffffff;
-  border: none;
-  padding: 0.55rem 1.15rem;
-  box-shadow: 0 4px 14px rgba(59, 89, 152, 0.25);
-  cursor: pointer;
-  transition: background-color var(--transition-fast), box-shadow var(--transition-medium), transform var(--transition-medium);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
   text-decoration: none;
-  margin-left: 0.75rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  cursor: pointer;
 }
 
+/* Disable underline animation on buttons */
+a[role='button']::after,
+.download-btn::after,
+.github-btn::after {
+  display: none;
+}
+
+/* Primary button - outlined style for academic feel */
+a[role='button'],
+.download-btn {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+a[role='button']:hover,
 .download-btn:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 6px 20px rgba(59, 89, 152, 0.35);
-  transform: translateY(-2px);
-  color: #ffffff;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
 }
 
-.download-btn:active {
-  transform: translateY(0);
-  transition-duration: 0.1s;
+/* GitHub button */
+.github-btn {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
 
-.download-btn svg {
+.github-btn:hover {
+  background: var(--text-primary);
+  color: white;
+  border-color: var(--text-primary);
+  text-decoration: none;
+}
+
+.download-btn svg,
+.github-btn svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
 
-/* Table of Contents styling */
+/* Table of Contents */
 .toc {
-  background: var(--bg-page-top);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 1.5rem 2rem;
-  margin: 1.5rem 0 2rem;
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-3) 0 var(--space-4);
 }
 
 .toc h2 {
   margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  margin-bottom: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--heading);
+  letter-spacing: 0;
+  color: var(--text-primary);
 }
 
 .toc ol {
   margin: 0;
-  padding-left: 1.5rem;
+  padding-left: var(--space-3);
   list-style-position: outside;
 }
 
 .toc li {
-  margin: 0.5rem 0;
+  margin: 6px 0;
   padding: 0;
+  font-size: 14px;
 }
 
 .toc a {
-  display: inline-block;
-  color: var(--text-main);
+  color: var(--text-primary);
   text-decoration: none;
-  padding: 0.4rem 0.75rem;
-  margin-left: -0.75rem;
-  border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
-  font-weight: 450;
 }
 
 .toc a:hover {
-  background: var(--accent-soft);
   color: var(--accent);
-  transform: translateX(3px);
-}
-
-/* GitHub button styling */
-.github-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  border-radius: 999px;
-  background: #24292f;
-  color: #ffffff;
-  border: none;
-  padding: 0.55rem 1.15rem;
-  box-shadow: 0 4px 14px rgba(36, 41, 47, 0.25);
-  cursor: pointer;
-  transition: background-color var(--transition-fast), box-shadow var(--transition-medium), transform var(--transition-medium);
-  text-decoration: none;
-  margin-left: 0.75rem;
-}
-
-.github-btn:hover {
-  background: #1b1f23;
-  box-shadow: 0 6px 20px rgba(36, 41, 47, 0.35);
-  transform: translateY(-2px);
-  color: #ffffff;
-}
-
-.github-btn:active {
-  transform: translateY(0);
-  transition-duration: 0.1s;
-}
-
-.github-btn svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
 }
 
 /* Section header with buttons */
@@ -180,8 +136,8 @@ a[role='button']:hover {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .section-header h2 {
@@ -191,11 +147,5 @@ a[role='button']:hover {
 .section-header .btn-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
-
-.section-header .download-btn,
-.section-header .github-btn {
-  margin-left: 0;
-}
-

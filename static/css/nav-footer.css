@@ -1,79 +1,94 @@
+/* Navigation - refined, lighter */
 header.nav-header {
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid var(--border-subtle);
-  margin-top: calc(-1 * var(--page-edge-padding));
-  padding: 0.9rem 2.25rem;
-  box-shadow: 0 1px 12px rgba(15, 23, 42, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(247, 248, 250, 0.95);
+  border-bottom: 1px solid var(--border);
+  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-3)) var(--space-5);
+  padding: var(--space-2) var(--space-3);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .nav-container {
-  max-width: 1100px;
+  max-width: var(--max-width);
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--space-3);
 }
 
 .nav-logo a {
-  font-family: var(--font-serif);
-  letter-spacing: 0.12em;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--heading);
-  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  color: var(--text-primary);
+  text-decoration: none;
   white-space: nowrap;
-  transition: opacity var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .nav-logo a:hover {
-  opacity: 0.7;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Disable underline animation on nav logo */
+.nav-logo a::after {
+  display: none;
 }
 
 nav {
   display: flex;
   align-items: center;
-  gap: 1.6rem;
+  gap: var(--space-4);
 }
 
 .nav-link {
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--text-muted);
-  font-weight: 500;
-  padding-bottom: 0.3rem;
-  border-bottom: 1.5px solid transparent;
-  transition: color var(--transition-fast), border-color var(--transition-medium), transform var(--transition-fast);
+  color: var(--text-secondary);
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .nav-link:hover {
-  color: var(--heading);
-  border-bottom-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom-color: transparent;
 }
 
 .nav-link.active {
-  color: var(--heading);
+  color: var(--accent);
   border-bottom-color: var(--accent);
 }
 
+/* Disable underline animation on nav links - they use border-bottom instead */
+.nav-link::after {
+  display: none;
+}
+
+/* Footer - smaller and muted */
 .site-footer {
-  width: 100%;
-  margin-bottom: calc(-1 * var(--page-edge-padding));
-  padding: 1rem 2.25rem var(--page-edge-padding);
-  background: transparent;
-  font-size: 0.8rem;
-  font-weight: 450;
-  letter-spacing: 0.01em;
-  color: var(--text-muted);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3);
+  text-align: center;
 }
 
 .site-footer p {
   margin: 0;
-  text-align: center;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
 }
-

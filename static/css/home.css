@@ -1,108 +1,150 @@
+/* Home page layout */
 .home-container {
   display: flex;
-  gap: 2.75rem;
+  gap: var(--space-6);
   align-items: flex-start;
   flex-wrap: nowrap;
 }
 
+/* Profile sidebar */
 .home-left {
-  flex: 0 0 30%;
+  flex: 0 0 220px;
   text-align: center;
-  padding: 1.75rem 1.25rem 1.5rem;
-  border-right: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, #ffffff, var(--bg-page-top));
-  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-3);
+  border-right: 1px solid var(--border);
 }
 
-.home-left h1 {
-  font-size: 1.65rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  margin-bottom: 0.25rem;
-}
-
+/* Profile photo - reduced dominance */
 .home-photo {
-  width: 80%;
-  max-width: 200px;
-  aspect-ratio: 1 / 1;
-  border-radius: 999px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 1.25rem;
-  border: 3px solid #fff;
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1), 0 0 0 1px var(--border-subtle);
-  transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--border);
+  filter: saturate(0.9);
+  transition: filter var(--transition-medium);
 }
 
 .home-photo:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12), 0 0 0 1px var(--border-subtle);
+  filter: saturate(1);
 }
 
+/* Name */
+.home-left h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+/* Title/subtitle */
 .subtitle {
-  margin: 0.1rem 0 0.35rem;
-  font-size: 0.9rem;
-  color: var(--accent);
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  letter-spacing: 0;
 }
 
+/* Affiliations */
 .affiliations {
-  margin: 0.2rem 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
+.affiliations b {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Social icons - grey default, accent hover */
 .icons {
-  margin-top: 1.25rem;
+  margin-top: var(--space-3);
   display: flex;
   justify-content: center;
-  gap: 0.65rem;
+  gap: var(--space-2);
 }
 
 .icons a {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-medium), box-shadow var(--transition-fast);
+  color: var(--text-secondary);
+  font-size: 18px;
+  text-decoration: none;
+  transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .icons a:hover {
-  border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-soft);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 89, 152, 0.15);
+  text-decoration: none;
+  transform: scale(1.15) rotate(-5deg);
 }
 
+/* Disable underline animation on icon links */
+.icons a::after {
+  display: none;
+}
+
+/* Main content area */
 .home-right {
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 .home-right section {
-  margin-bottom: 1.75rem;
-  padding-top: 0.25rem;
+  margin-bottom: var(--space-5);
+  padding-top: 0;
 }
 
 .home-right section + section {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-4);
 }
 
+.home-right section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section headings in home content */
 .home-right h2 {
-  font-size: 1.15rem;
-  margin-bottom: 0.6rem;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
 }
 
 .home-right h3 {
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
 }
 
+/* About text */
+.home-right p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+/* Two column section on home */
+.home-right .two-col {
+  margin-top: 0;
+}

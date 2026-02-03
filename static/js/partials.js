@@ -2,7 +2,7 @@ const navMarkup = `
 <header class="nav-header">
   <div class="nav-container">
     <div class="nav-logo">
-      <a href="index.html">JULIAN TAIT</a>
+      <a href="index.html">Julian Tait</a>
     </div>
     <nav>
       <a class="nav-link" href="index.html">Home</a>
@@ -16,7 +16,7 @@ const navMarkup = `
 
 const footerMarkup = `
 <footer class="site-footer">
-  <p><span class="copyright-symbol">©</span> <span class="current-year">2025</span> Julian Tait</p>
+  <p><span class="copyright-symbol">©</span> <span class="current-year">2026</span> Julian Tait</p>
 </footer>
 `;
 
