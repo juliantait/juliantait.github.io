@@ -93,6 +93,17 @@
   transform: scale(1.15) rotate(-5deg);
 }
 
+.icons .icon-logo {
+  width: 18px;
+  height: 18px;
+  filter: grayscale(100%) opacity(0.45) brightness(1.8);
+  transition: filter var(--transition-fast);
+}
+
+.icons a:hover .icon-logo {
+  filter: grayscale(0%) opacity(1);
+}
+
 /* Disable underline animation on icon links */
 .icons a::after {
   display: none;

@@ -39,9 +39,9 @@
   --nav-bg: rgba(247, 248, 250, 0.95);
 }
 
-/* Dark theme – activated by browser/OS preference */
+/* Dark theme – system preference fallback (when user has not chosen manually) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg-page: #111318;
     --bg-surface: #1a1d27;
     --text-primary: #e2e4eb;
@@ -53,6 +53,40 @@
     --shadow-soft: 0 6px 24px rgba(0, 0, 0, 0.3);
     --nav-bg: rgba(17, 19, 24, 0.92);
   }
+
+  :root:not([data-theme]) .publication-item,
+  :root:not([data-theme]) .teaching-card {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  :root:not([data-theme]) .publication-item:hover,
+  :root:not([data-theme]) .teaching-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Dark theme – explicit user choice via toggle */
+[data-theme="dark"] {
+  --bg-page: #111318;
+  --bg-surface: #1a1d27;
+  --text-primary: #e2e4eb;
+  --text-secondary: #8b90a0;
+  --border: #2a2d3a;
+  --accent: #7c9aff;
+  --accent-hover: #a0b8ff;
+  --accent-soft: rgba(124, 154, 255, 0.1);
+  --shadow-soft: 0 6px 24px rgba(0, 0, 0, 0.3);
+  --nav-bg: rgba(17, 19, 24, 0.92);
+}
+
+[data-theme="dark"] .publication-item,
+[data-theme="dark"] .teaching-card {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .publication-item:hover,
+[data-theme="dark"] .teaching-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 html {
@@ -107,24 +141,8 @@ a {
   transition: color var(--transition-fast);
 }
 
-a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 1px;
-  background-color: var(--accent-hover);
-  transition: width var(--transition-fast), left var(--transition-fast);
-}
-
 a:hover {
   color: var(--accent-hover);
-}
-
-a:hover::after {
-  width: 100%;
-  left: 0;
 }
 
 /* Paragraph styling */
