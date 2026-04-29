@@ -321,6 +321,13 @@ ul.education-list li i {
   color: var(--text-primary);
 }
 
+.course-year {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-left: 6px;
+  font-weight: 400;
+}
+
 .course-meta {
   font-size: 13px;
   color: var(--text-secondary);
