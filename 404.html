@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <base href="/" />
   <script>
   (function() {
     var path = location.pathname.replace(/^\/+|\/+$/g, "").toLowerCase();
@@ -11,8 +12,9 @@
       "creed_lab": "/CREED_lab/",
       "creedlab": "/CREED_lab/"
     };
-    if (map[path]) {
-      location.replace(map[path] + location.search + location.hash);
+    var target = map[path];
+    if (target && location.pathname !== target) {
+      location.replace(target + location.search + location.hash);
     }
   })();
   </script>
