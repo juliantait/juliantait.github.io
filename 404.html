@@ -1,22 +1,89 @@
 <!DOCTYPE html>
-<html><head>
-<meta charset="utf-8">
-<title>Redirecting...</title>
-<script>
-(function() {
-  var path = location.pathname.replace(/^\/+|\/+$/g, "").toLowerCase();
-  var map = {
-    "creed": "/CREED",
-    "creed.html": "/CREED.html",
-    "creed_lab": "/CREED_lab/",
-    "creedlab": "/CREED_lab/"
-  };
-  if (map[path]) {
-    location.replace(map[path] + location.search + location.hash);
-  }
-})();
-</script>
-</head><body>
-<h1>404 — Page not found</h1>
-<p><a href="/">Return home</a></p>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+  (function() {
+    var path = location.pathname.replace(/^\/+|\/+$/g, "").toLowerCase();
+    var map = {
+      "creed": "/CREED",
+      "creed.html": "/CREED.html",
+      "creed_lab": "/CREED_lab/",
+      "creedlab": "/CREED_lab/"
+    };
+    if (map[path]) {
+      location.replace(map[path] + location.search + location.hash);
+    }
+  })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found – Julian Tait</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .error-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 60vh;
+    }
+    .error-content {
+      max-width: 480px;
+      padding: var(--space-4) 0;
+    }
+    .error-code {
+      font-family: var(--font-serif);
+      font-size: 96px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--accent);
+      margin: 0 0 var(--space-2);
+    }
+    .error-title {
+      font-size: 32px;
+      margin-bottom: var(--space-2);
+    }
+    .error-message {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-bottom: var(--space-4);
+    }
+    .error-home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+      padding: 10px 18px;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
+      transition: background-color var(--transition-fast), color var(--transition-fast);
+    }
+    .error-home-link:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div data-nav></div>
+
+  <main class="page-container error-page">
+    <div class="error-content">
+      <p class="error-code">404</p>
+      <h1 class="error-title">Page not found</h1>
+      <p class="error-message">The page you were looking for doesn't exist or may have moved.</p>
+      <a class="error-home-link" href="/">
+        <i class="fas fa-arrow-left"></i>
+        <span>Return home</span>
+      </a>
+    </div>
+  </main>
+
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
+</body>
+</html>
