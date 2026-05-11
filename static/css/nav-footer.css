@@ -5,8 +5,11 @@ header.nav-header {
   z-index: 100;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--border);
-  margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-3)) var(--space-5);
-  padding: var(--space-2) var(--space-3);
+  margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) var(--space-3);
+  padding-top: 18px;
+  padding-bottom: 18px;
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
