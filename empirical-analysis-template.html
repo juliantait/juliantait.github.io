@@ -38,30 +38,69 @@
       font-size: 0.95em;
     }
 
-    details.overleaf-sync {
+    details.latex-section {
       margin: var(--space-2) 0 var(--space-3);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       background: var(--bg-page);
     }
-    details.overleaf-sync > summary {
+    details.latex-section > summary {
       cursor: pointer;
       padding: var(--space-2) var(--space-3);
       font-weight: 600;
       border-radius: var(--radius-sm);
     }
-    details.overleaf-sync[open] > summary {
+    details.latex-section[open] > summary {
       border-bottom: 1px solid var(--border);
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }
-    .overleaf-sync-body {
+    .latex-summary-inner {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.5em;
+    }
+    .latex-caption {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary, #666);
+    }
+    .latex-body {
       padding: var(--space-2) var(--space-3);
     }
-    .overleaf-sync-body > p:first-child { margin-top: 0; }
-    .overleaf-sync-body > *:last-child { margin-bottom: 0; }
-    .overleaf-sync-body ol li { margin: 6px 0; }
-    .overleaf-sync-body .code-block { margin: var(--space-2) 0; }
+    .latex-body > p:first-child { margin-top: 0; }
+    .latex-body > *:last-child { margin-bottom: 0; }
+
+    .latex-logo {
+      font-family: "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
+      font-weight: normal;
+    }
+    .latex-logo .a {
+      font-size: 0.7em;
+      vertical-align: 0.3em;
+      margin-left: -0.36em;
+      margin-right: -0.15em;
+    }
+    .latex-logo .e {
+      font-size: 1em;
+      vertical-align: -0.5ex;
+      margin-left: -0.125em;
+      margin-right: -0.075em;
+      text-transform: uppercase;
+    }
+
+    .callout {
+      background: #fff;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 16px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .callout > h4 { margin: 0 0 10px; font-size: 16px; font-weight: 600; }
+    .callout ol { margin: 0; padding-left: 22px; }
+    .callout ol li { margin: 6px 0; }
+    .callout .note { font-size: 13px; color: var(--text-secondary, #666); margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -90,13 +129,12 @@
         <h2>Structure</h2>
       </div>
       <ul class="resource-structure">
-        <li><strong><code>Scripts/</code></strong> — <code>config_init</code>, <code>config_cleaning</code> (orchestrator), <code>descriptives</code>, <code>hypotheses</code>, <code>balance_table</code>, <code>robustness</code>, <code>sample_restrictions</code>, <code>exploratory</code></li>
-        <li><strong><code>Helper/</code></strong> — pluggable data-source adapters (<code>otree.R</code>, <code>csv.R</code>)</li>
-        <li><strong><code>LaTeX/</code></strong> — paper source. Analysis outputs land in <code>LaTeX/Output/{Figures,Tables,Text}/</code>, so the <code>LaTeX</code> folder is self-contained.</li>
         <li><strong><code>Data/</code></strong> — raw and cleaned data folders</li>
-        <li><strong><code>Flow/</code></strong> — codebook, research_log, timeline, todo, personality (where you record project aim)</li>
-        <li><strong><code>Tools/</code></strong> — JEBO-style conventions for publication-ready graphs and tables (<code>skill_graphs.md</code>, <code>skill_tables.md</code>)</li>
+        <li><strong><code>Helper/</code></strong> — pluggable data-source adapters (<code>otree.R</code>, <code>csv.R</code>)</li>
+        <li><strong><code>Scripts/</code></strong> — <code>config_init</code>, <code>config_cleaning</code> (orchestrator), <code>descriptives</code>, <code>hypotheses</code>, <code>balance_table</code>, <code>robustness</code>, <code>sample_restrictions</code>, <code>exploratory</code></li>
+        <li><strong><code>LaTeX/</code></strong> — paper source. Analysis outputs land in <code>LaTeX/Output/{Figures,Tables,Text}/</code>, so the <code>LaTeX</code> folder is self-contained.</li>
         <li><strong><code>Literature/</code></strong> — drop your reading material here</li>
+        <li><strong><code>Flow/</code></strong> — codebook, research_log, timeline, todo, personality, plus <code>Flow/Tools/</code> (skill references for graphs and tables) — designed as both a human style guide and a drop-in point for integrating with Claude or other LLM agents.</li>
       </ul>
     </section>
 
@@ -108,66 +146,60 @@
       <pre class="code-block"><code>git clone https://github.com/juliantait/Template_Analysis.git</code></pre>
     </section>
 
-    <section id="outputs-overleaf">
-      <div class="section-header">
-        <h2>Outputs and Overleaf sync</h2>
-      </div>
-      <p>
-        Analysis scripts write all figures, tables, and inline numbers to
-        <code>LaTeX/Output/</code>, split into <code>Figures/</code>, <code>Tables/</code>, and
-        <code>Text/</code>. The <code>.tex</code> files reference these via relative paths, so the
-        <code>LaTeX</code> folder compiles wherever you put it (local, Overleaf, a CI job).
-      </p>
-      <p>
-        Need outputs in a second place at the same time — e.g. an Overleaf clone? Add the path to
-        <code>SYNC_DESTINATIONS</code> in <code>Scripts/config_init.R</code> and every save call
-        writes to both.
-      </p>
+    <section id="latex">
+      <details class="latex-section">
+        <summary>
+          <span class="latex-summary-inner">
+            <span class="latex-logo">L<span class="a">a</span>T<span class="e">e</span>X</span>
+            <span class="latex-caption">— folder layout and Overleaf sync</span>
+          </span>
+        </summary>
+        <div class="latex-body">
+          <p>
+            The <code>LaTeX/</code> folder holds the paper source files. R analysis writes its
+            figures, tables, and inline numbers into
+            <code>LaTeX/Output/{Figures,Tables,Text}/</code>, and the <code>.tex</code> files
+            reference them via relative paths like <code>Output/Figures/foo.png</code>. The
+            folder compiles standalone wherever it ends up — locally, on Overleaf, or in CI.
+          </p>
 
-      <details class="overleaf-sync">
-        <summary>Sync to Overleaf</summary>
-        <div class="overleaf-sync-body">
-          <p>
-            The <code>LaTeX/</code> folder is designed to be the working tree of an Overleaf
-            project. The flow is local-first: create a new empty Overleaf project, then push the
-            local <code>LaTeX/</code> contents up to it.
-          </p>
-          <ol>
-            <li>Create a new empty project in Overleaf (web UI).</li>
-            <li>
-              In the project sidebar, open <strong>Integrations &rarr; Git</strong> and copy the
-              project's git URL. URLs look like
-              <code>https://git.overleaf.com/&lt;project-id&gt;</code>.
-            </li>
-            <li>
-              In a terminal, from inside the local <code>LaTeX/</code> folder, initialise a git
-              repo if it is not one already:
-              <pre class="code-block"><code>cd LaTeX &amp;&amp; git init</code></pre>
-              The <code>LaTeX</code> folder is its own working tree, independent from the outer
-              <code>Template_Analysis</code> repo.
-            </li>
-            <li>
-              Add Overleaf as a remote and push:
-              <pre class="code-block"><code>git remote add overleaf &lt;overleaf-git-url&gt; &amp;&amp; git push -u overleaf main:master</code></pre>
-              Overleaf has historically used <code>master</code> as the default branch; if the
-              push is rejected, <code>git ls-remote overleaf</code> reveals the actual branch
-              name.
-            </li>
-            <li>
-              Subsequent edits: <code>git push overleaf main:master</code> from inside
-              <code>LaTeX/</code>. To pull collaborator edits back from Overleaf,
-              <code>git pull overleaf master</code>.
-            </li>
-          </ol>
-          <p>
-            <strong>Note:</strong> Overleaf's git integration is a premium feature — available on
-            paid individual or group subscriptions and to Overleaf Commons participants. Free-plan
-            projects will not show a Git option in Integrations.
-          </p>
-          <p>
-            Full Overleaf-side guide:
-            <a href="https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/git-integration" target="_blank" rel="noopener noreferrer">Git integration documentation</a>.
-          </p>
+          <div class="callout">
+            <h4>Sync to Overleaf</h4>
+            <ol>
+              <li>Create a new empty project in Overleaf (web UI).</li>
+              <li>
+                In the project sidebar, open <strong>Integrations &rarr; Git</strong> and copy the
+                project's git URL — e.g.
+                <code>https://git.overleaf.com/&lt;project-id&gt;</code>.
+              </li>
+              <li>
+                Inside the <code>LaTeX/</code> folder, init a git repo if needed:
+                <code>cd LaTeX &amp;&amp; git init</code>. The <code>LaTeX</code> folder becomes
+                its own working tree, independent from the outer repo.
+              </li>
+              <li>
+                Add Overleaf as a remote and push:
+                <code>git remote add overleaf &lt;overleaf-git-url&gt; &amp;&amp; git push -u overleaf main:master</code>.
+                Overleaf has historically used <code>master</code> as the default branch; if
+                <code>main:master</code> is rejected, run <code>git ls-remote overleaf</code> to
+                see the actual branch name.
+              </li>
+              <li>
+                Subsequent edits: <code>git push overleaf main:master</code> from inside
+                <code>LaTeX/</code>. Collaborator changes from Overleaf come back via
+                <code>git pull overleaf master</code>.
+              </li>
+            </ol>
+            <p class="note">
+              Overleaf's git integration is a premium feature — available on paid individual or
+              group subscriptions and to Overleaf Commons participants. Free-plan projects will
+              not show a Git option in Integrations.
+            </p>
+            <p class="note">
+              Full Overleaf-side guide:
+              <a href="https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/git-integration" target="_blank" rel="noopener noreferrer">docs.overleaf.com — Git integration</a>.
+            </p>
+          </div>
         </div>
       </details>
     </section>
