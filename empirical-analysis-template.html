@@ -55,12 +55,13 @@
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }
-    details.overleaf-sync > *:not(summary) {
-      padding: 0 var(--space-3);
+    .overleaf-sync-body {
+      padding: var(--space-2) var(--space-3);
     }
-    details.overleaf-sync > *:not(summary):last-child {
-      padding-bottom: var(--space-2);
-    }
+    .overleaf-sync-body > p:first-child { margin-top: 0; }
+    .overleaf-sync-body > *:last-child { margin-bottom: 0; }
+    .overleaf-sync-body ol li { margin: 6px 0; }
+    .overleaf-sync-body .code-block { margin: var(--space-2) 0; }
   </style>
 </head>
 <body>
@@ -125,18 +126,49 @@
 
       <details class="overleaf-sync">
         <summary>Sync to Overleaf</summary>
-        <p>
-          The <code>LaTeX/</code> folder is structured to be the working tree of an Overleaf
-          project. Overleaf supports git on most paid plans, so the basic workflow is: clone the
-          Overleaf project locally, point <code>SYNC_DESTINATIONS</code> at its
-          <code>Output/</code> subfolder so each analysis run drops fresh figures and tables into
-          the clone, then push the <code>LaTeX/</code> contents back up with git.
-        </p>
-        <p>
-          For the Overleaf-side setup (enabling git on a project, the clone URL, authentication),
-          see Overleaf's own guide:
-          <a href="https://www.overleaf.com/learn/how-to/Using_Git_to_track_your_work_on_Overleaf" target="_blank" rel="noopener noreferrer">Using Git to track your work on Overleaf</a>.
-        </p>
+        <div class="overleaf-sync-body">
+          <p>
+            The <code>LaTeX/</code> folder is designed to be the working tree of an Overleaf
+            project. The flow is local-first: create a new empty Overleaf project, then push the
+            local <code>LaTeX/</code> contents up to it.
+          </p>
+          <ol>
+            <li>Create a new empty project in Overleaf (web UI).</li>
+            <li>
+              In the project sidebar, open <strong>Integrations &rarr; Git</strong> and copy the
+              project's git URL. URLs look like
+              <code>https://git.overleaf.com/&lt;project-id&gt;</code>.
+            </li>
+            <li>
+              In a terminal, from inside the local <code>LaTeX/</code> folder, initialise a git
+              repo if it is not one already:
+              <pre class="code-block"><code>cd LaTeX &amp;&amp; git init</code></pre>
+              The <code>LaTeX</code> folder is its own working tree, independent from the outer
+              <code>Template_Analysis</code> repo.
+            </li>
+            <li>
+              Add Overleaf as a remote and push:
+              <pre class="code-block"><code>git remote add overleaf &lt;overleaf-git-url&gt; &amp;&amp; git push -u overleaf main:master</code></pre>
+              Overleaf has historically used <code>master</code> as the default branch; if the
+              push is rejected, <code>git ls-remote overleaf</code> reveals the actual branch
+              name.
+            </li>
+            <li>
+              Subsequent edits: <code>git push overleaf main:master</code> from inside
+              <code>LaTeX/</code>. To pull collaborator edits back from Overleaf,
+              <code>git pull overleaf master</code>.
+            </li>
+          </ol>
+          <p>
+            <strong>Note:</strong> Overleaf's git integration is a premium feature — available on
+            paid individual or group subscriptions and to Overleaf Commons participants. Free-plan
+            projects will not show a Git option in Integrations.
+          </p>
+          <p>
+            Full Overleaf-side guide:
+            <a href="https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/git-integration" target="_blank" rel="noopener noreferrer">Git integration documentation</a>.
+          </p>
+        </div>
       </details>
     </section>
 
