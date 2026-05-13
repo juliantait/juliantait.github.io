@@ -148,9 +148,11 @@
 }
 
 .sidebar-interests .research-list li {
-  font-size: 14px;
+  font-size: 13px;
   padding: 3px 0;
+  gap: var(--space-1);
   justify-content: center;
+  white-space: nowrap;
 }
 
 /* Main content area */

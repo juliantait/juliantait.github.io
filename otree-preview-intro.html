@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oTree preview — intro</title>
+  <style>
+    :root {
+      --color-background: #ffffff;
+      --color-page-bg: #f5f7fa;
+      --color-text: #555;
+      --color-heading: #333;
+      --color-accent: #4caf50;
+      --color-border: #ccc;
+      --color-primary: #008cba;
+      --color-primary-hover: #007bb5;
+      --color-disabled: #cccccc;
+      --color-table-header: #f5f5f5;
+    }
+    body {
+      font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background-color: var(--color-page-bg);
+      color: var(--color-text);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2, h3 { color: var(--color-heading); }
+    p { margin: 0 0 14px; }
+    strong { color: var(--color-accent); }
+    .experimental-screen {
+      padding: 12px 10px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: var(--color-page-bg);
+      text-align: center;
+    }
+    .screen-card {
+      width: 100%;
+      max-width: none;
+      min-height: 0;
+      min-width: 0;
+      margin-inline: auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+    .experimental-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+    .header-title {
+      margin: 0;
+      font-size: 24px;
+      color: var(--color-heading);
+      font-weight: 700;
+    }
+    .experimental-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1 1 auto;
+    }
+    .instructions {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+    .instruction-wrapper {
+      display: flex;
+      flex-direction: column;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: left;
+      width: 100%;
+    }
+    .instruction-block { display: block; }
+    .instruction-block h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: var(--color-heading);
+    }
+    .instruction-progress {
+      margin-top: 12px;
+      padding: 8px 0 4px;
+      font-size: 13px;
+      text-align: center;
+      width: 100%;
+      color: var(--color-text);
+    }
+    .instruction-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+    .next-button {
+      display: inline-block;
+      border: none;
+      color: white;
+      padding: 10px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      background-color: var(--color-primary);
+    }
+    .next-button:hover { background-color: var(--color-primary-hover); }
+    .payoff-matrix {
+      border-collapse: collapse;
+      margin: 12px auto;
+      font-size: 14px;
+    }
+    .payoff-matrix th,
+    .payoff-matrix td {
+      border: 1px solid #ddd;
+      padding: 10px 16px;
+      text-align: center;
+    }
+    .payoff-matrix th {
+      background-color: var(--color-table-header);
+      color: var(--color-heading);
+      font-weight: 600;
+    }
+    .payoff-matrix caption {
+      caption-side: top;
+      font-size: 13px;
+      color: var(--color-text);
+      padding-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="experimental-screen">
+    <div class="screen-card">
+      <div class="experimental-header">
+        <h2 class="header-title">Instructions</h2>
+      </div>
+      <div class="experimental-content">
+        <div class="instructions">
+          <div class="instruction-wrapper">
+            <div class="instruction-block">
+              <h3>Selecting your move</h3>
+              <p>
+                You are the <strong>row player</strong> in a stag-hunt game. On each round you choose
+                between <em>Stag</em> and <em>Hare</em>.
+              </p>
+              <p>
+                A second participant — the <strong>column player</strong> — simultaneously chooses
+                <em>Stag</em> or <em>Hare</em>. Neither of you sees the other's choice before deciding.
+                Your payoff in points depends on both choices, as shown in the table below.
+              </p>
+              <table class="payoff-matrix">
+                <caption>Payoffs (row player, column player)</caption>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Column: Stag</th>
+                    <th>Column: Hare</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Row: Stag</th>
+                    <td>4, 4</td>
+                    <td>0, 3</td>
+                  </tr>
+                  <tr>
+                    <th>Row: Hare</th>
+                    <td>3, 0</td>
+                    <td>3, 3</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>
+                <em>Stag</em> pays best when both of you choose it, but pays nothing if you alone go for it.
+                <em>Hare</em> pays a steady amount no matter what the column player does.
+              </p>
+            </div>
+            <div class="instruction-progress">
+              <span>Page 2 of 7</span>
+            </div>
+          </div>
+          <div class="instruction-controls">
+            <button type="button" class="next-button">Back</button>
+            <button type="button" class="next-button">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

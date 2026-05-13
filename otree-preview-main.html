@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oTree preview — main</title>
+  <style>
+    :root {
+      --color-background: #ffffff;
+      --color-page-bg: #f5f7fa;
+      --color-text: #555;
+      --color-heading: #333;
+      --color-accent: #4caf50;
+      --color-border: #ccc;
+      --color-primary: #008cba;
+      --color-primary-hover: #007bb5;
+      --color-table-header: #f5f5f5;
+    }
+    body {
+      font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background-color: var(--color-page-bg);
+      color: var(--color-text);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2, h3 { color: var(--color-heading); }
+    p { margin: 0 0 14px; }
+    strong { color: var(--color-accent); }
+    .experimental-screen {
+      padding: 12px 10px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: var(--color-page-bg);
+      text-align: center;
+    }
+    .experimental-screen, .experimental-screen * { text-align: center; }
+    .screen-card {
+      width: 100%;
+      max-width: none;
+      min-height: 0;
+      min-width: 0;
+      margin-inline: auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .experimental-header { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .header-title {
+      margin: 0;
+      font-size: 24px;
+      color: var(--color-heading);
+      font-weight: 700;
+    }
+    .experimental-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1 1 auto;
+      align-items: center;
+    }
+    .section-text { max-width: 90%; margin: 0 auto; }
+    .button-row {
+      margin-top: 8px;
+      padding-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .next-button {
+      display: inline-block;
+      border: none;
+      color: white;
+      padding: 10px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      background-color: var(--color-primary);
+    }
+    .next-button:hover { background-color: var(--color-primary-hover); }
+
+    .payoff-matrix {
+      border-collapse: collapse;
+      margin: 4px auto 8px;
+      font-size: 14px;
+    }
+    .payoff-matrix th,
+    .payoff-matrix td {
+      border: 1px solid #ddd;
+      padding: 8px 14px;
+      text-align: center;
+    }
+    .payoff-matrix th {
+      background-color: var(--color-table-header);
+      color: var(--color-heading);
+      font-weight: 600;
+    }
+    .payoff-matrix caption {
+      caption-side: top;
+      font-size: 12px;
+      color: var(--color-text);
+      padding-bottom: 4px;
+    }
+
+    .quiz-block {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-block: 8px 4px;
+    }
+    .quiz-block .stacked-form {
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .choice-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+      text-align: left;
+    }
+    .choice-option:hover { border-color: var(--color-primary); background: #f6fbfd; }
+    .choice-option input[type="radio"] { margin: 0; }
+    .choice-label { font-weight: 600; color: var(--color-heading); }
+  </style>
+</head>
+<body>
+  <div class="experimental-screen">
+    <div class="screen-card">
+      <div class="experimental-header">
+        <h2 class="header-title">Round 3</h2>
+      </div>
+      <div class="experimental-content">
+        <div class="section-text">
+          You are the row player. Choose your move.
+        </div>
+
+        <table class="payoff-matrix">
+          <caption>Payoffs (row player, column player)</caption>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Column: Stag</th>
+              <th>Column: Hare</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Row: Stag</th>
+              <td>4, 4</td>
+              <td>0, 3</td>
+            </tr>
+            <tr>
+              <th>Row: Hare</th>
+              <td>3, 0</td>
+              <td>3, 3</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="quiz-block">
+          <div class="stacked-form">
+            <label class="choice-option">
+              <input type="radio" name="choice" value="stag">
+              <span class="choice-label">Stag</span>
+            </label>
+            <label class="choice-option">
+              <input type="radio" name="choice" value="hare">
+              <span class="choice-label">Hare</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="button-row">
+        <button type="button" class="next-button">Submit</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
