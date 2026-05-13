@@ -60,11 +60,6 @@
       align-items: center;
       gap: 0.5em;
     }
-    .latex-caption {
-      font-size: 14px;
-      font-weight: 400;
-      color: var(--text-secondary, #666);
-    }
     .latex-body {
       padding: var(--space-2) var(--space-3);
     }
@@ -72,9 +67,8 @@
     .latex-body > *:last-child { margin-bottom: 0; }
 
     .overleaf-logo {
-      display: inline-block;
-      vertical-align: middle;
-      color: #138a07;
+      width: 22px;
+      height: 22px;
       flex-shrink: 0;
     }
 
@@ -135,25 +129,22 @@
       <pre class="code-block"><code>git clone https://github.com/juliantait/Template_Analysis.git</code></pre>
     </section>
 
-    <section id="latex">
+    <section id="sync-to-overleaf">
       <details class="latex-section">
         <summary>
           <span class="latex-summary-inner">
-            <svg class="overleaf-logo" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 16-9 0 6-3 10-7 12-2 1-5 1-7 1z"/>
-              <path d="M4 20c2-4 5-7 11-10"/>
-            </svg>
-            <span>LaTeX</span>
-            <span class="latex-caption">— folder layout and Overleaf sync</span>
+            <img src="images/overleaf.svg" alt="" aria-hidden="true" class="overleaf-logo" width="22" height="22">
+            <span>Sync to Overleaf</span>
           </span>
         </summary>
         <div class="latex-body">
           <p>
-            The <code>LaTeX/</code> folder holds the paper source files. R analysis writes its
-            figures, tables, and inline numbers into
-            <code>LaTeX/Output/{Figures,Tables,Text}/</code>, and the <code>.tex</code> files
-            reference them via relative paths like <code>Output/Figures/foo.png</code>. The
-            folder compiles standalone wherever it ends up — locally, on Overleaf, or in CI.
+            Sync sends the entire <code>LaTeX/</code> folder — including the R-generated
+            <code>Output/</code> subfolder of Figures, Tables, and Text — up to a new Overleaf
+            project as a git push. After the initial push, future
+            <code>git push overleaf main:master</code> from inside <code>LaTeX/</code> ships
+            subsequent edits; <code>git pull overleaf master</code> brings collaborator changes
+            back.
           </p>
 
           <div class="callout">
