@@ -57,7 +57,7 @@
     }
     .latex-summary-inner {
       display: inline-flex;
-      align-items: baseline;
+      align-items: center;
       gap: 0.5em;
     }
     .latex-caption {
@@ -71,22 +71,11 @@
     .latex-body > p:first-child { margin-top: 0; }
     .latex-body > *:last-child { margin-bottom: 0; }
 
-    .latex-logo {
-      font-family: "CMU Serif", "Latin Modern Roman", "Times New Roman", serif;
-      font-weight: normal;
-    }
-    .latex-logo .a {
-      font-size: 0.7em;
-      vertical-align: 0.3em;
-      margin-left: -0.36em;
-      margin-right: -0.15em;
-    }
-    .latex-logo .e {
-      font-size: 1em;
-      vertical-align: -0.5ex;
-      margin-left: -0.125em;
-      margin-right: -0.075em;
-      text-transform: uppercase;
+    .overleaf-logo {
+      display: inline-block;
+      vertical-align: middle;
+      color: #138a07;
+      flex-shrink: 0;
     }
 
     .callout {
@@ -150,7 +139,11 @@
       <details class="latex-section">
         <summary>
           <span class="latex-summary-inner">
-            <span class="latex-logo">L<span class="a">a</span>T<span class="e">e</span>X</span>
+            <svg class="overleaf-logo" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 20A7 7 0 0 1 4 13c0-5 4-9 16-9 0 6-3 10-7 12-2 1-5 1-7 1z"/>
+              <path d="M4 20c2-4 5-7 11-10"/>
+            </svg>
+            <span>LaTeX</span>
             <span class="latex-caption">— folder layout and Overleaf sync</span>
           </span>
         </summary>
