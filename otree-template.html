@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oTree Template – Julian Tait</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+  <div data-nav></div>
+
+  <main class="page-container">
+    <h1>oTree Template</h1>
+
+    <p>
+      An opinionated oTree starter scaffold for running lab experiments. The template is structured
+      around four apps — <em>before</em>, <em>intro</em>, <em>main</em>, and <em>outro</em> —
+      covering welcome and consent, instructions and a comprehension quiz, the experimental task
+      itself, and demographics with payment. The aim is to give you a working session skeleton on
+      day one, so you can focus on designing your treatment instead of wiring up boilerplate.
+    </p>
+
+    <section class="toc">
+      <ol>
+        <li><a href="#app-timeline">App timeline</a></li>
+        <li><a href="#how-to-use">How to use it</a></li>
+        <li><a href="#visual-scaffold">Shared visual scaffold</a></li>
+      </ol>
+    </section>
+
+    <section id="app-timeline">
+      <div class="section-header">
+        <h2>App timeline</h2>
+        <div class="btn-group">
+          <a href="https://github.com/juliantait/Template_oTree" class="github-btn" target="_blank" rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+      <p>
+        A session moves through the four apps in order:
+      </p>
+      <ul>
+        <li><strong>before</strong> — landing page, welcome message, and informed consent.</li>
+        <li><strong>intro</strong> — task instructions followed by a comprehension quiz.</li>
+        <li><strong>main</strong> — the experimental task itself, including any treatment-specific pages.</li>
+        <li><strong>outro</strong> — demographic questionnaire, debrief, and payment information.</li>
+      </ul>
+    </section>
+
+    <section id="how-to-use">
+      <div class="section-header">
+        <h2>How to use it</h2>
+      </div>
+      <p>
+        Clone the repository and edit the files relevant to your experiment. The intended entry
+        points are:
+      </p>
+      <ul>
+        <li><strong>Instructions</strong> — edit <code>intro/instructions_text.html</code>. Each <code>&lt;div class="instruction-block"&gt;</code> renders as one participant page.</li>
+        <li><strong>Comprehension quiz</strong> — define quiz items (prompt, choices, correct answer) in <code>intro/quiz_items.py</code>.</li>
+        <li><strong>Treatment assignment</strong> — set up your conditions in <code>before/treatment_assignment.py</code>. Treatments are assigned at session creation via <code>creating_session</code> in the <code>before</code> app.</li>
+        <li><strong>Payment logic</strong> — decide how participants are paid in <code>outro/payment_rule.py</code>. The function there controls which rounds and payoffs count toward the final payment.</li>
+      </ul>
+    </section>
+
+    <section id="visual-scaffold">
+      <div class="section-header">
+        <h2>Shared visual scaffold</h2>
+      </div>
+      <p>
+        All apps inherit a shared HTML/CSS layer that gives sessions a consistent look without
+        per-app styling. The reference layout lives at
+        <code>_static/global/html/template.html</code> and demonstrates the standard card layout
+        used across pages — header, body content, and a navigation footer. Extending or restyling
+        the experiment is a matter of editing this one template and the accompanying stylesheet.
+      </p>
+    </section>
+
+    <section>
+      <p>
+        <em>License &amp; usage:</em> the template is free to use and adapt for your own experiments.
+      </p>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
+</body>
+</html>
