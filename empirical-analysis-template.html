@@ -37,6 +37,30 @@
       font-family: var(--font-mono, "SF Mono", Menlo, Consolas, monospace);
       font-size: 0.95em;
     }
+
+    details.overleaf-sync {
+      margin: var(--space-2) 0 var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+    }
+    details.overleaf-sync > summary {
+      cursor: pointer;
+      padding: var(--space-2) var(--space-3);
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+    }
+    details.overleaf-sync[open] > summary {
+      border-bottom: 1px solid var(--border);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    details.overleaf-sync > *:not(summary) {
+      padding: 0 var(--space-3);
+    }
+    details.overleaf-sync > *:not(summary):last-child {
+      padding-bottom: var(--space-2);
+    }
   </style>
 </head>
 <body>
@@ -67,7 +91,7 @@
       <ul class="resource-structure">
         <li><strong><code>Scripts/</code></strong> — <code>config_init</code>, <code>config_cleaning</code> (orchestrator), <code>descriptives</code>, <code>hypotheses</code>, <code>balance_table</code>, <code>robustness</code>, <code>sample_restrictions</code>, <code>exploratory</code></li>
         <li><strong><code>Helper/</code></strong> — pluggable data-source adapters (<code>otree.R</code>, <code>csv.R</code>)</li>
-        <li><strong><code>LaTeX/</code></strong> — paper source</li>
+        <li><strong><code>LaTeX/</code></strong> — paper source. Analysis outputs land in <code>LaTeX/Output/{Figures,Tables,Text}/</code>, so the <code>LaTeX</code> folder is self-contained.</li>
         <li><strong><code>Data/</code></strong> — raw and cleaned data folders</li>
         <li><strong><code>Flow/</code></strong> — codebook, research_log, timeline, todo, personality (where you record project aim)</li>
         <li><strong><code>Tools/</code></strong> — JEBO-style conventions for publication-ready graphs and tables (<code>skill_graphs.md</code>, <code>skill_tables.md</code>)</li>
@@ -81,6 +105,39 @@
       </div>
       <p>Clone the repository to get a working copy:</p>
       <pre class="code-block"><code>git clone https://github.com/juliantait/Template_Analysis.git</code></pre>
+    </section>
+
+    <section id="outputs-overleaf">
+      <div class="section-header">
+        <h2>Outputs and Overleaf sync</h2>
+      </div>
+      <p>
+        Analysis scripts write all figures, tables, and inline numbers to
+        <code>LaTeX/Output/</code>, split into <code>Figures/</code>, <code>Tables/</code>, and
+        <code>Text/</code>. The <code>.tex</code> files reference these via relative paths, so the
+        <code>LaTeX</code> folder compiles wherever you put it (local, Overleaf, a CI job).
+      </p>
+      <p>
+        Need outputs in a second place at the same time — e.g. an Overleaf clone? Add the path to
+        <code>SYNC_DESTINATIONS</code> in <code>Scripts/config_init.R</code> and every save call
+        writes to both.
+      </p>
+
+      <details class="overleaf-sync">
+        <summary>Sync to Overleaf</summary>
+        <p>
+          The <code>LaTeX/</code> folder is structured to be the working tree of an Overleaf
+          project. Overleaf supports git on most paid plans, so the basic workflow is: clone the
+          Overleaf project locally, point <code>SYNC_DESTINATIONS</code> at its
+          <code>Output/</code> subfolder so each analysis run drops fresh figures and tables into
+          the clone, then push the <code>LaTeX/</code> contents back up with git.
+        </p>
+        <p>
+          For the Overleaf-side setup (enabling git on a project, the clone URL, authentication),
+          see Overleaf's own guide:
+          <a href="https://www.overleaf.com/learn/how-to/Using_Git_to_track_your_work_on_Overleaf" target="_blank" rel="noopener noreferrer">Using Git to track your work on Overleaf</a>.
+        </p>
+      </details>
     </section>
 
     <section id="claude-variant">
