@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Workflow in My Project Folder – Julian Tait</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+  <style>
+    .page-heading {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .page-heading h1 { margin: 0; }
+
+    .code-block {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-family: var(--font-mono, "SF Mono", Menlo, Consolas, monospace);
+      font-size: 14px;
+      overflow-x: auto;
+      margin: var(--space-2) 0 var(--space-3);
+      white-space: pre-wrap;
+    }
+    .code-block code { background: transparent; padding: 0; }
+
+    .resource-structure {
+      margin: 8px 0 12px;
+      padding-left: 20px;
+    }
+    .resource-structure li { margin: 4px 0; }
+    .resource-structure code {
+      font-family: var(--font-mono, "SF Mono", Menlo, Consolas, monospace);
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <div data-nav></div>
+
+  <main class="page-container">
+    <div class="page-heading">
+      <h1>AI Workflow in My Project Folder</h1>
+    </div>
+
+    <p>
+      This is how I use a Claude Code agent inside my project folder to drive end-to-end changes
+      across the R analysis and the LaTeX writeup, with collaborators picking changes up via
+      Overleaf.
+    </p>
+
+    <section id="structure">
+      <div class="section-header">
+        <h2>Project folder structure</h2>
+      </div>
+      <ul class="resource-structure">
+        <li><strong><code>Data/</code></strong> — raw and cleaned datasets</li>
+        <li><strong><code>Scripts/</code></strong> — R analysis scripts; figures, tables, and text outputs land in <code>LaTeX/Output/</code></li>
+        <li><strong><code>LaTeX/</code></strong> — paper source</li>
+        <li><strong><code>Literature/</code></strong> — reading material</li>
+        <li><strong><code>Feedback/</code></strong> — coauthor and supervisor feedback, plus meeting notes</li>
+      </ul>
+      <p>
+        The <code>LaTeX/</code> folder is its own git repo that syncs to Overleaf; the rest of the
+        project folder syncs to GitHub.
+      </p>
+    </section>
+
+    <section id="example">
+      <div class="section-header">
+        <h2>Example: adding an appendix figure</h2>
+      </div>
+      <p>I open a Claude Code agent inside the project folder and give it a prompt like this.</p>
+      <pre class="code-block"><code>Add an appendix figure that compares the estimated treatment effects across genders. Cite it as a robustness analysis in the main text where I discuss heterogeneity, and include the takeaway in that paragraph. Follow the same method I used for the age breakdown — treat gender as a new heterogeneous variable. Before making any changes, ask questions to resolve any uncertainties.</code></pre>
+    </section>
+
+    <section id="what-the-agent-does">
+      <div class="section-header">
+        <h2>What the agent does</h2>
+      </div>
+      <ol>
+        <li>Asks clarifying questions first, then updates the relevant R script under <code>Scripts/</code> to add gender as the heterogeneous variable, mirroring the age breakdown.</li>
+        <li>Runs the R script; the new figure is saved into <code>LaTeX/Output/Figures/</code>.</li>
+        <li>Updates the LaTeX source: adds a new appendix section "Robustness: Gender Effects" that includes the figure, and edits the main-text heterogeneity paragraph to add the takeaway with a correct cross-reference to the new appendix.</li>
+        <li>I review the diff across R, LaTeX, and Output — tweak or send follow-up instructions if needed.</li>
+        <li>I push the <code>LaTeX/</code> folder to Overleaf with git; coauthors see the new appendix and updated text.</li>
+      </ol>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
+</body>
+</html>

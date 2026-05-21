@@ -80,21 +80,11 @@
     </div>
 
     <p>
-      An oTree starter scaffold for running lab experiments. The template is structured
-      around four apps — <em>before</em>, <em>intro</em>, <em>main</em>, and <em>outro</em> —
-      covering welcome and consent, instructions and a comprehension quiz, the experimental task
-      itself, and demographics with payment. The aim is to give you a working session skeleton on
-      day one, so you can focus on designing your treatment instead of rewiring the session
-      plumbing every time.
+      An oTree starter scaffold for running lab experiments. Plug your instructions and your game
+      into the <em>main</em> app — the welcome, consent, comprehension quiz, demographics, and
+      payment flow are already wired in across the <em>before</em>, <em>intro</em>, and
+      <em>outro</em> apps.
     </p>
-
-    <section class="toc">
-      <ol>
-        <li><a href="#app-timeline">App timeline</a></li>
-        <li><a href="#how-to-use">How to use it</a></li>
-        <li><a href="#visual-scaffold">Shared visual scaffold</a></li>
-      </ol>
-    </section>
 
     <section id="app-timeline">
       <div class="section-header">
@@ -139,7 +129,7 @@
         <li><strong>Instructions</strong> — edit <code>intro/instructions_text.html</code>. Each <code>&lt;div class="instruction-block"&gt;</code> renders as one participant page.</li>
         <li><strong>Comprehension quiz</strong> — define quiz items (prompt, choices, correct answer) in <code>intro/quiz_items.py</code>.</li>
         <li><strong>Treatment assignment</strong> — set up your conditions in <code>before/treatment_assignment.py</code>. Treatments are assigned at session creation via <code>creating_session</code> in the <code>before</code> app.</li>
-        <li><strong>main</strong> — This is where your economic game goes. Edit <code>main/game.html</code> and <code>main/__init__.py</code> for the page layout and decision logic.</li>
+        <li><strong>Game</strong> — This is where your economic game goes. Any HTML pages for the game live in this app, and <code>main/__init__.py</code> holds the app settings.</li>
         <li><strong>Payment logic</strong> — decide how participants are paid in <code>outro/payment_rule.py</code>. The function there controls which rounds and payoffs count toward the final payment.</li>
       </ul>
     </section>

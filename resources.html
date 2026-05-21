@@ -6,12 +6,96 @@
   <title>Resources – Julian Tait</title>
   <link rel="stylesheet" href="static/css/style.css" />
   <style>
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .resource-grid .teaching-section { margin-bottom: 0; }
+    .resource-grid .teaching-card { margin-bottom: 0; }
+
+    .resource-card {
+      position: relative;
+      padding: var(--space-2);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .resource-card-title {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: normal;
+      text-transform: none;
+      margin: 0 0 6px;
+      padding: 0 72px 0 0;
+      border-bottom: none;
+    }
+
+    .resource-card > p {
+      margin: 0 0 var(--space-2);
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    .resource-card > a[role="button"],
+    .resource-card > .card-btn-row {
+      margin-top: var(--space-1);
+      align-self: flex-start;
+    }
+
+    .resource-card > a[role="button"] {
+      display: inline-block;
+      width: auto;
+    }
+
+    .resource-section-title {
+      font-size: 22px;
+      line-height: 1.2;
+      margin: var(--space-3) 0 var(--space-2);
+    }
+    .resource-section-title:first-of-type,
+    main > .resource-section-title:first-of-type {
+      margin-top: var(--space-2);
+    }
+
+    .resource-badge {
+      position: absolute;
+      top: var(--space-1);
+      right: var(--space-1);
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-soft);
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      line-height: 1.4;
+    }
+
     .card-btn-row {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 8px;
-      margin-top: 8px;
+    }
+
+    @media (max-width: 720px) {
+      .resource-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .resource-card-title { padding-right: 0; }
+      .resource-badge {
+        position: static;
+        display: inline-block;
+        margin-bottom: var(--space-1);
+      }
     }
   </style>
 </head>
@@ -23,26 +107,29 @@
       <h1>Resources</h1>
     </div>
 
-    <p>A collection of templates I use that may be useful for others.</p>
+    <p>A collection of templates and workflow notes that may be useful for others.</p>
 
+    <h2 class="resource-section-title">oTree</h2>
+    <div class="resource-grid">
     <section class="teaching-section">
-      <div class="teaching-card">
-        <h3 class="institution-name">oTree Template</h3>
+      <div class="teaching-card resource-card">
+        <span class="resource-badge">Template</span>
+        <h3 class="resource-card-title">oTree Template</h3>
         <p>
-          A starter template I built for running lab experiments in oTree, structured around four
-          apps (before, intro, main, outro) with a shared HTML/CSS visual scaffold.
+          A starter template I built for running lab experiments in oTree, with a shared visual
+          scaffold across apps.
         </p>
         <a href="otree-template.html" role="button">View details</a>
       </div>
     </section>
 
     <section class="teaching-section">
-      <div class="teaching-card">
-        <h3 class="institution-name">Making oTree data usable</h3>
+      <div class="teaching-card resource-card">
+        <span class="resource-badge">Script</span>
+        <h3 class="resource-card-title">Making oTree data usable</h3>
         <p>
           An R script that reshapes oTree's wide session CSVs into long format (one row per
-          participant × app × round), pre-configured with the variable names used in the oTree
-          Template.
+          participant × app × round).
         </p>
         <div class="card-btn-row">
           <a href="downloads/otree-wide-to-long.R" download class="download-btn">
@@ -60,18 +147,35 @@
         </div>
       </div>
     </section>
+    </div>
 
+    <h2 class="resource-section-title">Project Structure</h2>
+    <div class="resource-grid">
     <section class="teaching-section">
-      <div class="teaching-card">
-        <h3 class="institution-name">Empirical Analysis Template</h3>
+      <div class="teaching-card resource-card">
+        <span class="resource-badge">Template</span>
+        <h3 class="resource-card-title">Empirical Analysis Template</h3>
         <p>
-          A self-contained R + LaTeX template for a single-study empirical paper. Walks a project
-          from pre-analysis plan to submission, driven by Claude Code via structured
-          <code>Context/</code> documents.
+          A self-contained R + LaTeX template for a single-study empirical paper. Analysis outputs
+          land directly in the <code>LaTeX/</code> folder, which is Overleaf-sync ready via git.
         </p>
         <a href="empirical-analysis-template.html" role="button">View details</a>
       </div>
     </section>
+
+    <section class="teaching-section">
+      <div class="teaching-card resource-card">
+        <span class="resource-badge">Workflow</span>
+        <h3 class="resource-card-title">AI Workflow in My Project Folder</h3>
+        <p>
+          How I use a Claude Code agent inside my project folder to drive end-to-end changes
+          across the R analysis and the LaTeX writeup, with collaborators picking changes up via
+          Overleaf.
+        </p>
+        <a href="ai-workflow.html" role="button">View details</a>
+      </div>
+    </section>
+    </div>
   </main>
 
   <div data-footer></div>
