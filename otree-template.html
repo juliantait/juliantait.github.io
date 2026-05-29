@@ -134,6 +134,30 @@
       </ul>
     </section>
 
+    <section id="instructions-preview">
+      <div class="section-header">
+        <h2>Previewing instructions</h2>
+      </div>
+      <p>
+        Iterating on instruction copy without spinning up the full oTree server is awkward, so
+        the template ships with a preview generator. Running
+        <code>previews/generate_instructions_preview.py</code> produces three self-contained
+        files in <code>previews/</code> — CSS and JavaScript are inlined, so each one can be
+        emailed or attached without external dependencies.
+      </p>
+      <ul>
+        <li><strong>instructions_preview_long.html</strong> — every instruction block stacked vertically in its normal card chrome, with a treatment dropdown at the top.</li>
+        <li><strong>instructions_preview_interactive.html</strong> — a single page that mimics the live participant experience, with Back/Next navigation, floating treatment-switcher buttons in the top-right, and a setup screen for picking the starting treatment.</li>
+        <li><strong>instructions_preview.pdf</strong> — the long view rendered to PDF for printing or sharing with coauthors who prefer paper.</li>
+      </ul>
+      <p>
+        Variables and <code>{% if treatment %}</code> conditional blocks render dynamically in
+        the HTML versions; the PDF preserves variable names as literal placeholders. The script
+        opens a tkinter popup for entering treatment × variable values, and falls back to a
+        JSON config file for headless use.
+      </p>
+    </section>
+
     <section id="visual-scaffold">
       <div class="section-header">
         <h2>Shared visual scaffold</h2>
