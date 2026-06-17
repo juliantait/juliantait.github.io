@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Unprotected Majority</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=1">
+<link rel="stylesheet" href="correlated.css?v=1">
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL (persistent) ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">Identity Inference</span>
+    <h1 class="hero-title">The Unprotected Majority</h1>
+    <p class="hero-sub">How Identity Inference Silences Mainstream Opinions</p>
+    <p class="hero-context">An interactive companion to the identity-inference theory of how mainstream opinions get silenced.</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <span class="topbar-title">The Unprotected Majority</span>
+    <nav>
+      <a href="#stimuli" data-view="stimuli" class="active">Stimuli</a>
+      <a href="#model" data-view="model">Model</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== STIMULI VIEW ===================== -->
+  <section id="view-stimuli" class="view">
+
+
+  <!-- ============ STUDY 1 ============ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-tag s1">Study 1</span>
+      <h2>Abstract designs</h2>
+    </div>
+    <p class="section-note">Two abstract framings of the same treatment frequencies, which the table below defines. Visual inspiration credited to Bordalo et&nbsp;al. (2016).</p>
+
+    <div class="card table-card">
+      <div class="table-head">
+        <h3>Treatments</h3>
+        <p>Share holding trait&nbsp;1 in each group.</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Treatment</th>
+            <th>Group A (&pi;<sub>1A</sub>)</th>
+            <th>Group B (&pi;<sub>1B</sub>)</th>
+            <th>R(1,A)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="treat"><span class="dot neutral"></span>Neutral</td><td>0.65</td><td>0.65</td><td>1.00</td></tr>
+          <tr><td class="treat"><span class="dot majority"></span>Majority</td><td>0.65</td><td>0.95</td><td>0.68</td></tr>
+          <tr><td class="treat"><span class="dot minority"></span>Minority</td><td>0.45</td><td>0.65</td><td>0.69</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card design">
+      <div class="design-head">
+        <span class="swatch menwomen"></span>
+        <span class="name">Men / Women</span>
+        <span class="kind">Abstract</span>
+      </div>
+      <div class="stim-row">
+        <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Neutral</div><img src="stimuli_assets/stimulus_menwomen_neutral.svg" alt="Men/women design — neutral treatment"></div>
+        <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><img src="stimuli_assets/stimulus_menwomen_majority.svg" alt="Men/women design — majority treatment"></div>
+        <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><img src="stimuli_assets/stimulus_menwomen_minority.svg" alt="Men/women design — minority treatment"></div>
+      </div>
+    </div>
+
+    <div class="card design">
+      <div class="design-head">
+        <span class="swatch trianglecircle"></span>
+        <span class="name">Triangle / Circle</span>
+        <span class="kind">Abstract</span>
+      </div>
+      <div class="stim-row">
+        <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Neutral</div><img src="stimuli_assets/stimulus_trianglecircle_neutral.svg" alt="Triangle/circle design — neutral treatment"></div>
+        <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><img src="stimuli_assets/stimulus_trianglecircle_majority.svg" alt="Triangle/circle design — majority treatment"></div>
+        <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><img src="stimuli_assets/stimulus_trianglecircle_minority.svg" alt="Triangle/circle design — minority treatment"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STUDY 2 ============ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-tag s2">Study 2</span>
+      <h2>Political design</h2>
+    </div>
+    <p class="section-note">The same treatment structure rendered in a substantive political context.</p>
+
+    <div class="card design">
+      <div class="design-head">
+        <span class="swatch solar"></span>
+        <span class="name">Solar Energy</span>
+        <span class="kind">Political</span>
+      </div>
+      <div class="stim-row">
+        <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Neutral</div><img src="stimuli_assets/stimulus_solar_neutral.svg" alt="Solar-energy design — neutral treatment"></div>
+        <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><img src="stimuli_assets/stimulus_solar_majority.svg" alt="Solar-energy design — majority treatment"></div>
+        <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><img src="stimuli_assets/stimulus_solar_minority.svg" alt="Solar-energy design — minority treatment"></div>
+      </div>
+    </div>
+  </section>
+
+  </section>
+
+  <!-- ===================== MODEL VIEW ===================== -->
+  <section id="view-model" class="view hidden">
+
+
+  <!-- ===================== PARAMETERS ===================== -->
+  <section class="panelcard">
+
+    <!-- Trait distribution (always visible): presets (left) + A/B bars (right), R chips below -->
+    <div class="subsection">
+      <h3 class="sub-title">Trait distribution <span class="muted-note">— pick a treatment or drag the bars</span></h3>
+      <div class="trait-grid">
+        <div class="trait-presets" id="preset-seg">
+          <button class="preset-btn" id="pre-neutral"  onclick="setPreset('neutral')">NEUTRAL</button>
+          <button class="preset-btn" id="pre-majority" onclick="setPreset('majority')">MAJORITY</button>
+          <button class="preset-btn" id="pre-minority" onclick="setPreset('minority')">MINORITY</button>
+        </div>
+        <div class="trait-sliders">
+          <div class="traitbar">
+            <span class="tb-group" style="color:#6A3D9A">A</span>
+            <div class="trait-range-wrap">
+              <input type="range" class="trait-range" id="abs-1A" min="0.01" max="0.99" step="0.01" value="0.65" oninput="fromAbs()">
+              <span class="tb-in tb-in1" id="lbl-A1"></span>
+              <span class="tb-in tb-in2" id="lbl-A2"></span>
+            </div>
+          </div>
+          <div class="traitbar">
+            <span class="tb-group" style="color:#1F78B4">B</span>
+            <div class="trait-range-wrap">
+              <input type="range" class="trait-range" id="abs-1B" min="0.01" max="0.99" step="0.01" value="0.95" oninput="fromAbs()">
+              <span class="tb-in tb-in1" id="lbl-B1"></span>
+              <span class="tb-in tb-in2" id="lbl-B2"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="trait-foot">
+        <div class="ratio-chips" id="ratio-chips"></div>
+        <p class="derived" id="derived"></p>
+      </div>
+    </div>
+
+    <!-- Collapsible Parameters: base controls + expressive utility + extensions (collapsed by default) -->
+    <details class="params-collapse" id="params-details">
+      <summary class="params-summary">
+        <span class="ps-chevron" aria-hidden="true"></span>
+        <span class="ps-title">Parameters</span>
+        <span class="ps-hint">base controls, expressive utility &amp; extensions</span>
+      </summary>
+      <div class="params-body">
+        <p class="note"><strong>Baseline model.</strong> Constant-cost core (<code>c = 1</code>, Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule numerically.</p>
+
+    <!-- Base controls + Expressive utility, side by side -->
+    <div class="subsection">
+      <div class="param-cols">
+        <div class="param-col">
+          <h3 class="sub-title">Base controls</h3>
+          <div class="slider-field" id="c-ctrl">
+            <label>Cost sensitivity <code>c</code> <span class="slideval" id="v-c">1.00</span></label>
+            <input type="range" id="in-c" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
+          </div>
+          <div class="slider-field">
+            <label>Group prior <code>&mu; = Pr(A)</code> <span class="slideval" id="v-mu">0.50</span></label>
+            <input type="range" id="in-mu" min="0.05" max="0.95" step="0.01" value="0.5" oninput="syncSliders()">
+          </div>
+        </div>
+        <div class="param-col">
+          <h3 class="sub-title">Expressive utility <code>v<sub>i</sub></code></h3>
+          <div class="slider-field">
+            <label>Mean <code>&mu;<sub>v</sub></code> <span class="slideval" id="v-muv">0.47</span></label>
+            <input type="range" id="in-muv" min="-2" max="2" step="0.01" value="0.47" oninput="syncSliders()">
+          </div>
+          <div class="slider-field">
+            <label>Std. dev. <code>&sigma;<sub>v</sub></code> <span class="slideval" id="v-sigv">0.70</span></label>
+            <input type="range" id="in-sigv" min="0.1" max="2" step="0.01" value="0.7" oninput="syncSliders()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extensions -->
+    <div class="subsection ext">
+      <h3 class="sub-title">Extensions <span class="muted-note">— off by default, more coming</span></h3>
+
+      <label class="cb"><input type="checkbox" id="ext-oi" onchange="toggleExt(true)"> Over-inference (Bordalo et&nbsp;al. 2016)</label>
+      <div class="panel" id="panel-oi">
+        <p class="small">The observer over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code>. <code>&theta; = 0</code> is pure Bayes.</p>
+        <div class="slider-field" style="max-width:360px">
+          <label>Over-inference <code>&theta;</code> <span class="slideval" id="v-theta">0.00</span></label>
+          <input type="range" id="in-theta" min="0" max="1" step="0.01" value="0" oninput="syncSliders()">
+        </div>
+      </div>
+
+      <label class="cb"><input type="checkbox" id="ext-het" onchange="toggleExt()"> Heterogeneous cost <code>c&sim;U[0,C]</code></label>
+      <div class="panel" id="panel-het">
+        <p class="small">Cost sensitivity is drawn per sender from <code>U[0,C]</code> (the scalar <code>c</code> above is disabled). The silence rate averages the probit over the cost draw in closed form.</p>
+        <div class="slider-field" style="max-width:360px">
+          <label>Cost scale <code>C</code> <span class="slideval" id="v-C">1.40</span></label>
+          <input type="range" id="in-C" min="0.1" max="5" step="0.05" value="1.4" oninput="syncSliders()">
+        </div>
+      </div>
+    </div>
+      </div>
+    </details>
+
+    <button class="go" onclick="run()">Solve &amp; render &#9654;</button>
+  </section>
+
+  <!-- ===================== RESULTS ===================== -->
+  <div id="results" class="hidden">
+
+    <!-- 1. WHO STAYS SILENT (visual | bars) -->
+    <section class="panelcard">
+      <div class="card-head-row">
+        <h2 class="card-title">Who stays silent, within each group</h2>
+        <div class="segmented" id="silview-seg">
+          <button id="sv-visual" class="on" onclick="setSilView('visual')">Visual</button>
+          <button id="sv-bars" onclick="setSilView('bars')">Bars</button>
+        </div>
+      </div>
+      <p class="card-note">Each group is shown as 100 people, split by trait (icon colour). People who stay silent in equilibrium are faded ghost icons — so the faded share reads straight off as a percentage. Switch to <em>Bars</em> for the per-cell silence rates. Icon styling after Bordalo et&nbsp;al. (2016).</p>
+      <div class="chartwrap" id="chart-sil"></div>
+    </section>
+
+    <!-- 2. FIGURE-1 STYLE -->
+    <section class="panelcard">
+      <h2 class="card-title">Headline rate by type cell</h2>
+      <p class="card-note">Figure-1 style. Equilibrium silence probability <code>S<sub>g,t</sub></code> in each of the four type cells; the dashed line is the neutral baseline <code>&Phi;(&minus;&mu;<sub>v</sub>/&sigma;<sub>v</sub>)</code>.</p>
+      <div class="chartwrap" id="chart-cells"></div>
+    </section>
+
+    <!-- 3. TABLES / NUMBERS (bottom) -->
+    <section class="panelcard">
+      <h2 class="card-title">Equilibrium summary &amp; tables</h2>
+      <p class="card-note">The underlying numbers behind the figures above.</p>
+      <div class="kpis" id="kpis"></div>
+      <div class="eqtables twocol">
+        <div>
+          <p class="tbl-cap"><strong>Silence rate</strong> <code>S<sub>g,t</sub></code> &mdash; share of each cell that withholds.</p>
+          <div id="tbl-S"></div>
+          <p class="tbl-cap"><strong>Loss differential</strong> <code>&Delta;L<sub>g,t</sub> = &delta;&#770;(g|&empty;) &minus; &delta;&#770;(g|t)</code>.</p>
+          <div id="tbl-D"></div>
+        </div>
+        <div>
+          <p class="tbl-cap"><strong>Naive disclosure posteriors</strong> <code>&delta;&#770;(g|t)</code> &mdash; naive-observer belief after a shared trait.</p>
+          <div id="tbl-post"></div>
+          <p class="tbl-cap"><strong>Silence posterior</strong> <code>&delta;&#770;(g|&empty;)</code> &mdash; equilibrium belief after silence.</p>
+          <div id="tbl-sil"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  </section>
+
+</main>
+<script>
+"use strict";
+/* =====================================================================
+   MATH  (faithful port of simulator.py: solve_pbe / silence_rate_cell /
+   stereotyped_likelihood, constant-cost baseline with c, plus the two
+   extensions). Verified against simulator.py on the calibrated treatments.
+   --- UNCHANGED: solver math is preserved verbatim. ---
+   ===================================================================== */
+function erf(x){ // Abramowitz & Stegun 7.1.26, |err|<1.5e-7
+  var s = x<0?-1:1; x=Math.abs(x);
+  var t = 1/(1+0.3275911*x);
+  var y = 1 - (((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return s*y;
+}
+function Phi(x){ return 0.5*(1+erf(x/Math.SQRT2)); }            // standard normal CDF
+function phi(x){ return Math.exp(-0.5*x*x)/Math.sqrt(2*Math.PI); } // pdf
+function gamma_(u){ return u*Phi(u)+phi(u); }                   // antiderivative of Phi
+
+// Cell silence rate. Baseline: S = Phi((c*D - mu_v)/sigma_v).
+// Heterogeneous cost c~U[0,C]: closed form averaging the probit over c.
+function silenceRateCell(D, muV, sigV, c, hetero, C){
+  if(!hetero){ return Phi((c*D - muV)/sigV); }
+  if(Math.abs(D) < 1e-12){ return Phi(-muV/sigV); }
+  var uLow  = -muV/sigV;
+  var uHigh = (C*D - muV)/sigV;
+  return (sigV/(D*C))*(gamma_(uHigh) - gamma_(uLow));
+}
+
+// Bordalo (2016) stereotyped likelihoods. theta=0 returns pi unchanged.
+function stereotypedPi(p, theta){
+  // p = {A1,A2,B1,B2}
+  var R = {
+    A1: p.A1/p.B1, A2: p.A2/p.B2,
+    B1: p.B1/p.A1, B2: p.B2/p.A2
+  };
+  var Za = p.A1*Math.pow(R.A1,theta) + p.A2*Math.pow(R.A2,theta);
+  var Zb = p.B1*Math.pow(R.B1,theta) + p.B2*Math.pow(R.B2,theta);
+  return {
+    A1: p.A1*Math.pow(R.A1,theta)/Za, A2: p.A2*Math.pow(R.A2,theta)/Za,
+    B1: p.B1*Math.pow(R.B1,theta)/Zb, B2: p.B2*Math.pow(R.B2,theta)/Zb
+  };
+}
+
+// Solve the cutoff PBE. Mirrors simulator.solve_pbe (damping 0.5, tol 1e-12).
+function solvePBE(pi1A, pi1B, o){
+  var muA=o.muA, muV=o.muV, sigV=o.sigV, c=o.c, theta=o.theta||0,
+      hetero=o.hetero||false, C=o.C||1.4;
+  var p = {A1:pi1A, A2:1-pi1A, B1:pi1B, B2:1-pi1B};
+  var muG = {A:muA, B:1-muA};
+  var pst = stereotypedPi(p, theta);
+  // disclosure posteriors on group A (over-inference theta; Bayes at theta=0)
+  var mtA = {
+    1: muA*pst.A1 / (muA*pst.A1 + (1-muA)*pst.B1),
+    2: muA*pst.A2 / (muA*pst.A2 + (1-muA)*pst.B2)
+  };
+  var mt = { A1:mtA[1], A2:mtA[2], B1:1-mtA[1], B2:1-mtA[2] };
+
+  var muSA = 0.5, S={}, converged=false, it=0;
+  var pi = {A:{1:p.A1,2:p.A2}, B:{1:p.B1,2:p.B2}};
+  var mtg = {A:{1:mt.A1,2:mt.A2}, B:{1:mt.B1,2:mt.B2}};
+  for(it=0; it<20000; it++){
+    var muS = {A:muSA, B:1-muSA};
+    for(var gi=0; gi<2; gi++){ var g=gi?'B':'A';
+      for(var t=1; t<=2; t++){
+        var D = muS[g] - mtg[g][t];
+        S[g+t] = silenceRateCell(D, muV, sigV, c, hetero, C);
+      }
+    }
+    var numA = muG.A*(pi.A[1]*S.A1 + pi.A[2]*S.A2);
+    var numB = muG.B*(pi.B[1]*S.B1 + pi.B[2]*S.B2);
+    var den = numA+numB;
+    var nv = den<1e-15 ? muG.A : numA/den;
+    nv = 0.5*muSA + 0.5*nv;
+    if(Math.abs(nv-muSA)<1e-12){ muSA=nv; converged=true; break; }
+    muSA = nv;
+  }
+  var muS = {A:muSA, B:1-muSA};
+  var D = {
+    A1: muS.A-mt.A1, A2: muS.A-mt.A2,
+    B1: muS.B-mt.B1, B2: muS.B-mt.B2
+  };
+  var agg = muG.A*(pi.A[1]*S.A1+pi.A[2]*S.A2) + muG.B*(pi.B[1]*S.B1+pi.B[2]*S.B2);
+  var silG = { A: pi.A[1]*S.A1+pi.A[2]*S.A2, B: pi.B[1]*S.B1+pi.B[2]*S.B2 };
+  return {S:S, mt:mt, muSA:muSA, D:D, muG:muG, pi:p, agg:agg, silG:silG,
+          iters:it+1, converged:converged,
+          baseline:Phi(-muV/sigV)};
+}
+
+/* =====================================================================
+   STATE + INPUT SYNC
+   ===================================================================== */
+var st = {pi1A:0.65, pi1B:0.95};
+var lastR = null, lastO = null, silView = 'visual';
+var PRESETS = { neutral:[0.65,0.65], majority:[0.65,0.95], minority:[0.45,0.65] };
+var TR1 = '#E07B39', TR2 = '#3F8E7F';   // trait-1 / trait-2 colours (match icons)
+
+function clampP(x){ return Math.min(0.999, Math.max(0.001, x)); }
+function num(id){ return parseFloat(document.getElementById(id).value); }
+
+function setPreset(name){
+  var p = PRESETS[name]; if(!p) return;
+  st.pi1A = p[0]; st.pi1B = p[1];
+  renderInputs();
+  if(!document.getElementById('results').classList.contains('hidden')) run();
+}
+function updatePresetActive(){
+  ['neutral','majority','minority'].forEach(function(n){
+    var p = PRESETS[n];
+    var on = Math.abs(p[0]-st.pi1A)<1e-9 && Math.abs(p[1]-st.pi1B)<1e-9;
+    document.getElementById('pre-'+n).classList.toggle('on', on);
+  });
+}
+
+function fromAbs(){
+  st.pi1A=clampP(num('abs-1A')); st.pi1B=clampP(num('abs-1B')); renderInputs();
+}
+// a coloured trait bar: left = trait 1 share, right = trait 2 share; handle = the split.
+// the two share labels sit INSIDE the bar, centred over each coloured segment.
+function setTraitBar(rangeId, l1Id, l2Id, p){
+  var el = document.getElementById(rangeId);
+  if(!el) return;
+  if(parseFloat(el.value) !== p) el.value = p;
+  var pc = Math.round(p*100);
+  el.style.setProperty('--fill', 'linear-gradient(90deg,'+TR1+' 0 '+pc+'%, '+TR2+' '+pc+'% 100%)');
+  var l1 = document.getElementById(l1Id), l2 = document.getElementById(l2Id);
+  // centre of the trait-1 segment is at pc/2 %, centre of trait-2 segment at (pc+100)/2 %
+  l1.style.left = (pc/2) + '%';
+  l2.style.left = ((pc+100)/2) + '%';
+  // show "NN% trait X" where the segment is wide enough, else just "NN%"
+  l1.innerHTML = (pc >= 16)        ? '<b>'+pc+'%</b> trait&nbsp;1'        : '<b>'+pc+'%</b>';
+  l2.innerHTML = ((100-pc) >= 16)  ? '<b>'+(100-pc)+'%</b> trait&nbsp;2'  : '<b>'+(100-pc)+'%</b>';
+}
+function renderInputs(){
+  var a=st.pi1A, b=st.pi1B, R=a/b, R2=(1-a)/(1-b);
+  // the two coloured base-rate sliders ARE the trait distribution
+  setTraitBar('abs-1A','lbl-A1','lbl-A2', a);
+  setTraitBar('abs-1B','lbl-B1','lbl-B2', b);
+  // derived representativeness ratio, shown as nice chips
+  document.getElementById('ratio-chips').innerHTML =
+    '<span class="chip">R(1,A) <b>'+R.toFixed(2)+'</b></span>'+
+    '<span class="chip alt">R(2,A) <b>'+R2.toFixed(2)+'</b></span>';
+  // fuller derived read-out (naive-observer disclosure posteriors)
+  var muA = num('in-mu');
+  var dA1 = muA*a/(muA*a+(1-muA)*b);
+  var dA2 = muA*(1-a)/(muA*(1-a)+(1-muA)*(1-b));
+  document.getElementById('derived').innerHTML =
+    '<b>R(1,A)=</b>'+R.toFixed(3)+' &nbsp; <b>R(2,A)=</b>'+R2.toFixed(3)+
+    ' &nbsp;&middot;&nbsp; naive disclosure posteriors <b>&delta;&#770;(A|1)=</b>'+dA1.toFixed(3)+
+    ' &nbsp; <b>&delta;&#770;(A|2)=</b>'+dA2.toFixed(3)+
+    ' &nbsp;(at &mu;='+muA.toFixed(2)+')';
+  updatePresetActive();
+}
+function syncSliders(){
+  document.getElementById('v-c').textContent   = num('in-c').toFixed(2);
+  document.getElementById('v-mu').textContent  = num('in-mu').toFixed(2);
+  document.getElementById('v-muv').textContent = num('in-muv').toFixed(2);
+  document.getElementById('v-sigv').textContent= num('in-sigv').toFixed(2);
+  document.getElementById('v-theta').textContent= num('in-theta').toFixed(2);
+  document.getElementById('v-C').textContent   = num('in-C').toFixed(2);
+  renderInputs();
+}
+function toggleExt(fromOI){
+  var oi=document.getElementById('ext-oi').checked;
+  var het=document.getElementById('ext-het').checked;
+  document.getElementById('panel-oi').classList.toggle('on', oi);
+  document.getElementById('panel-het').classList.toggle('on', het);
+  // c slider is governed by the cost distribution when hetero is on (reveal only — stays Solve-gated)
+  document.getElementById('in-c').disabled = het;
+  document.getElementById('c-ctrl').style.opacity = het ? 0.45 : 1;
+  // Over-inference ONLY: default theta to the Bordalo point estimate 0.4 on tick, 0 on untick, and render immediately.
+  if(fromOI){
+    document.getElementById('in-theta').value = oi ? 0.4 : 0;
+    syncSliders();   // refresh the theta read-out (v-theta) + derived
+    if(!document.getElementById('results').classList.contains('hidden')) run();
+  }
+}
+
+/* =====================================================================
+   SOLVE + RENDER
+   ===================================================================== */
+var COL = {A1:'#6A3D9A', A2:'#B79AD6', B1:'#1F78B4', B2:'#8FC0E0'};
+var GROUPCOL = {A:'#6A3D9A', B:'#1F78B4'};
+function fmt(x){ return (Math.round(x*1000)/1000).toFixed(3); }
+function pct(x){ return (Math.round(x*1000)/10).toFixed(1)+'%'; }
+
+function run(){
+  var oi  = document.getElementById('ext-oi').checked;
+  var het = document.getElementById('ext-het').checked;
+  var o = {
+    muA: num('in-mu'), muV: num('in-muv'), sigV: num('in-sigv'),
+    c: het ? 1 : num('in-c'),
+    theta: oi ? num('in-theta') : 0,
+    hetero: het, C: num('in-C')
+  };
+  var r = solvePBE(st.pi1A, st.pi1B, o);
+  lastR = r; lastO = o;
+  document.getElementById('results').classList.remove('hidden');
+  renderSilView();
+  document.getElementById('chart-cells').innerHTML = chartCells(r);
+  renderKPIs(r, o);
+  renderTables(r);
+}
+
+/* who-stays-silent view toggle (visual icons <-> grouped bars) */
+function setSilView(v){
+  silView = v;
+  document.getElementById('sv-visual').classList.toggle('on', v==='visual');
+  document.getElementById('sv-bars').classList.toggle('on', v==='bars');
+  renderSilView();
+}
+function renderSilView(){
+  if(!lastR) return;
+  document.getElementById('chart-sil').innerHTML =
+    (silView==='bars') ? chartGroups(lastR) : chartIcons(lastR);
+}
+
+function renderKPIs(r,o){
+  var tags=[];
+  if(o.theta>0) tags.push('over-inference &theta;='+o.theta.toFixed(2));
+  if(o.hetero)  tags.push('c&sim;U[0,'+o.C.toFixed(2)+']');
+  var extra = tags.length? '<div class="kpi"><div class="v" style="font-size:.95rem">'+tags.join('<br>')+'</div><div class="k">active extensions</div></div>' : '';
+  document.getElementById('kpis').innerHTML =
+    kpi('&delta;&#770;(A|&empty;)', fmt(r.muSA), 'silence posterior on A') +
+    kpi('Total silent', pct(r.agg), 'population share withholding') +
+    kpi('Group A silent', pct(r.silG.A), 'share of A withholding') +
+    kpi('Group B silent', pct(r.silG.B), 'share of B withholding') +
+    extra +
+    kpi(r.converged?'converged':'max&nbsp;iters', r.iters, 'fixed-point iterations');
+}
+function kpi(k,v,sub){ return '<div class="kpi"><div class="v">'+v+'</div><div class="k"><b>'+k+'</b> &mdash; '+sub+'</div></div>'; }
+
+function renderTables(r){
+  function grid(cells, fn){
+    return '<table><tr><th class="lab"></th><th>Trait 1</th><th>Trait 2</th></tr>'+
+      '<tr><td class="lab">Group A</td><td>'+fn(r,'A',1)+'</td><td>'+fn(r,'A',2)+'</td></tr>'+
+      '<tr><td class="lab">Group B</td><td>'+fn(r,'B',1)+'</td><td>'+fn(r,'B',2)+'</td></tr></table>';
+  }
+  document.getElementById('tbl-S').innerHTML = grid(0, function(r,g,t){ return fmt(r.S[g+t]); });
+  document.getElementById('tbl-D').innerHTML = grid(0, function(r,g,t){
+    var d=r.D[g+t]; return (d>=0?'+':'')+fmt(d); });
+  document.getElementById('tbl-post').innerHTML =
+    '<table><tr><th class="lab">&delta;&#770;(&middot;|t)</th><th>Trait 1</th><th>Trait 2</th></tr>'+
+    '<tr><td class="lab">on A</td><td>'+fmt(r.mt.A1)+'</td><td>'+fmt(r.mt.A2)+'</td></tr>'+
+    '<tr><td class="lab">on B</td><td>'+fmt(r.mt.B1)+'</td><td>'+fmt(r.mt.B2)+'</td></tr></table>';
+  document.getElementById('tbl-sil').innerHTML =
+    '<table><tr><th>&delta;&#770;(A|&empty;)</th><th>&delta;&#770;(B|&empty;)</th></tr>'+
+    '<tr><td>'+fmt(r.muSA)+'</td><td>'+fmt(1-r.muSA)+'</td></tr></table>';
+}
+
+/* ---- inline SVG: Figure-1 style bars by cell ---- */
+function chartCells(r){
+  var cells=[['A',1],['A',2],['B',1],['B',2]];
+  var W=560,H=300, padL=46,padB=58,padT=14, padR=14;
+  var pw=W-padL-padR, ph=H-padT-padB;
+  var bw=pw/cells.length*0.55, gap=pw/cells.length;
+  var s=['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit">'];
+  for(var y=0;y<=1.0001;y+=0.25){
+    var yy=padT+ph*(1-y);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#888">'+y.toFixed(2)+'</text>');
+  }
+  var by=padT+ph*(1-r.baseline);
+  s.push('<line x1="'+padL+'" y1="'+by+'" x2="'+(W-padR)+'" y2="'+by+'" stroke="#c0392b" stroke-dasharray="5 4"/>');
+  s.push('<text x="'+(W-padR)+'" y="'+(by-4)+'" text-anchor="end" font-size="11" fill="#c0392b">baseline = '+fmt(r.baseline)+'</text>');
+  cells.forEach(function(c,i){
+    var g=c[0],t=c[1], v=r.S[g+t];
+    var cx=padL+gap*(i+0.5);
+    var x=cx-bw/2, h=ph*v, yy=padT+ph-h;
+    s.push('<rect x="'+x+'" y="'+yy+'" width="'+bw+'" height="'+h+'" rx="2" fill="'+COL[g+t]+'" stroke="#0003"/>');
+    s.push('<text x="'+cx+'" y="'+(yy-5)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="#333">'+fmt(v)+'</text>');
+    s.push('<text x="'+cx+'" y="'+(padT+ph+16)+'" text-anchor="middle" font-size="11.5" fill="#333">('+g+','+t+')</text>');
+  });
+  s.push('<text x="'+(padL+pw/2)+'" y="'+(H-22)+'" text-anchor="middle" font-size="11.5" fill="#555">type cell (group, trait)</text>');
+  s.push('<text transform="translate(13,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">silence rate S</text>');
+  s.push('</svg>');
+  var leg='<div class="legend"><span><span class="sw" style="background:'+COL.A1+'"></span>(A,1)</span>'+
+          '<span><span class="sw" style="background:'+COL.A2+'"></span>(A,2)</span>'+
+          '<span><span class="sw" style="background:'+COL.B1+'"></span>(B,1)</span>'+
+          '<span><span class="sw" style="background:'+COL.B2+'"></span>(B,2)</span></div>';
+  return s.join('')+leg;
+}
+
+/* ---- inline SVG: Bordalo-style ghost icons (100 people per group) ---- */
+function personPath(cx,cy,s){
+  var head='<circle cx="'+cx+'" cy="'+(cy-1.15*s)+'" r="'+(0.62*s)+'"/>';
+  var body='<path d="M '+(cx-0.95*s)+' '+(cy+1.25*s)+
+           ' C '+(cx-0.95*s)+' '+(cy-0.45*s)+' '+(cx+0.95*s)+' '+(cy-0.45*s)+' '+(cx+0.95*s)+' '+(cy+1.25*s)+' Z"/>';
+  return head+body;
+}
+function chartIcons(r){
+  var groups=['A','B'];
+  var per=100, cols=10, rows=10;
+  var cell=16, gy0=44;
+  var blobW=cols*cell+20, blobH=rows*cell+20;
+  var gapBetween=50;
+  var W=blobW*2+gapBetween+20, H=blobH+gy0+12;
+  var s=['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit">'];
+  var counts=[];
+  groups.forEach(function(g,gi){
+    var ox=10+gi*(blobW+gapBetween);
+    var n1=Math.round(r.pi[g+'1']*per); var n2=per-n1;
+    var sil1=Math.round(r.S[g+'1']*n1), sil2=Math.round(r.S[g+'2']*n2);
+    var silTot=sil1+sil2;
+    counts.push({g:g, silTot:silTot, n1:n1, n2:n2, sil1:sil1, sil2:sil2});
+    var tint = gi===0 ? '#F3ECFB' : '#EAF3FB';
+    s.push('<rect x="'+ox+'" y="'+gy0+'" width="'+blobW+'" height="'+blobH+'" rx="16" fill="'+tint+'" stroke="'+GROUPCOL[g]+'" stroke-width="1.5"/>');
+    s.push('<text x="'+(ox+blobW/2)+'" y="'+(gy0-22)+'" text-anchor="middle" font-size="14" font-weight="700" fill="'+GROUPCOL[g]+'">Group '+g+'</text>');
+    s.push('<text x="'+(ox+blobW/2)+'" y="'+(gy0-7)+'" text-anchor="middle" font-size="13" font-weight="600" fill="#333">'+silTot+'% stay silent</text>');
+    // FULL (non-silent) icons first at top-left, SILENT (faded) icons trail after; trait 1 then trait 2 within each
+    // sort by trait, then within each trait by silence: t1 loud, t1 silent, t2 loud, t2 silent
+    var non1=n1-sil1, non2=n2-sil2;
+    var list=[];
+    for(var k=0;k<non1;k++) list.push({col:'#E07B39', silent:false});
+    for(var k=0;k<sil1;k++) list.push({col:'#E07B39', silent:true});
+    for(var k=0;k<non2;k++) list.push({col:'#3F8E7F', silent:false});
+    for(var k=0;k<sil2;k++) list.push({col:'#3F8E7F', silent:true});
+    list.forEach(function(ic,idx){
+      var cc=idx%cols, rr=Math.floor(idx/cols);
+      var cx=ox+10+cc*cell+cell/2;
+      var cy=gy0+10+rr*cell+cell/2;
+      var sc=4.2;
+      if(ic.silent){
+        s.push('<g fill="'+ic.col+'" fill-opacity="0.16" stroke="'+ic.col+'" stroke-width="0.7" stroke-dasharray="2 1.5" stroke-opacity="0.85">'+personPath(cx,cy,sc)+'</g>');
+      } else {
+        s.push('<g fill="'+ic.col+'">'+personPath(cx,cy,sc)+'</g>');
+      }
+    });
+  });
+  s.push('</svg>');
+  var countsHTML='<div class="silcounts">'+counts.map(function(c){
+    return '<div class="silcount-group">'+
+      '<div class="scg-head" style="color:'+GROUPCOL[c.g]+'">Group '+c.g+' &middot; '+c.silTot+'% silent</div>'+
+      '<div class="scg-row"><span class="scg-sw" style="background:#E07B39"></span>Trait&nbsp;1 &mdash; <b>'+c.sil1+'</b> of <b>'+c.n1+'</b> silent</div>'+
+      '<div class="scg-row"><span class="scg-sw" style="background:#3F8E7F"></span>Trait&nbsp;2 &mdash; <b>'+c.sil2+'</b> of <b>'+c.n2+'</b> silent</div>'+
+    '</div>';
+  }).join('')+'</div>';
+  var leg='<div class="legend">'+
+    '<span><span class="sw" style="background:#E07B39"></span>trait 1</span>'+
+    '<span><span class="sw" style="background:#3F8E7F"></span>trait 2</span>'+
+    '<span><span class="sw" style="background:#ccc;opacity:.5;border:1px dashed #888"></span>faded = silent</span></div>';
+  return s.join('')+countsHTML+leg;
+}
+
+/* ---- inline SVG: grouped bars per group (the "Bars" view) ---- */
+function chartGroups(r){
+  var W=520,H=290, padL=46,padB=46,padT=14,padR=14;
+  var pw=W-padL-padR, ph=H-padT-padB;
+  var groups=['A','B'];
+  var s=['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit">'];
+  for(var y=0;y<=1.0001;y+=0.25){
+    var yy=padT+ph*(1-y);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#888">'+y.toFixed(2)+'</text>');
+  }
+  var slot=pw/groups.length, bw=slot*0.24;
+  groups.forEach(function(g,i){
+    var base=padL+slot*(i+0.5);
+    [['1',COL[g+'1']],['2',COL[g+'2']]].forEach(function(tt,j){
+      var v=r.S[g+tt[0]];
+      var x=base+(j-1)*bw*1.15 - bw*0.0;
+      var h=ph*v, yy=padT+ph-h;
+      s.push('<rect x="'+x+'" y="'+yy+'" width="'+bw+'" height="'+h+'" rx="2" fill="'+tt[1]+'" stroke="#0003"/>');
+      s.push('<text x="'+(x+bw/2)+'" y="'+(yy-4)+'" text-anchor="middle" font-size="10.5" fill="#444">'+fmt(v)+'</text>');
+      s.push('<text x="'+(x+bw/2)+'" y="'+(padT+ph+14)+'" text-anchor="middle" font-size="10" fill="#666">t'+tt[0]+'</text>');
+    });
+    var gy=padT+ph*(1-r.silG[g]);
+    s.push('<line x1="'+(base-bw*1.6)+'" y1="'+gy+'" x2="'+(base+bw*1.6)+'" y2="'+gy+'" stroke="#222" stroke-width="2" stroke-dasharray="3 2"/>');
+    s.push('<text x="'+base+'" y="'+(padT+ph+32)+'" text-anchor="middle" font-size="12" font-weight="700" fill="'+GROUPCOL[g]+'">Group '+g+'</text>');
+  });
+  s.push('<text transform="translate(13,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">silence rate S</text>');
+  s.push('</svg>');
+  var leg='<div class="legend"><span>bars: <span class="sw" style="background:#999"></span> per-cell S<sub>g,t</sub></span>'+
+          '<span><span class="sw" style="background:#222"></span> dashed = whole-group silent share</span></div>';
+  return s.join('')+leg;
+}
+
+/* ---- init ---- */
+syncSliders();
+renderInputs();
+run();
+
+/* sticky header collapse: reveal compact title once the hero scrolls past */
+(function(){
+  var sentinel = document.getElementById('hdr-sentinel');
+  var topbar = document.getElementById('topbar');
+  if(sentinel && topbar && 'IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, {threshold:0}).observe(sentinel);
+  }
+})();
+</script>
+<script>
+/* ---- SPA router: swap only the lower content; shell stays fixed ---- */
+(function(){
+  var NAV = Array.prototype.slice.call(document.querySelectorAll('.topbar nav a[data-view]'));
+  var vStim = document.getElementById('view-stimuli');
+  var vModel = document.getElementById('view-model');
+  function setView(name){
+    if(name !== 'model' && name !== 'stimuli') name = 'stimuli';
+    var isModel = (name === 'model');
+    vStim.classList.toggle('hidden', isModel);
+    vModel.classList.toggle('hidden', !isModel);
+    NAV.forEach(function(a){ a.classList.toggle('active', a.getAttribute('data-view') === name); });
+    document.title = isModel ? 'The Unprotected Majority \u2014 Model'
+                             : 'The Unprotected Majority \u2014 Stimuli';
+  }
+  NAV.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var name = a.getAttribute('data-view');
+      if(location.hash !== '#' + name){ location.hash = name; }  // -> hashchange -> route
+      else { setView(name); }
+    });
+  });
+  function route(){ setView((location.hash || '').replace(/^#/, '') || 'stimuli'); }
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+
+</body>
+</html>

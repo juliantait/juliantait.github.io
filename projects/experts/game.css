@@ -1,0 +1,179 @@
+
+        /* =====================================================================
+           game.css — GAME page content (overlay experiment). Page-specific;
+           reuses the shell palette vars (--expert, --novice, --border, --card,
+           --text, --text-muted, --font-mono). The Game is a full-screen overlay
+           ON TOP OF the Simulated Groups page (which stays mounted, dimmed);
+           Esc or the ✕ button closes it. Sized to fit a 13.6" MacBook unscrolled.
+           ===================================================================== */
+
+        /* full-screen overlay over the Simulated Groups page */
+        #game-overlay { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:18px; background:rgba(16,20,38,0.62); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
+        #game-overlay[hidden] { display:none; }
+        body.game-open { overflow:hidden; }
+        /* close ✕ — sits in the top-right corner of the card itself */
+        #sec-game .card-x { position:absolute; top:13px; right:14px; z-index:6; width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:#fff; color:var(--text-muted); font-size:13px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color .15s, border-color .15s; }
+        #sec-game .card-x:hover { color:var(--text); border-color:var(--text-muted); }
+
+        #sec-game { width:100%; display:flex; align-items:center; justify-content:center; }
+
+        /* intro screen (first thing shown inside the overlay) */
+        #sec-game .game-intro { position:relative; background:var(--card); border-radius:18px; max-width:580px; width:100%; padding:32px 38px 28px; box-shadow:0 30px 80px rgba(0,0,0,0.55); }
+        #sec-game .muted-cite { color:var(--text-muted); font-size:0.92em; }
+        #sec-game .game-intro[hidden] { display:none; }
+        #sec-game .game-eyebrow { display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--expert); background:rgba(37,99,235,0.10); padding:5px 11px; border-radius:999px; margin-bottom:14px; }
+        #sec-game .game-intro h2 { font-family:'Source Serif 4',Georgia,serif; font-size:1.7rem; font-weight:700; line-height:1.08; color:var(--text); margin-bottom:12px; }
+        #sec-game .intro-block { margin-bottom:13px; }
+        #sec-game .intro-h { font-size:13.5px; line-height:1.45; color:var(--text); margin-bottom:5px; }
+        #sec-game .intro-h b { color:var(--text); font-weight:700; }
+        #sec-game .game-intro ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px; }
+        #sec-game .game-intro li { position:relative; padding-left:17px; font-size:12.5px; line-height:1.4; color:var(--text-muted); }
+        #sec-game .game-intro li::before { content:''; position:absolute; left:4px; top:8px; width:5px; height:5px; border-radius:50%; background:var(--expert); }
+        #sec-game .game-intro li b { color:var(--text); }
+        #sec-game .game-intro-foot { display:flex; align-items:center; gap:14px; }
+        #sec-game .game-play { background:var(--expert); color:#fff; border:0; border-radius:11px; padding:13px 38px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(37,99,235,0.35); transition:background .15s, transform .05s; }
+        #sec-game .game-play:hover { background:#1d4ed8; }
+        #sec-game .game-play:active { transform:translateY(1px); }
+        #sec-game .game-intro-hint { font-size:12px; color:var(--text-muted); }
+        #sec-game .game-intro-hint b { color:var(--text); }
+
+        /* experiment panel — the card that holds the game itself */
+        #sec-game .game-panel { position:relative; background:var(--card); border-radius:18px; width:100%; max-width:1120px; max-height:calc(100vh - 36px); overflow:auto; padding:18px 24px 20px; box-shadow:0 30px 80px rgba(0,0,0,0.55); }
+        #sec-game .game-panel[hidden] { display:none; }
+
+        /* header row (no Go button — the Game advances via Submit → Next round) */
+        /* padding-right keeps the role chip clear of the close ✕ in the corner */
+        #sec-game .game-go-row { display:flex; align-items:center; gap:13px; flex-wrap:wrap; margin-bottom:14px; padding-bottom:12px; padding-right:40px; border-bottom:1px solid var(--border); }
+        #sec-game .game-title { font-family:'Source Serif 4',Georgia,serif; font-weight:700; font-size:1.2rem; letter-spacing:-0.01em; color:var(--text); }
+        #sec-game .game-role { flex:0 0 auto; white-space:nowrap; font-family:var(--font-mono); font-weight:700; font-size:11.5px; letter-spacing:0.5px; padding:5px 12px; border-radius:999px; margin-left:auto; }
+        #sec-game .game-role.expert { color:var(--expert); background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.30); }
+        #sec-game .game-role.novice { color:var(--novice); background:rgba(220,38,38,0.10); border:1px solid rgba(220,38,38,0.30); }
+
+        /* TOP panel: scatter (2/3, left) + β slider (1/3, right). BOTTOM panel: beliefs + bet, 50/50. */
+        #sec-game .game-top { display:grid; grid-template-columns:2fr 1fr; gap:18px; align-items:stretch; margin-bottom:14px; }
+        #sec-game .game-bottom { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
+        /* the scatter fills its cell so it matches the β-box height exactly
+           (the β box, via beta-track min-height, sets the shared top-row height) */
+        #sec-game .game-scatter-wrap { width:100%; display:flex; min-height:0; }
+        #sec-game canvas#game-scatter { width:100%; height:100%; min-height:180px; display:block; background:#fff; border:1px solid var(--border); border-radius:10px; }
+        /* the bottom work zones share the same soft card treatment as the β box,
+           and a FIXED equal height so the page never jumps between bet ↔ reveal */
+        #sec-game .belief-area, #sec-game .bet-area { display:flex; flex-direction:column; min-height:220px; border:1px solid var(--border); border-radius:10px; background:#fafbfc; padding:12px 14px 13px; }
+        #sec-game .belief-body, #sec-game .bet-body { flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0; }
+        #sec-game .bet-body { gap:9px; }
+        #sec-game .ctl-title { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:10px; }
+        #sec-game .ctl-title .q { font-weight:500; text-transform:none; letter-spacing:0; color:var(--text-muted); }
+
+        /* belief bars — each 0–100, independent, never auto-adjusted.
+           The three bars occupy the MIDDLE HALF of the box (¼ margin each side),
+           horizontally centred with even spacing between them. */
+        #sec-game .belief-bars { display:flex; justify-content:space-between; align-items:flex-end; width:50%; margin:0 auto; }
+        #sec-game .bbar { display:flex; flex-direction:column; align-items:center; gap:4px; }
+        #sec-game .bbar-val { font-family:var(--font-mono); font-weight:700; font-size:12px; color:var(--text); }
+        #sec-game .bbar-track { position:relative; width:38px; height:96px; background:#eef2f7; border:1px solid var(--border); border-radius:6px; overflow:hidden; cursor:ns-resize; touch-action:none; }
+        #sec-game .bbar-fill { position:absolute; left:0; right:0; bottom:0; }
+        #sec-game .bbar-fill.s0 { background:rgba(220,38,38,0.78); }
+        #sec-game .bbar-fill.s1 { background:rgba(100,116,139,0.78); }
+        #sec-game .bbar-fill.s2 { background:rgba(37,99,235,0.78); }
+        #sec-game .bbar-opt { position:absolute; left:0; right:0; bottom:0; border-top:2px solid #c2410c; box-sizing:border-box; display:none; pointer-events:none; }
+        #sec-game.revealed .bbar-opt { display:block; }
+        #sec-game .bbar-opt span { position:absolute; right:1px; top:2px; font-family:var(--font-mono); font-size:9px; font-weight:800; color:#c2410c; white-space:nowrap; text-shadow:0 0 2px #fff, 0 0 2px #fff; }
+        #sec-game .bbar-lab { font-family:var(--font-mono); font-size:10px; color:var(--text-muted); }
+
+        /* bet — €1 allocation: a draggable "you" bar; on reveal an "optimal" bar appears below */
+        #sec-game .bet-area { min-width:0; }
+        /* inline row: label sits to the LEFT of the bar (saves vertical space so the
+           bet box matches the belief box height on both screens) */
+        #sec-game .bet-barline { display:flex; align-items:center; gap:8px; }
+        #sec-game .bet-rowlab { flex:0 0 46px; width:46px; text-align:right; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); }
+        #sec-game .opt-only { display:none; }
+        #sec-game.revealed .opt-only { display:flex; }
+        #sec-game .alloc-bar { position:relative; flex:1; min-width:0; height:34px; touch-action:none; user-select:none; }
+        #sec-game .alloc-optbar { position:relative; flex:1; min-width:0; height:28px; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+        #sec-game .alloc-track { position:absolute; inset:0; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+        #sec-game .alloc-seg { position:absolute; top:0; bottom:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:12px; color:#fff; overflow:hidden; white-space:nowrap; }
+        #sec-game .alloc-seg.s0 { background:#dc2626; }
+        #sec-game .alloc-seg.s1 { background:#64748b; }
+        #sec-game .alloc-seg.s2 { background:#2563eb; }
+        #sec-game .alloc-optbar .alloc-seg { font-size:11px; }
+        #sec-game .alloc-handle { position:absolute; top:-3px; bottom:-3px; width:14px; margin-left:-7px; background:#fff; border:2px solid var(--text); border-radius:4px; cursor:ew-resize; box-shadow:0 1px 4px rgba(0,0,0,0.35); z-index:3; touch-action:none; }
+        #sec-game .alloc-handle::after { content:''; position:absolute; left:50%; top:50%; width:2px; height:16px; margin:-8px 0 0 -1px; background:var(--text); opacity:0.45; border-radius:1px; }
+        #sec-game.revealed .alloc-handle { display:none; }
+        #sec-game .alloc-labels { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); margin-top:2px; padding-left:54px; }
+
+        /* beta-estimate vertical slider — the 1/3 right panel of the top row */
+        #sec-game .beta-col { display:flex; flex-direction:column; align-items:center; gap:8px; border:1px solid var(--border); border-radius:10px; background:#fafbfc; padding:10px 8px; }
+        #sec-game .beta-coltitle { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); text-align:center; }
+        #sec-game .beta-wrap { display:flex; align-items:stretch; gap:9px; flex:1; min-height:0; }
+        #sec-game .beta-axis { display:flex; flex-direction:column; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--text-muted); padding:1px 0; }
+        #sec-game .beta-track { position:relative; width:12px; height:100%; min-height:150px; border-radius:6px; cursor:ns-resize; touch-action:none; background:linear-gradient(180deg, rgba(37,99,235,0.45) 0%, #e6ebf1 50%, rgba(220,38,38,0.45) 100%); border:1px solid var(--border); }
+        #sec-game .beta-track::before { content:''; position:absolute; left:-4px; right:-4px; top:50%; height:1px; background:var(--text-muted); opacity:0.5; }
+        #sec-game .beta-thumb { position:absolute; left:50%; width:22px; height:22px; margin-left:-11px; margin-top:-11px; top:50%; border-radius:50%; background:#fff; border:2px solid var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.30); cursor:ns-resize; z-index:2; }
+        #sec-game .beta-hat { position:absolute; left:-7px; right:-7px; top:50%; height:0; border-top:2px solid #0e7d54; display:none; z-index:1; }
+        #sec-game .beta-hat span { position:absolute; left:calc(100% + 3px); top:-8px; font-family:var(--font-mono); font-size:11px; font-weight:800; color:#0e7d54; white-space:nowrap; }
+        #sec-game.revealed .beta-hat { display:block; }
+        #sec-game .beta-readout { text-align:center; font-size:10.5px; color:var(--text-muted); line-height:1.3; }
+        #sec-game .beta-readout #beta-val { font-family:var(--font-mono); font-weight:800; font-size:17px; color:var(--text); display:block; }
+        /* always occupies its line (visibility, not display) so the β box — and the
+           whole panel — keeps the same height between the bet and results screens */
+        #sec-game .beta-hat-readout { display:block; visibility:hidden; min-height:15px; font-family:var(--font-mono); font-size:11px; font-weight:700; color:#0e7d54; }
+        #sec-game.revealed .beta-hat-readout { visibility:visible; }
+
+        /* belief legend (revealed) */
+        /* Always render the caption (text is static in the HTML) and only toggle its
+           VISIBILITY, so its vertical space is reserved on the bet screen too and the
+           belief bars sit at the exact same position on bet and results (no jump). */
+        #sec-game .belief-note { visibility:hidden; min-height:1.4em; font-size:10.5px; color:var(--text-muted); margin-top:9px; }
+        #sec-game.revealed .belief-note { visibility:visible; }
+        #sec-game .belief-note .swatch { display:inline-block; width:14px; height:0; border-top:2px solid #c2410c; vertical-align:middle; margin-right:5px; }
+
+        /* bet-area earnings (revealed, bottom-right): payoff / your expected / optimal expected */
+        #sec-game .bet-earn { display:none; gap:8px; flex-wrap:wrap; align-items:stretch; margin-top:11px; }
+        #sec-game.revealed .bet-earn { display:flex; }
+        #sec-game .earn-stat { flex:1; min-width:80px; display:flex; flex-direction:column; gap:3px; border:1px solid var(--border); border-radius:9px; background:#fff; padding:7px 10px 8px; }
+        #sec-game .earn-stat .v { font-family:var(--font-mono); font-weight:800; font-size:17px; line-height:1; color:var(--text); }
+        #sec-game .earn-stat.paid { border-color:rgba(14,125,84,0.35); background:rgba(14,125,84,0.05); }
+        #sec-game .earn-stat.paid .v { color:#0e7d54; }
+        #sec-game .earn-stat.opt { border-color:rgba(37,99,235,0.35); background:rgba(37,99,235,0.05); }
+        #sec-game .earn-stat.opt .v { color:var(--expert); }
+        #sec-game .earn-stat .k { font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); }
+
+        /* footer: Submit (screen one, centred) → realised slope + Next round (screen two) */
+        /* fixed-height footer so the panel height is identical on the bet and results screens */
+        #sec-game .game-foot { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:13px; padding-top:12px; border-top:1px solid var(--border); height:62px; flex-wrap:wrap; }
+        #sec-game .game-submit { background:var(--expert); color:#fff; border:0; border-radius:9px; padding:10px 32px; font-size:0.95rem; font-weight:700; cursor:pointer; letter-spacing:0.3px; }
+        #sec-game .game-submit:hover { background:#1d4ed8; }
+
+        /* shorter viewports: trim the shared top-row height so it still fits unscrolled
+           (β-track drives the row; the scatter fills to match) */
+        @media (max-height:740px) {
+          #sec-game canvas#game-scatter { min-height:150px; }
+          #sec-game .beta-track { min-height:110px; }
+        }
+
+        /* ---- session results: secondary "See results" button (reveal only) ---- */
+        #sec-game .game-results-btn {
+          display:none; background:#fff; color:var(--expert); border:1px solid rgba(37,99,235,0.45);
+          border-radius:9px; padding:10px 24px; font-size:0.95rem; font-weight:700; cursor:pointer; letter-spacing:0.3px;
+          transition:background .15s, border-color .15s;
+        }
+        #sec-game.revealed .game-results-btn { display:inline-block; }
+        #sec-game .game-results-btn:hover { background:rgba(37,99,235,0.08); border-color:var(--expert); }
+
+        /* ---- session summary screen (matches the intro/results card styling) ---- */
+        #sec-game .game-summary { position:relative; background:var(--card); border-radius:18px; max-width:560px; width:100%; padding:32px 36px 28px; box-shadow:0 30px 80px rgba(0,0,0,0.55); }
+        #sec-game .game-summary[hidden] { display:none; }
+        #sec-game .game-summary h2 { font-family:'Source Serif 4',Georgia,serif; font-size:1.6rem; font-weight:700; color:var(--text); margin-bottom:18px; }
+        #sec-game .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:22px; }
+        #sec-game .sum-stat { display:flex; flex-direction:column; gap:4px; border:1px solid var(--border); border-radius:12px; background:#fafbfc; padding:14px 16px; }
+        #sec-game .sum-stat .v { font-family:var(--font-mono); font-weight:800; font-size:23px; line-height:1; color:var(--text); }
+        #sec-game .sum-stat .k { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+        #sec-game .sum-stat .sk { display:block; text-transform:none; letter-spacing:0; font-weight:500; font-size:10px; color:var(--text-muted); margin-top:2px; }
+        #sec-game .sum-stat.won { background:rgba(14,125,84,0.05); border-color:rgba(14,125,84,0.30); }
+        #sec-game .sum-stat.won .v { color:#0e7d54; }
+        #sec-game .sum-stat.acc { background:rgba(37,99,235,0.05); border-color:rgba(37,99,235,0.28); }
+        #sec-game .sum-stat.acc .v { color:var(--expert); }
+        #sec-game .sum-stat.wide { grid-column:1 / -1; }   /* bet hit-rate spans the full row */
+        #sec-game .summary-foot { display:flex; align-items:center; gap:12px; }
+        #sec-game .game-secondary { background:#fff; color:var(--text); border:1px solid var(--border); border-radius:11px; padding:13px 30px; font-size:0.95rem; font-weight:700; cursor:pointer; transition:background .15s, border-color .15s; }
+        #sec-game .game-secondary:hover { background:#f3f4f8; border-color:var(--text-muted); }

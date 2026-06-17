@@ -1,0 +1,1008 @@
+/* ============================================================================
+     SIMULATION CSS  (page content for the "Simulated Groups" view → simulation.css)
+     The Error Rate Explorer, fully scoped under .exp so its bare element selectors
+     never reach the shared shell above.
+     ============================================================================ */
+.exp {
+  /* ---- Error Rate Explorer palette + type, scoped to this wrapper so its
+     bare element selectors and :root variables never reach the shared shell.
+     Native CSS nesting puts every rule below under .exp. ---- */
+  --blue: #2563eb;
+  --gray: #6b7280;
+  --red: #dc2626;
+  --bg: #fafbfc;
+  --card: #ffffff;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --font-mono: 'Menlo', 'Consolas', 'Monaco', monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --novice: #dc2626;
+  --expert: #2563eb;
+  font-family: var(--font-sans);
+  color: var(--text);
+  line-height: 1.55;
+  font-size: 14.5px;
+  /* offset hash-anchor jumps so section tops clear the sticky bar */
+  scroll-margin-top: 70px;
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+
+  /* ---- Control panel (parameter row) ---- */
+  .form-row {
+    display: flex;
+    align-items: flex-start;      /* ITEM 2: align group TOPS so labels/boxes line up in a tidy grid */
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  /* At desktop widths the whole panel fits on one line; force a single row there
+     so Go never wraps. Narrower viewports keep wrapping for responsiveness. */
+  @media (min-width: 1080px) {
+    .form-row { flex-wrap: nowrap; }
+  }
+
+  /* Logical group: a small uppercase caption over a cluster of related inputs. */
+  .control-group { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+  .cg-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;             /* ITEM 2: uniform caption height -> input rows share a baseline */
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .cg-body { display: flex; align-items: flex-start; gap: 12px; }   /* ITEM 2: inputs top-aligned */
+
+  /* Thin separators between groups (desktop only — hidden once the row wraps). */
+  .cg-divider { align-self: stretch; width: 1px; background: var(--border); }
+  @media (max-width: 1079px) { .cg-divider { display: none; } }
+
+  /* Go is the primary action — pushed right. ITEM 5: the group is a FIXED-width
+     slot and the button is centred in it, so the status caption above (which
+     changes between "press Go" and "simulation took: … ms") never shifts the
+     button horizontally. */
+  .go-group { margin-left: auto; flex: 0 0 184px; align-items: center; }
+  .go-group .cg-title { justify-content: center; width: 100%; }
+  .go-group .cg-body { justify-content: center; width: 100%; }
+  .go-group .sim-timer {
+    display: block;
+    width: 100%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .go-input { align-items: center; }
+
+  .input-group { display: flex; flex-direction: column; gap: 5px; }
+
+  .input-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .input-group input {
+    padding: 7px 8px;
+    font-size: 14px;
+    font-family: var(--font-mono);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    /* Compact: comfortably fits a value like -0.20 / 0.25 (sign + digit + dot
+       + two decimals) without the wide default that pushed Go onto a new line. */
+    width: 5.5ch;
+    box-sizing: content-box;
+  }
+
+  .input-group input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .input-group input.invalid {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+  }
+
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .seg button {
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    background: white;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button.active { background: #1e293b; color: white; }
+
+  .go-btn {
+    padding: 9px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+
+  .go-btn:hover { background: #1d4ed8; }
+
+  .error-msg {
+    color: var(--red);
+    font-size: 12.5px;
+    margin-top: 8px;
+    min-height: 16px;
+  }
+
+  .sim-timer {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 14px;
+    letter-spacing: 0.2px;
+    text-transform: none;
+  }
+
+  /* Candidate states over their matching priors: β1 β2 β3 on top, π1 π2 π3
+     directly beneath (column-aligned). Explicit cell placement keeps the columns
+     aligned even when the 3rd column (β3 / π3) is hidden for the 2-candidate case. */
+  .beta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    gap: 7px 12px;
+    align-items: end;
+  }
+  .beta-grid > :nth-child(1) { grid-area: 1 / 1; }
+  .beta-grid > :nth-child(2) { grid-area: 1 / 2; }
+  .beta-grid > :nth-child(3) { grid-area: 1 / 3; }
+  .beta-grid > :nth-child(4) { grid-area: 2 / 1; }
+  .beta-grid > :nth-child(5) { grid-area: 2 / 2; }
+  .beta-grid > :nth-child(6) { grid-area: 2 / 3; }
+  /* Inside the grid the per-input label sits inline-compact above each box. */
+  .beta-grid .input-group { gap: 3px; }
+  .beta-grid .input-group label { font-size: 10.5px; }
+
+  /* Proper math-style Greek symbol (β, π, σ …). text-transform:none is the key:
+     inside uppercase contexts (table th, input labels) CSS would otherwise fold a
+     lowercase β into capital Beta Β, which is indistinguishable from a Latin B. */
+  .mvar {
+    font-style: italic;
+    font-family: 'Cambria Math', Cambria, 'STIX Two Math', Georgia, 'Times New Roman', serif;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* ---- Headline ---- */
+  .headline {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;   /* breathing room before the graph + table row */
+  }
+
+  .head-cell {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 18px 18px;
+    text-align: center;
+    background: var(--card);
+  }
+
+  .head-cell.novice { border-color: rgba(220,38,38,0.35); background: linear-gradient(180deg, #fff7f7, #fff); }
+  .head-cell.expert { border-color: rgba(37,99,235,0.35); background: linear-gradient(180deg, #f5f8ff, #fff); }
+
+  .head-role {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .head-metrics {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+  }
+  .head-metric { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+
+  .head-num {
+    font-size: 42px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .head-cell.novice .head-num { color: var(--novice); }
+  .head-cell.expert .head-num { color: var(--expert); }
+  /* The Bayes-optimal number is the better one but shown as a reference: slightly
+     softened so the headline (nearest) stays primary, gap = base-rate-neglect cost. */
+  .head-metric + .head-metric .head-num { opacity: 0.62; }
+
+  .head-sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+  }
+  .head-sub .info-popover { text-align: left; }
+
+  @media (max-width: 620px) {
+    .headline { grid-template-columns: 1fr; }
+    .head-num { font-size: 34px; }
+    .head-metrics { gap: 20px; }
+  }
+
+  /* ---- Graph + table block (constrained to ~2/3 width, stacked, left-aligned) ---- */
+  /* ITEM 6: graph and table sit SIDE BY SIDE in one row (graph a touch wider),
+     below the full-width headline. They stack vertically on narrow screens. */
+  .viz-block {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: stretch;          /* ITEM A: graph and table share the row height */
+  }
+  .viz-block .card { margin-bottom: 0; }
+  /* The graph card fills its (stretched) height; the canvas grows to match the
+     table beside it. drawPlot() reads canvas-wrap's height and redraws to fit. */
+  .viz-graph-card { display: flex; flex-direction: column; }
+  .viz-graph-card .canvas-wrap { flex: 1 1 auto; min-height: 160px; }
+  @media (max-width: 860px) {
+    .viz-block { grid-template-columns: 1fr; }
+  }
+
+  /* ---- Graph ---- */
+  .canvas-wrap { width: 100%; }
+
+  canvas {
+    display: block;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  /* ---- Breakdown table ---- */
+  table.bd {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  table.bd th, table.bd td {
+    padding: 10px 12px;
+    text-align: center;          /* ITEM 3: centre all column contents */
+    border-bottom: 1px solid var(--border);
+  }
+
+  table.bd th:first-child, table.bd td:first-child {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  table.bd th {
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  table.bd td.role-novice { color: var(--novice); }
+  table.bd td.role-expert { color: var(--expert); }
+  table.bd td.role-prior { color: var(--text-muted); font-weight: 600; }
+
+  /* Sampling / prior-probability row: subdued, sits above the role rows */
+  table.bd tr.prior-row td {
+    background: #f8fafc;
+    border-bottom: 2px solid var(--border);
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .cell-prior {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .cell-err {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .cell-err::before { content: 'err '; font-weight: 400; color: var(--text-muted); opacity: 0.7; }
+
+  .cell-conf {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 11.5px;
+    margin-top: 2px;
+  }
+
+  .cell-conf::before { content: 'conf '; opacity: 0.7; }
+
+  table.bd td.avg {
+    background: #fafbfc;
+    border-left: 1px solid var(--border);
+  }
+
+  /* ---- Breakdown table legend / key ---- */
+  .bd-legend {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;   /* ITEM 3: centre the legend */
+    text-align: center;
+  }
+  .bd-legend .tag {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--text);
+  }
+  .bd-swatch {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .bd-swatch.err { background: #334155; }
+  .bd-swatch.conf { background: #cbd5e1; }
+  .bd-legend .role-novice { color: var(--novice); font-weight: 700; letter-spacing: 0.5px; }
+  .bd-legend .role-expert { color: var(--expert); font-weight: 700; letter-spacing: 0.5px; }
+  .bd-legend .info-btn { margin-left: 5px; vertical-align: middle; }
+
+  /* ---- Examples (group rows) ---- */
+  .example-group { margin-bottom: 18px; }
+
+  .example-group-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding: 0 2px;
+  }
+
+  .example-group-header .true-beta {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .example-group-header .true-beta .num { font-family: var(--font-mono); }
+
+  .example-group-header .composition {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .example-group-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .example-row {
+    flex: 1 1 540px;
+    display: grid;
+    /* Auto-fit comfortable cards instead of forcing 5 thin columns. With 3
+       members per group they fill the row at a pleasant ~240-320px each on
+       desktop and wrap to 2 / 1 columns as the viewport narrows. */
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    min-width: 0;
+  }
+
+  @media (max-width: 560px) {
+    .example-row { grid-template-columns: 1fr; }
+  }
+
+  .monotonicity-box {
+    flex: 0 1 230px;
+    min-width: 210px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mono-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--text);
+  }
+  .mono-title .role {
+    color: var(--novice);
+    font-weight: 800;
+    letter-spacing: 0.6px;
+  }
+
+  .mono-sub {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: -4px;
+  }
+
+  .mono-hint {
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-muted);
+    border-left: 2px solid var(--border);
+    padding-left: 8px;
+  }
+
+  .mono-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+  .mono-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .mono-stat .lab { color: var(--text-muted); }
+  .mono-stat .val { font-weight: 700; color: var(--text); }
+
+  /* Bucket distribution as a compact labelled mini-histogram. */
+  .mono-hist {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+  .mono-hist-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+  .mono-bar-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 36px;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+  .mono-bar-lab { color: var(--text-muted); text-align: right; }
+  .mono-bar-track {
+    height: 9px;
+    background: #e6ebf1;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .mono-bar-fill {
+    display: block;
+    height: 100%;
+    min-width: 1px;
+    background: var(--novice);
+    border-radius: 5px;
+    opacity: 0.85;
+  }
+  .mono-bar-val { color: var(--text); font-weight: 700; text-align: right; }
+
+  .example-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    padding: 10px 11px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .example-card.expert { border-left: 4px solid var(--expert); }
+  .example-card.novice { border-left: 4px solid var(--novice); }
+
+  .example-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 11.5px;
+    letter-spacing: 0.3px;
+  }
+
+  .ex-role {
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    font-size: 11px;
+  }
+
+  .ex-role.novice { color: var(--novice); }
+  .ex-role.expert { color: var(--expert); }
+
+  .ex-meta {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  canvas.scatter {
+    width: 100%;
+    height: 130px;
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+  }
+
+  .mini-canvas-wrap { width: 100%; }
+
+  canvas.mini {
+    width: 100%;
+    height: 90px;
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fbfcfe;
+  }
+
+  .example-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    font-size: 12px;
+  }
+
+  .stat-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .stat-line .lab {
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    /* Fixed label column keeps values aligned and right next to their label
+       instead of flung to the far edge by space-between on wide cards. */
+    min-width: 40px;
+  }
+
+  .stat-line .val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  /* ITEM 1: two pick rules (nearest + most likely), each with an info popover. */
+  .pick-block {
+    margin-top: 4px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .pop-host { position: relative; }   /* popover anchor (header + pick lines) */
+  .pick-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 1px;
+  }
+  .pick-head-lab {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+  .pick-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .pick-line .lab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 78px;
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+  .pick-line .val {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .pick-line .val.pick-nearest { color: var(--text); }
+  /* "most likely" matches the highlighted (blue) posterior bar. */
+  .pick-line .val.pick-likely { color: var(--blue); font-weight: 800; }
+
+  .info-btn.mini-info { width: 14px; height: 14px; font-size: 10px; }
+  .info-popover.pick-pop {
+    width: 232px;
+    font-size: 11px;
+    line-height: 1.45;
+    top: calc(100% + 6px);
+  }
+
+  .example-legend {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- Simulation-view lead paragraph ---- */
+  .sim-lead {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin: 0 0 18px;
+  }
+  .sim-lead b { color: var(--text); font-weight: 700; }
+
+  /* ---- Group aggregation: rho control strip ---- */
+  .agg-controls {
+    position: relative;
+    margin-bottom: 18px;
+    padding: 14px 16px 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .agg-controls .ac-top { display: flex; align-items: center; gap: 7px; }
+  .agg-controls .ac-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text);
+  }
+  .agg-controls .ac-host { position: relative; display: inline-flex; }
+  .agg-controls .ac-desc {
+    font-size: 12.5px; line-height: 1.55; color: var(--text-muted); margin: 6px 0 14px; max-width: 88ch;
+  }
+  .agg-controls .ac-desc b { color: var(--text); font-weight: 600; }
+  .agg-controls .ac-slider-row {
+    display: grid; grid-template-columns: minmax(120px,1fr) minmax(160px,2.4fr) minmax(120px,1fr);
+    align-items: center; gap: 16px;
+  }
+  .agg-controls .ac-end {
+    display: flex; flex-direction: column; gap: 1px; font-size: 11px; line-height: 1.25;
+  }
+  .agg-controls .ac-end.ac-end-r { text-align: right; }
+  .agg-controls .ac-end b { font-size: 11.5px; font-weight: 700; color: var(--text); }
+  .agg-controls .ac-end-rho { font-family: var(--font-mono); color: var(--blue); font-weight: 700; }
+  .agg-controls .ac-end-sub { color: var(--text-muted); }
+  .agg-controls input[type=range] {
+    width: 100%; height: 5px; -webkit-appearance: none; appearance: none;
+    background: linear-gradient(90deg, var(--novice) 0%, #cbd5e1 50%, var(--expert) 100%);
+    border-radius: 3px; outline: none;
+  }
+  .agg-controls input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--text); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .agg-controls input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px; border: 2px solid var(--text); border-radius: 50%; background: #fff; cursor: pointer;
+  }
+  .agg-controls .ac-readout {
+    display: flex; align-items: baseline; justify-content: center; gap: 10px; margin-top: 10px;
+  }
+  .agg-controls .ac-val { font-family: var(--font-mono); font-weight: 800; font-size: 14px; color: var(--text); }
+  .agg-controls .ac-regime {
+    font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .agg-controls .info-btn { position: static; }
+
+  /* equal-weighting tile (averaged panel) */
+  .gcd-tile.equal { border-top-color: var(--gray); }
+  .gcd-tile.equal .gt-num { color: var(--text); }
+  .agg-ewt-fill.eqfill { background: var(--gray); }
+
+  /* ---- Per-realisation group pick (right of each group's member cards) ---- */
+  .gc-members-body { display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap; }
+  .gc-members-body .example-row { flex: 1 1 460px; }
+  .realization-decision {
+    flex: 0 1 208px; min-width: 192px;
+    background: #fbfcfe; border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 12px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .rd-title {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);
+  }
+  .rd-row { border-left: 3px solid var(--gray); padding-left: 9px; }
+  .rd-row.optimal { border-left-color: var(--expert); }
+  .rd-row.equal { border-left-color: var(--gray); }
+  .rd-row.strength { border-left-color: var(--novice); }
+  .rd-name { font-size: 11px; font-weight: 700; color: var(--text); }
+  .rd-body { display: flex; align-items: baseline; gap: 6px; font-family: var(--font-mono); font-size: 12.5px; }
+  .rd-body b { color: var(--text); }
+  .rd-pick { color: var(--text-muted); }
+  .rd-chip { font-weight: 700; font-size: 12px; }
+  .rd-chip.ok { color: #0e7d54; }
+  .rd-chip.miss { color: var(--novice); }
+  .rd-foot { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+  .rd-note { font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 7px; }
+  @media (max-width: 560px) { .realization-decision { flex: 1 1 100%; } }
+
+  /* ---- Group decision box (RHS of each example group) ---- */
+  .agg-box {
+    flex: 0 1 268px;
+    min-width: 240px;
+    background: linear-gradient(180deg, #f7faff, #fbfdff);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .agg-box .agg-title { font-size: 12px; font-weight: 700; letter-spacing: 0.2px; color: var(--text); }
+  .agg-box .agg-sub { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); margin-top: -4px; }
+  .agg-scheme {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .agg-scheme .as-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  }
+  .agg-scheme .as-name { font-size: 11px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 5px; }
+  .agg-scheme .as-eq {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    color: #0e9f6e; background: rgba(14,159,110,0.12); border-radius: 4px; padding: 1px 5px;
+  }
+  .agg-scheme .as-err { font-family: var(--font-mono); font-weight: 800; font-size: 14px; color: var(--text); }
+  .agg-scheme .as-err::before { content: 'err '; font-weight: 400; font-size: 10px; color: var(--text-muted); opacity: 0.75; }
+  .agg-scheme .as-meta {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+  }
+  .agg-scheme .as-meta .pick { color: var(--text); font-weight: 700; }
+  .agg-scheme.behavioural { border-top-width: 2px; }
+  .agg-scheme.behavioural .as-name { color: var(--novice); }
+  .agg-ewt-track { height: 6px; background: #e6ebf1; border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  .agg-ewt-fill { display: block; height: 100%; background: var(--expert); border-radius: 4px; min-width: 1px; }
+
+  /* ===== Group card: decision foreground, members supporting ===== */
+  .group-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px 20px;
+    margin-bottom: 22px;
+  }
+  .gc-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .gc-true { font-size: 18px; font-weight: 800; letter-spacing: 0.2px; color: var(--text); }
+  .gc-true .num { font-family: var(--font-mono); }
+  .gc-comp { font-size: 11.5px; font-weight: 600; letter-spacing: 0.4px; color: var(--text-muted); text-transform: uppercase; }
+  .gc-comp .sep { opacity: 0.5; margin: 0 2px; }
+  .gc-comp .comp-n { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+
+  /* ---- Foreground: the group decision ---- */
+  .gc-decision {
+    background: linear-gradient(180deg, #f1f5fb, #f8fafe);
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+  }
+  .gcd-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .gcd-title {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; color: var(--text);
+  }
+  .gcd-note { font-size: 11px; color: var(--text-muted); }
+  .gcd-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 720px) { .gcd-tiles { grid-template-columns: 1fr; } }
+
+  .gcd-tile {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--gray);
+    border-radius: 10px;
+    padding: 12px 14px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .gcd-tile.optimal, .gcd-tile.precision { border-top-color: var(--expert); }
+  .gcd-tile.behavioural { border-top-color: var(--novice); background: linear-gradient(180deg, #fff7f7, #fff); }
+  .gt-name {
+    font-size: 11.5px; font-weight: 800; letter-spacing: 0.2px; color: var(--text);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .gcd-tile.behavioural .gt-name { color: var(--novice); }
+  .gt-err { display: flex; align-items: baseline; gap: 6px; }
+  .gt-num {
+    font-family: var(--font-mono); font-weight: 800; font-size: 30px; line-height: 1;
+    letter-spacing: -1px; color: var(--text);
+  }
+  .gcd-tile.optimal .gt-num, .gcd-tile.precision .gt-num { color: var(--expert); }
+  .gcd-tile.behavioural .gt-num { color: var(--novice); }
+  .gt-unit { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  .gt-pick { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); }
+  .gt-pick b { color: var(--text); }
+  .gt-chip {
+    font-family: var(--font-sans); font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+    border-radius: 4px; padding: 1px 5px; margin-left: 2px;
+  }
+  .gt-chip.ok { color: #0e7d54; background: rgba(14,159,110,0.13); }
+  .gt-chip.miss { color: var(--novice); background: rgba(220,38,38,0.10); }
+  .gt-foot { font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
+  .gt-foot sub, .gt-foot sup { font-family: var(--font-mono); }
+  .gt-delta { color: var(--novice); font-weight: 700; margin-left: 4px; }
+  .gcd-tile.behavioural .agg-ewt-fill { background: var(--novice); }
+
+  /* ---- Supporting: member estimates + novice popover ---- */
+  .gc-members { margin-top: 16px; }
+  .gc-members-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .gcm-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+  .gcm-sub { font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .nov-q-host { position: relative; }
+  .nov-q {
+    font-family: var(--font-sans); font-size: 11.5px; font-weight: 600; color: var(--expert);
+    background: rgba(37,99,235,0.07); border: 1px solid rgba(37,99,235,0.22); border-radius: 999px;
+    padding: 5px 13px; cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s;
+  }
+  .nov-q::after { content: ' ⓘ'; opacity: 0.7; }
+  .nov-q:hover, .nov-q[aria-expanded="true"] { background: rgba(37,99,235,0.13); border-color: var(--expert); }
+  .info-popover.nov-pop { width: 300px; right: 0; left: auto; }
+  .nov-pop .mono-stats { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+  .nov-pop-hint { font-size: 11px; color: var(--text-muted); margin: 8px 0 0; }
+  .nov-pop .mono-hist { margin-top: 8px; }
+
+  /* ---- Section headings ---- */
+  .page-section { margin-bottom: 10px; }
+  .section-title {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  /* first section heading in a view sits close under the navbar (no big top gap) */
+  .page-section:first-child .section-title { margin-top: 4px; }
+
+  /* ---- x-design toggle (now inline in the parameter row) ---- */
+  .seg.xmode button { padding: 7px 14px; font-size: 13px; }
+  /* The group is the popover's positioning anchor; the ⓘ lives next to the label. */
+  .xdesign-group { position: relative; }
+
+  .info-btn {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-muted);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .info-btn:hover, .info-btn[aria-expanded="true"] {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  .info-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 30;
+    width: 340px;
+    max-width: 80vw;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 400;
+  }
+  .info-popover[hidden] { display: none; }
+  .info-popover p { margin: 0 0 8px; }
+  .info-popover p:last-child { margin-bottom: 0; }
+  .info-popover b { color: var(--text); font-weight: 700; }
+  .info-popover .xmode-current {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+}
+
+/* Group-size selector (group-dynamics section) — 1 EXPERT + (size−1) NOVICES */
+#sec-stimuli .size-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 16px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+#sec-stimuli .size-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text);
+}
+#sec-stimuli .size-note { font-size: 12px; color: var(--text-muted); }
+#sec-stimuli .size-note b { color: var(--text); font-family: var(--font-mono); }
