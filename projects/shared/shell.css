@@ -53,6 +53,9 @@
     text-transform:uppercase; color:rgba(255,255,255,0.72);
     padding:5px 12px; border:1px solid rgba(255,255,255,0.22); border-radius:999px; margin-bottom:16px;
   }
+  /* a row of two (or more) eyebrow pills sitting side by side */
+  .eyebrows { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .eyebrows .eyebrow { margin-bottom:0; }
   .hero-title {
     font-family:'Source Serif 4', Georgia, serif; font-weight:700;
     font-size:clamp(1.9rem, 6vw, 3.2rem); line-height:1.05; letter-spacing:-0.02em;
@@ -65,8 +68,23 @@
   .hero-context { margin-top:16px; font-size:0.95rem; color:rgba(255,255,255,0.78); max-width:64ch; }
 
   /* ---------- STICKY COLLAPSING TOPBAR ---------- */
+  /* The bar transitions between two states as the page scrolls. At the very top
+     it is transparent / hero-toned and reads as the bottom of the hero header;
+     once the hero scrolls away the IntersectionObserver on #hdr-sentinel adds
+     .is-stuck and it detaches into the glass/solid bar (the liked scrolled look,
+     preserved verbatim below). */
   .topbar {
     position:sticky; top:0; z-index:30;
+    background:transparent; border-bottom:1px solid transparent;
+    transition:background .3s ease, backdrop-filter .3s ease, border-color .3s ease, box-shadow .3s ease;
+  }
+  /* AT THE TOP — blends into the bottom of the hero: carries the hero's dark
+     diagonal tone (and light nav text, set below) so it looks like part of it. */
+  .topbar:not(.is-stuck) {
+    background:linear-gradient(135deg, #1b1840 0%, #161433 100%);
+  }
+  /* SCROLLED PAST THE HERO — the existing glass/solid bar, unchanged. */
+  .topbar.is-stuck {
     background:rgba(244,246,251,0.86); backdrop-filter:saturate(180%) blur(10px);
     border-bottom:1px solid var(--line);
   }
@@ -83,9 +101,11 @@
   .topbar.is-stuck .topbar-title { opacity:1; transform:none; }
   .topbar nav { margin-left:auto; display:flex; gap:6px; }
   .topbar nav a {
-    font-size:.86rem; font-weight:600; text-decoration:none; color:var(--ink-soft);
+    font-size:.86rem; font-weight:600; text-decoration:none; color:rgba(255,255,255,0.86);
     padding:8px 16px; border-radius:9px; transition:background .15s, color .15s;
   }
+  /* once detached, links return to the original ink colour of the glass bar */
+  .topbar.is-stuck nav a { color:var(--ink-soft); }
   .topbar nav a:hover { background:#fff; color:var(--ink); box-shadow:var(--shadow-sm); }
   .topbar nav a.active { background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.30); }
 

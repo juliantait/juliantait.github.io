@@ -9,16 +9,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/projects/shared/shell.css?v=7">
-<link rel="stylesheet" href="simulation.css?v=7">
-<link rel="stylesheet" href="game.css?v=7">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=8">
+<link rel="stylesheet" href="simulation.css?v=8">
+<link rel="stylesheet" href="game.css?v=8">
 </head>
 <body>
 
 <!-- ===================== SHARED SHELL (persistent) ===================== -->
 <header class="hero" id="hero">
   <div class="hero-inner">
-    <span class="eyebrow">EXPERTS Project</span>
+    <span class="eyebrow">EXPERIMENT</span>
     <!-- WORKING TITLE -->
     <h1 class="hero-title">Experts and Dispersed Information</h1>
     <p class="hero-sub">Error rates and confidence in expert versus novice judgement</p>
@@ -267,26 +267,18 @@
         <div class="game-eyebrow">Single-player experiment</div>
         <h2>The betting game</h2>
         <div class="intro-block">
-          <p class="intro-h"><b>The data:</b> each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst.</p>
+          <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
+          <p class="intro-sub">The true slope <i class="mvar">β</i> is <b>−0.2</b>, <b>0</b>, or <b>+0.2</b> — genuinely 0 half the time, a quarter chance each negative or positive.</p>
           <ul>
-            <li><b>EXPERT</b> = lots of data, <b>NOVICE</b> = only a few.</li>
-            <li>No line is fitted — you read the slope yourself.</li>
+            <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
           </ul>
         </div>
         <div class="intro-block">
-          <p class="intro-h">The true slope <i class="mvar">β</i> is one of three: <b>−0.2, 0, or +0.2</b> (a treatment effect or a return).</p>
+          <p class="intro-h"><b>We measure three things:</b></p>
           <ul>
-            <li>genuinely <b>0</b> half the time;</li>
-            <li>a <b>¼</b> chance each of being truly negative or positive.</li>
-          </ul>
-        </div>
-        <div class="intro-block">
-          <p class="intro-h">You get <b>€1</b>, do three things:</p>
-          <ul>
-            <li>state your <b>beliefs</b> over the three slopes;</li>
-            <li><b>bet your euro</b> across them;</li>
-            <li>give your <b>estimate of <i class="mvar">β</i></b>;</li>
-            <li>scored by a proper rule, so backing the true posterior pays best <span class="muted-cite">(paired-uniform, Vespa &amp; Wilson 2017)</span>.</li>
+            <li>your <b>beliefs</b> over the three slopes;</li>
+            <li>your <b>one-euro bet</b> across them <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>;</li>
+            <li>your <b>estimate of <i class="mvar">β</i></b>.</li>
           </ul>
         </div>
         <div class="game-intro-foot">
@@ -408,9 +400,9 @@
 
 </main>
 
-<script src="simulation.js?v=7"></script>
+<script src="simulation.js?v=8"></script>
 
-<script src="game.js?v=7"></script>
+<script src="game.js?v=8"></script>
 
 </body>
 </html>
