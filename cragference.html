@@ -20,6 +20,59 @@
       margin: var(--space-3) auto 0;
       text-align: center;
     }
+
+    .code-block {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-family: var(--font-mono, "SF Mono", Menlo, Consolas, monospace);
+      font-size: 14px;
+      overflow-x: auto;
+      margin: var(--space-2) 0 var(--space-3);
+      white-space: pre-wrap;
+    }
+    .code-block code { background: transparent; padding: 0; }
+
+    details.latex-section {
+      margin: var(--space-3) 0 var(--space-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+    }
+    details.latex-section > summary {
+      cursor: pointer;
+      padding: var(--space-2) var(--space-3);
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+    }
+    details.latex-section[open] > summary {
+      border-bottom: 1px solid var(--border);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .latex-summary-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .latex-body {
+      padding: var(--space-2) var(--space-3);
+    }
+    .latex-body > p:first-child { margin-top: 0; }
+    .latex-body > *:last-child { margin-bottom: 0; }
+
+    .callout {
+      background: #fff;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 16px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .callout > h4 { margin: 0 0 10px; font-size: 16px; font-weight: 600; }
+    .callout ol { margin: 0; padding-left: 22px; }
+    .callout ol li { margin: 6px 0; }
   </style>
 </head>
 <body>
@@ -44,6 +97,31 @@
     <div class="cragference-embed">
       <iframe src="https://climbing.juliantait.eu/embed" width="100%" height="600" style="border:0;max-width:480px" title="CRAG-ference upcoming conferences" loading="lazy"></iframe>
     </div>
+
+    <section id="embed-on-your-site">
+      <details class="latex-section">
+        <summary>
+          <span class="latex-summary-inner">
+            <span>Add to your website?</span>
+          </span>
+        </summary>
+        <div class="latex-body">
+          <p>
+            Want the CRAG-ference widget on your own site? Copy the embed code below and paste it
+            wherever you want it to appear.
+          </p>
+          <pre class="code-block"><code>&lt;iframe src="https://climbing.juliantait.eu/embed" width="100%" height="600" style="border:0;max-width:480px" title="CRAG-ference upcoming conferences" loading="lazy"&gt;&lt;/iframe&gt;</code></pre>
+          <div class="callout">
+            <h4>How to embed</h4>
+            <ol>
+              <li>Open the HTML of the page on your site where you want the widget to appear.</li>
+              <li>Paste the iframe code above into the spot where it should show.</li>
+              <li>Save and publish — the widget will load automatically.</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+    </section>
   </main>
 
   <div data-footer></div>
