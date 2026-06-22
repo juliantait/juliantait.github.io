@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRAG-ference – Julian Tait</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+  <style>
+    .page-heading {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .page-heading h1 { margin: 0; }
+
+    .cragference-embed {
+      margin: var(--space-3) auto 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div data-nav></div>
+
+  <main class="page-container">
+    <div class="page-heading">
+      <h1>CRAG-ference</h1>
+    </div>
+
+    <p>
+      <strong>CRAG-ference</strong> connects <strong>climbing academics</strong> at conferences.
+      Travelling for a conference often means a new city with <strong>great crags or gyms nearby</strong>
+      — but no one to climb with. CRAG-ference fixes that:
+    </p>
+    <ul>
+      <li>Share <strong>which conferences</strong> you are attending</li>
+      <li>Say <strong>what you want to climb</strong> while you are there</li>
+      <li>Find <strong>others to climb with</strong> at the same event</li>
+    </ul>
+
+    <div class="cragference-embed">
+      <iframe src="https://climbing.juliantait.eu/embed" width="100%" height="600" style="border:0;max-width:480px" title="CRAG-ference upcoming conferences" loading="lazy"></iframe>
+    </div>
+  </main>
+
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
+</body>
+</html>
