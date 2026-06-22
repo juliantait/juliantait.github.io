@@ -133,15 +133,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Links - animated underline that grows from center on hover */
-a {
+/* Links - theme accent in both light and dark; visited pinned so it never
+   falls back to the browser default purple/blue (esp. with color-scheme set). */
+a,
+a:link,
+a:visited {
   color: var(--accent);
   text-decoration: none;
   position: relative;
   transition: color var(--transition-fast);
 }
 
-a:hover {
+a:hover,
+a:visited:hover {
   color: var(--accent-hover);
 }
 

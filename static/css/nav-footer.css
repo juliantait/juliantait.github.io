@@ -72,12 +72,27 @@ nav {
 
 .nav-link.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  font-weight: 600;
+  border-bottom-color: transparent;
 }
 
-/* Disable underline animation on nav links - they use border-bottom instead */
+/* Active indicator: a short, centered, rounded accent bar instead of a
+   full-width border. Reads cleanly in both light and dark themes. */
 .nav-link::after {
   display: none;
+}
+
+.nav-link.active::after {
+  display: block;
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 20px;
+  height: 2px;
+  transform: translateX(-50%);
+  background: var(--accent);
+  border-radius: 999px;
 }
 
 /* Theme toggle button */
