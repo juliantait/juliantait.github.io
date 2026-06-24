@@ -139,12 +139,19 @@
   #view-stimuli .stim-label .dot { width:7px; height:7px; border-radius:50%; }
   #view-stimuli .stim img { display:block; width:100%; height:auto; border-radius:6px; }
 
-  /* ---- interactive stimulus figure: groups toggle + icon array ---- */
+  /* ---- interactive stimulus figures: one card-level switch + icon arrays ---- */
+  #view-stimuli .swatch.domains { background:linear-gradient(135deg,#2e9e6b,#2f7fd1 45%,#d63b3b); }
   #view-stimuli .stim-fig { display:block; }
+  #view-stimuli .stim-domain {
+    margin-left:7px; font-size:0.68rem; font-weight:600; letter-spacing:0.04em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  #view-stimuli #groups-toggle { margin-left:auto; }
   #view-stimuli .gtoggle {
-    display:inline-flex; gap:0; margin:2px 0 10px; border:1px solid var(--line);
+    display:inline-flex; gap:0; margin:0; border:1px solid var(--line);
     border-radius:8px; overflow:hidden; background:#fff;
   }
+  #view-stimuli .lg-svg { vertical-align:middle; margin-right:5px; }
   #view-stimuli .gt-btn {
     border:0; background:#fff; color:var(--ink-soft); cursor:pointer;
     font-size:0.7rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;

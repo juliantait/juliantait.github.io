@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=3">
-<link rel="stylesheet" href="correlated.css?v=4">
+<link rel="stylesheet" href="correlated.css?v=5">
 </head>
 <body>
 
@@ -42,13 +42,12 @@
   <section id="view-stimuli" class="view">
 
 
-  <!-- ============ STUDY 1 ============ -->
   <section class="section">
     <div class="section-head">
-      <span class="section-tag s1">Study 1</span>
-      <h2>Abstract designs</h2>
+      <span class="section-tag s1">Stimuli</span>
+      <h2>Three domains, one structure</h2>
     </div>
-    <p class="section-note">Two abstract framings of the same treatment frequencies, which the table below defines. Toggle each block between <strong>Two&nbsp;groups</strong> (identity inference on) and <strong>One&nbsp;group</strong> (pooled population, marginal prevalence only). Visual inspiration credited to Bordalo et&nbsp;al. (2016).</p>
+    <p class="section-note">Three Bordalo-style stimulus domains over the same treatment frequencies, which the table below defines. In each domain an individual's <strong>group</strong> and <strong>trait</strong> are carried by two separate visual features. Use the one switch on the card to flip all three blocks together between <strong>Two&nbsp;groups</strong> (identity-inference view) and <strong>One&nbsp;group</strong> (pooled population, marginal prevalence only). Visual style after Bordalo et&nbsp;al. (2016).</p>
 
     <div class="card table-card">
       <div class="table-head">
@@ -65,58 +64,35 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td class="treat"><span class="dot neutral"></span>Neutral</td><td>0.65</td><td>0.65</td><td>1.00</td></tr>
+          <tr><td class="treat"><span class="dot neutral"></span>Symmetric</td><td>0.65</td><td>0.65</td><td>1.00</td></tr>
           <tr><td class="treat"><span class="dot majority"></span>Majority</td><td>0.65</td><td>0.95</td><td>0.68</td></tr>
           <tr><td class="treat"><span class="dot minority"></span>Minority</td><td>0.45</td><td>0.65</td><td>0.69</td></tr>
         </tbody>
       </table>
     </div>
 
-    <div class="card design">
+    <div class="card design" id="domains-card">
       <div class="design-head">
-        <span class="swatch menwomen"></span>
-        <span class="name">Men / Women</span>
-        <span class="kind">Abstract</span>
+        <span class="swatch domains"></span>
+        <span class="name">Stimulus domains</span>
+        <div class="gtoggle" id="groups-toggle" role="group" aria-label="Groups view">
+          <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
+          <button type="button" class="gt-btn" data-mode="one">One group</button>
+        </div>
       </div>
       <div class="stim-row">
-        <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Neutral</div><div class="stim-fig" data-design="menwomen" data-treat="neutral"></div></div>
-        <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-design="menwomen" data-treat="majority"></div></div>
-        <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-design="menwomen" data-treat="minority"></div></div>
-      </div>
-    </div>
-
-    <div class="card design">
-      <div class="design-head">
-        <span class="swatch trianglecircle"></span>
-        <span class="name">Triangle / Circle</span>
-        <span class="kind">Abstract</span>
-      </div>
-      <div class="stim-row">
-        <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Neutral</div><div class="stim-fig" data-design="trianglecircle" data-treat="neutral"></div></div>
-        <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-design="trianglecircle" data-treat="majority"></div></div>
-        <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-design="trianglecircle" data-treat="minority"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ STUDY 2 ============ -->
-  <section class="section">
-    <div class="section-head">
-      <span class="section-tag s2">Study 2</span>
-      <h2>Political design</h2>
-    </div>
-    <p class="section-note">The same treatment structure rendered in a substantive political context.</p>
-
-    <div class="card design">
-      <div class="design-head">
-        <span class="swatch solar"></span>
-        <span class="name">Solar Energy</span>
-        <span class="kind">Political</span>
-      </div>
-      <div class="stim-row">
-        <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Neutral</div><div class="stim-fig" data-design="solar" data-treat="neutral"></div></div>
-        <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-design="solar" data-treat="majority"></div></div>
-        <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-design="solar" data-treat="minority"></div></div>
+        <div class="stim">
+          <div class="stim-label"><span class="dot neutral"></span>Symmetric <span class="stim-domain">Abstract</span></div>
+          <div class="stim-fig" data-domain="abstract" data-treat="symmetric"></div>
+        </div>
+        <div class="stim">
+          <div class="stim-label"><span class="dot majority"></span>Majority <span class="stim-domain">Gender</span></div>
+          <div class="stim-fig" data-domain="gender" data-treat="majority"></div>
+        </div>
+        <div class="stim">
+          <div class="stim-label"><span class="dot minority"></span>Minority <span class="stim-domain">Political</span></div>
+          <div class="stim-fig" data-domain="political" data-treat="minority"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -135,7 +111,7 @@
       <h3 class="sub-title">Trait distribution <span class="muted-note">— pick a treatment or drag the bars</span></h3>
       <div class="trait-grid">
         <div class="trait-presets" id="preset-seg">
-          <button class="preset-btn" id="pre-neutral"  onclick="setPreset('neutral')">NEUTRAL</button>
+          <button class="preset-btn" id="pre-neutral"  onclick="setPreset('neutral')">SYMMETRIC</button>
           <button class="preset-btn" id="pre-majority" onclick="setPreset('majority')">MAJORITY</button>
           <button class="preset-btn" id="pre-minority" onclick="setPreset('minority')">MINORITY</button>
         </div>
@@ -673,32 +649,54 @@ run();
 <script>
 /* =====================================================================
    STIMULI FIGURES — interactive Bordalo-style icon arrays.
-   Each stimulus block toggles between:
+   ONE card-level switch flips all three blocks together between:
      TWO GROUPS  (identity-inference view): two groups side by side, each
-                 with its own trait distribution; figure = group (boy/girl),
-                 t-shirt colour = trait. Group labels muted grey.
+                 with its own trait distribution. In every domain GROUP and
+                 TRAIT are carried by two separate visual features.
+                 Group labels are muted grey.
      ONE GROUP   (inference-off population view): both groups pooled into one
-                 ordered population (mu_A = mu_B = 1/2), no group identity,
+                 ordered population (mu_A = mu_B = 1/2), group identity hidden,
                  showing only the marginal prevalence rho_t = 1/2 pi(t|A) +
                  1/2 pi(t|B).
+   Three domains, each encoding group + trait differently:
+     abstract  — group = shape (triangle / circle), trait = colour (green / blue)
+     gender    — group = figure (boy / girl),       trait = t-shirt colour
+     political — group = party colour (blue / red),  trait = globe hat / none
    Original artwork — not copied from any existing figure.
    ===================================================================== */
 (function(){
   "use strict";
   var PER = 20;                          // people per group (two-group mode)
-  var TR1 = '#E07B39', TR2 = '#3F8E7F';  // trait-1 / trait-2 shirt colours (match model view)
   var SKIN = '#eab38c', HAIR = '#5a4a42';
-  var TREATMENTS = { neutral:[0.65,0.65], majority:[0.65,0.95], minority:[0.45,0.65] };
-  var DESIGNS = {
-    menwomen:       { groups:['Men','Women'],            traits:['trait 1','trait 2'] },
-    trianglecircle: { groups:['Triangles','Circles'],    traits:['trait 1','trait 2'] },
-    solar:          { groups:['Democrats','Republicans'], traits:['pro-solar','anti-solar'] }
+  var SHIRT = ['#E07B39', '#3F8E7F'];    // gender t-shirt: trait 1 / trait 2
+  var ABS   = ['#2e9e6b', '#2f7fd1'];    // abstract fill: green / blue
+  var PARTY = ['#1f6fd0', '#d63b3b'];    // political body: Democrat blue / Republican red
+  var GREY  = '#9aa0a6';                 // neutral body in pooled view
+  var TREATMENTS = { symmetric:[0.65,0.65], majority:[0.65,0.95], minority:[0.45,0.65] };
+  var DOMAINS = {
+    abstract:  { groups:['Triangles','Circles'],    groupFeat:'shape',        traitFeat:'colour',
+                 traitNames:['green','blue'],        traitColors:ABS },
+    gender:    { groups:['Boys','Girls'],            groupFeat:'figure',       traitFeat:'t-shirt colour',
+                 traitNames:['trait 1','trait 2'],   traitColors:SHIRT },
+    political: { groups:['Democrats','Republicans'], groupFeat:'party colour', traitFeat:'globe hat',
+                 traitNames:['globe hat','no hat'],  groupColors:PARTY }
   };
 
   var CS = 23, S = 7.5, W = 300, H = 148, ROW0 = 58; // grid metrics
 
-  // one small person; kind = 'boy' | 'girl' | 'neutral'; shirt = trait colour
-  function icon(cx, cy, shirt, kind){
+  /* ---- glyph primitives ---- */
+  // globe (climate hat): blue ocean, green land blobs, faint white meridians
+  function globe(gx, gy, gr){
+    return '<g stroke-linecap="round">'+
+      '<circle cx="'+gx+'" cy="'+gy+'" r="'+gr+'" fill="#2f86c9" stroke="rgba(0,0,0,0.25)" stroke-width="0.5"/>'+
+      '<circle cx="'+(gx-0.22*gr)+'" cy="'+(gy-0.15*gr)+'" r="'+(0.36*gr)+'" fill="#46b27a"/>'+
+      '<circle cx="'+(gx+0.30*gr)+'" cy="'+(gy+0.28*gr)+'" r="'+(0.24*gr)+'" fill="#46b27a"/>'+
+      '<path d="M '+gx+' '+(gy-gr)+' Q '+(gx+0.62*gr)+' '+gy+' '+gx+' '+(gy+gr)+'" fill="none" stroke="#ffffff" stroke-opacity="0.65" stroke-width="0.4"/>'+
+      '<line x1="'+(gx-gr)+'" y1="'+gy+'" x2="'+(gx+gr)+'" y2="'+gy+'" stroke="#ffffff" stroke-opacity="0.55" stroke-width="0.35"/>'+
+      '</g>';
+  }
+  // a person; kind = 'boy' | 'girl' | 'neutral'; body = shirt/body colour; hat = draw globe
+  function person(cx, cy, body, kind, hat){
     var p = [];
     var headCy = cy - 0.95*S, headR = 0.5*S;
     if(kind==='girl') p.push('<ellipse cx="'+cx+'" cy="'+headCy+'" rx="'+(0.66*S)+'" ry="'+(0.72*S)+'" fill="'+HAIR+'"/>');
@@ -706,110 +704,126 @@ run();
     if(kind==='girl'){
       var sx=0.5*S, bx=1.02*S, ty=cy-0.30*S, by=cy+1.18*S;
       p.push('<path d="M '+(cx-sx)+' '+ty+' C '+(cx-sx)+' '+(ty-0.30*S)+' '+(cx+sx)+' '+(ty-0.30*S)+' '+(cx+sx)+' '+ty+
-             ' L '+(cx+bx)+' '+by+' L '+(cx-bx)+' '+by+' Z" fill="'+shirt+'" stroke="rgba(0,0,0,0.16)" stroke-width="0.6"/>');
+             ' L '+(cx+bx)+' '+by+' L '+(cx-bx)+' '+by+' Z" fill="'+body+'" stroke="rgba(0,0,0,0.16)" stroke-width="0.6"/>');
     } else {
-      var bw = (kind==='boy') ? 0.84*S : 0.72*S, ty2=cy-0.30*S, by2=cy+1.18*S, sh=ty2-0.55*S;
+      var bw = (kind==='boy') ? 0.84*S : 0.74*S, ty2=cy-0.30*S, by2=cy+1.18*S, sh=ty2-0.55*S;
       p.push('<path d="M '+(cx-bw)+' '+by2+' L '+(cx-bw)+' '+ty2+
              ' Q '+(cx-bw)+' '+sh+' '+(cx-bw+0.42*S)+' '+sh+
              ' L '+(cx+bw-0.42*S)+' '+sh+
              ' Q '+(cx+bw)+' '+sh+' '+(cx+bw)+' '+ty2+
-             ' L '+(cx+bw)+' '+by2+' Z" fill="'+shirt+'" stroke="rgba(0,0,0,0.16)" stroke-width="0.6"/>');
+             ' L '+(cx+bw)+' '+by2+' Z" fill="'+body+'" stroke="rgba(0,0,0,0.16)" stroke-width="0.6"/>');
     }
     p.push('<circle cx="'+cx+'" cy="'+headCy+'" r="'+headR+'" fill="'+SKIN+'" stroke="rgba(0,0,0,0.14)" stroke-width="0.5"/>');
+    if(hat) p.push(globe(cx, headCy - 0.62*S, 0.46*S));
     return p.join('');
   }
+  // an abstract token; kind = 'triangle' | 'circle' | 'rsquare'; fill = trait colour
+  function shape(cx, cy, fill, kind){
+    var st = ' fill="'+fill+'" stroke="rgba(0,0,0,0.18)" stroke-width="0.6"';
+    if(kind==='circle') return '<circle cx="'+cx+'" cy="'+cy+'" r="'+(1.0*S)+'"'+st+'/>';
+    if(kind==='triangle') return '<path d="M '+cx+' '+(cy-1.05*S)+' L '+(cx+1.02*S)+' '+(cy+0.82*S)+' L '+(cx-1.02*S)+' '+(cy+0.82*S)+' Z"'+st+'/>';
+    return '<rect x="'+(cx-0.92*S)+'" y="'+(cy-0.92*S)+'" width="'+(1.84*S)+'" height="'+(1.84*S)+'" rx="'+(0.42*S)+'"'+st+'/>';
+  }
 
-  // a block of `list` people laid out in `cols` columns starting at x0 (cell-left)
-  function blockSVG(list, x0, cols){
-    var s = [];
-    list.forEach(function(it, i){
-      var c = i % cols, r = Math.floor(i / cols);
-      var cx = x0 + c*CS + CS/2;
-      var cy = ROW0 + r*CS;
-      s.push(icon(cx, cy, it.shirt, it.kind));
-    });
-    return s.join('');
+  // draw one individual for a given domain/mode. groupIdx 0/1, traitIdx 0/1.
+  function unit(cx, cy, domain, mode, groupIdx, traitIdx){
+    if(domain==='abstract'){
+      var k = (mode==='one') ? 'rsquare' : (groupIdx===0 ? 'triangle' : 'circle');
+      return shape(cx, cy, ABS[traitIdx], k);
+    }
+    if(domain==='gender'){
+      var kind = (mode==='one') ? 'neutral' : (groupIdx===0 ? 'boy' : 'girl');
+      return person(cx, cy, SHIRT[traitIdx], kind, false);
+    }
+    // political: group = body colour, trait = globe hat
+    var pbody = (mode==='one') ? GREY : PARTY[groupIdx];
+    return person(cx, cy, pbody, 'neutral', traitIdx===0);
+  }
+
+  function traitList(n1, total){
+    var l = [], i;
+    for(i=0;i<n1;i++)       l.push(0);
+    for(i=0;i<total-n1;i++) l.push(1);
+    return l;
   }
   function txt(x, y, str, cls){ return '<text x="'+x+'" y="'+y+'" text-anchor="middle" class="'+cls+'">'+str+'</text>'; }
+  function shareTxt(p, D){ return '<tspan class="big">'+Math.round(p*100)+'%</tspan> '+D.traitNames[0]; }
 
-  function makeList(n1, kind){
-    var l = [], i;
-    for(i=0;i<n1;i++)    l.push({shirt:TR1, kind:kind});
-    for(i=0;i<PER-n1;i++)l.push({shirt:TR2, kind:kind});
-    return l;
+  function legend(D){
+    if(D.traitColors){
+      return '<span class="stim-leg"><span class="ls" style="background:'+D.traitColors[0]+'"></span>'+D.traitNames[0]+
+        '<span class="ls" style="background:'+D.traitColors[1]+';margin-left:10px"></span>'+D.traitNames[1]+'</span>';
+    }
+    var g = '<svg class="lg-svg" width="13" height="13" viewBox="-6.5 -6.5 13 13" aria-hidden="true">'+globe(0,0,6)+'</svg>';
+    return '<span class="stim-leg">'+g+'globe hat = supports climate policy &middot; bare head = opposes</span>';
   }
 
   function render(fig){
-    var d = DESIGNS[fig._design], tr = TREATMENTS[fig._treat];
+    var D = DOMAINS[fig._domain], tr = TREATMENTS[fig._treat];
     var pA = tr[0], pB = tr[1];
     var nA1 = Math.round(pA*PER), nB1 = Math.round(pB*PER);
-    var mode = fig._mode;
-    var svg, cap;
+    var mode = fig._mode, svg, cap;
 
     if(mode==='one'){
-      // pooled population, ordered by trait, no group identity
-      var pool = [], i;
-      for(i=0;i<nA1+nB1;i++)         pool.push({shirt:TR1, kind:'neutral'});
-      for(i=0;i<2*PER-(nA1+nB1);i++) pool.push({shirt:TR2, kind:'neutral'});
+      var pool = traitList(nA1+nB1, 2*PER), x0 = (W - 10*CS)/2;
       var rho = 0.5*(pA+pB);
-      var x0 = (W - 10*CS)/2;
+      var body = pool.map(function(t,i){
+        var c=i%10, r=Math.floor(i/10);
+        return unit(x0+c*CS+CS/2, ROW0+r*CS, fig._domain, 'one', 0, t);
+      }).join('');
       svg = '<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit">'+
-        txt(W/2, 18, '<tspan class="big">'+Math.round(rho*100)+'%</tspan> '+d.traits[0], 'pri')+
+        txt(W/2, 18, '<tspan class="big">&rho; = '+Math.round(rho*100)+'%</tspan> '+D.traitNames[0], 'pri')+
         txt(W/2, 33, 'one pooled population · no group identity', 'sec')+
-        blockSVG(pool, x0, 10)+'</svg>';
-      cap = 'Inference <b>off</b> — population view. Marginal prevalence '+
-        '&rho;<sub>'+d.traits[0]+'</sub> = &frac12;&middot;'+pA.toFixed(2)+' + &frac12;&middot;'+pB.toFixed(2)+
+        body+'</svg>';
+      cap = 'One group — groups pooled (&mu;<sub>A</sub>=&mu;<sub>B</sub>=&frac12;), identity hidden. '+
+        'Marginal prevalence &rho;<sub>'+D.traitNames[0]+'</sub> = &frac12;&middot;'+pA.toFixed(2)+' + &frac12;&middot;'+pB.toFixed(2)+
         ' = <b>'+rho.toFixed(2)+'</b>.';
     } else {
-      // two groups side by side, identity inference on
-      var gap = 34, bw = 5*CS, ax = (W - (2*bw+gap))/2, bx = ax + bw + gap;
-      var axc = ax + bw/2, bxc = bx + bw/2;
+      var gap = 34, bw = 5*CS, ax = (W-(2*bw+gap))/2, bx = ax+bw+gap;
+      var axc = ax+bw/2, bxc = bx+bw/2;
+      var la = traitList(nA1, PER), lb = traitList(nB1, PER);
+      var blk = function(list, x0, gi){
+        return list.map(function(t,i){
+          var c=i%5, r=Math.floor(i/5);
+          return unit(x0+c*CS+CS/2, ROW0+r*CS, fig._domain, 'two', gi, t);
+        }).join('');
+      };
       svg = '<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit">'+
-        txt(axc, 18, '<tspan class="big">'+Math.round(pA*100)+'%</tspan> '+d.traits[0], 'pri')+
-        txt(axc, 33, 'Group A · '+d.groups[0], 'sec')+
-        txt(bxc, 18, '<tspan class="big">'+Math.round(pB*100)+'%</tspan> '+d.traits[0], 'pri')+
-        txt(bxc, 33, 'Group B · '+d.groups[1], 'sec')+
+        txt(axc, 18, shareTxt(pA, D), 'pri')+ txt(axc, 33, 'Group A · '+D.groups[0], 'sec')+
+        txt(bxc, 18, shareTxt(pB, D), 'pri')+ txt(bxc, 33, 'Group B · '+D.groups[1], 'sec')+
         '<line x1="'+(W/2)+'" y1="44" x2="'+(W/2)+'" y2="'+(H-6)+'" stroke="#e6e6ec" stroke-width="1"/>'+
-        blockSVG(makeList(nA1,'boy'), ax, 5)+
-        blockSVG(makeList(nB1,'girl'), bx, 5)+'</svg>';
-      cap = 'Inference <b>on</b> — a shared trait signals group membership; the two groups differ in how common '+
-        d.traits[0]+' is.';
+        blk(la, ax, 0)+ blk(lb, bx, 1)+'</svg>';
+      cap = 'Two groups — group shown by '+D.groupFeat+', trait by '+D.traitFeat+
+        '; the groups differ in how common '+D.traitNames[0]+' is.';
     }
-
-    var legend = '<span class="stim-leg"><span class="ls" style="background:'+TR1+'"></span>'+d.traits[0]+
-      '<span class="ls" style="background:'+TR2+';margin-left:10px"></span>'+d.traits[1]+'</span>';
     fig._svg.innerHTML = svg;
-    fig._cap.innerHTML = cap + legend;
+    fig._cap.innerHTML = cap + legend(D);
   }
 
-  function setMode(fig, mode){
-    fig._mode = mode;
-    fig._btns.forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-mode')===mode); });
-    render(fig);
-  }
-
-  function build(fig){
-    fig._design = fig.getAttribute('data-design');
+  var FIGS = Array.prototype.slice.call(document.querySelectorAll('.stim-fig[data-domain]')).map(function(fig){
+    fig._domain = fig.getAttribute('data-domain');
     fig._treat  = fig.getAttribute('data-treat');
     fig._mode   = 'two';
-    var tog = document.createElement('div');
-    tog.className = 'gtoggle';
-    tog.setAttribute('role','group');
-    tog.setAttribute('aria-label','Groups view');
-    tog.innerHTML = '<button type="button" class="gt-btn on" data-mode="two">Two groups</button>'+
-                    '<button type="button" class="gt-btn" data-mode="one">One group</button>';
     var svgBox = document.createElement('div'); svgBox.className = 'stim-svg';
     var cap = document.createElement('p'); cap.className = 'stim-cap';
-    fig.appendChild(tog); fig.appendChild(svgBox); fig.appendChild(cap);
+    fig.appendChild(svgBox); fig.appendChild(cap);
     fig._svg = svgBox; fig._cap = cap;
-    fig._btns = Array.prototype.slice.call(tog.querySelectorAll('.gt-btn'));
-    fig._btns.forEach(function(b){
-      b.addEventListener('click', function(){ setMode(fig, b.getAttribute('data-mode')); });
-    });
     render(fig);
-  }
+    return fig;
+  });
 
-  Array.prototype.slice.call(document.querySelectorAll('.stim-fig[data-design]')).forEach(build);
+  // single card-level switch flips ALL blocks together
+  var toggle = document.getElementById('groups-toggle');
+  if(toggle){
+    var btns = Array.prototype.slice.call(toggle.querySelectorAll('.gt-btn'));
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){
+        var mode = b.getAttribute('data-mode');
+        btns.forEach(function(x){ x.classList.toggle('on', x===b); });
+        FIGS.forEach(function(fig){ fig._mode = mode; render(fig); });
+      });
+    });
+  }
 })();
 </script>
 <script>
