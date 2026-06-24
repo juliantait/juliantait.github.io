@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Climbing – Julian Tait</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+  <style>
+    .cragference-embed {
+      margin: var(--space-3) auto 0;
+      text-align: center;
+    }
+
+    .code-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-family: var(--font-mono, "SF Mono", Menlo, Consolas, monospace);
+      font-size: 14px;
+      color: var(--text-primary);
+      overflow-x: auto;
+      margin: var(--space-2) 0 var(--space-3);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .code-block code { background: transparent; padding: 0; color: inherit; }
+
+    /* Copy-to-clipboard control on the embed snippet */
+    .embed-code { position: relative; }
+    .embed-code .code-block { padding-top: 40px; }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      padding: 5px 12px;
+      color: var(--accent);
+      background: var(--bg-surface);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .copy-btn:hover { background: var(--accent); color: var(--bg-surface); }
+    .copy-btn.copied {
+      background: var(--accent);
+      color: var(--bg-surface);
+      border-color: var(--accent);
+    }
+
+    details.latex-section {
+      margin: var(--space-3) 0 var(--space-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+    }
+    details.latex-section > summary {
+      cursor: pointer;
+      padding: var(--space-2) var(--space-3);
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+    }
+    details.latex-section[open] > summary {
+      border-bottom: 1px solid var(--border);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .latex-summary-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .latex-body {
+      padding: var(--space-2) var(--space-3);
+    }
+    .latex-body > p:first-child { margin-top: 0; }
+    .latex-body > *:last-child { margin-bottom: 0; }
+
+    .callout {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 16px 0;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-soft);
+    }
+    .callout > h4 { margin: 0 0 10px; font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .callout ol { margin: 0; padding-left: 22px; color: var(--text-secondary); }
+    .callout ol li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div data-nav></div>
+
+  <main class="page-container">
+    <div class="page-title">
+      <h1>Climbing</h1>
+    </div>
+
+    <section>
+      <p>Outside of research, I teach bouldering and sport climb a lot.</p>
+    </section>
+
+    <section>
+      <h2>CRAG-ference</h2>
+      <p>
+        I built CRAG-ference, a small website that helps academics find climbing partners at conferences.
+        Travelling for a conference often means a city with good crags or gyms nearby but no one to go with,
+        so the site lets you see who else attending wants to climb. With it you can:
+      </p>
+      <ul>
+        <li>Share <strong>which conferences</strong> you are attending</li>
+        <li>Say <strong>what you want to climb</strong> while you are there</li>
+        <li>Find <strong>others to climb with</strong> at the same event</li>
+      </ul>
+
+      <div class="cragference-embed">
+        <iframe src="https://climbing.juliantait.eu/embed?field=Economics" width="100%" height="400" style="border:0;border-radius:12px;max-width:720px" title="CRAG-ference upcoming conferences" loading="lazy"></iframe>
+      </div>
+
+      <div id="embed-on-your-site">
+        <details class="latex-section">
+          <summary>
+            <span class="latex-summary-inner">
+              <span>Add to your website?</span>
+            </span>
+          </summary>
+          <div class="latex-body">
+            <p>
+              Want the CRAG-ference widget on your own site? Copy the embed code below and paste it
+              wherever you want it to appear.
+            </p>
+            <div class="embed-code">
+              <button type="button" class="copy-btn" id="copy-embed" aria-label="Copy embed code">Copy</button>
+              <pre class="code-block"><code id="embed-code">&lt;iframe src="https://climbing.juliantait.eu/embed?field=Economics" width="100%" height="600" style="border:0;border-radius:12px;max-width:480px" title="CRAG-ference upcoming conferences" loading="lazy"&gt;&lt;/iframe&gt;</code></pre>
+            </div>
+            <div class="callout">
+              <h4>How to embed</h4>
+              <ol>
+                <li>Open the HTML of the page on your site where you want the widget to appear.</li>
+                <li>Paste the iframe code above into the spot where it should show.</li>
+                <li>Save and publish. The widget will load automatically.</li>
+              </ol>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
+  <script>
+    (function () {
+      var btn = document.getElementById('copy-embed');
+      var code = document.getElementById('embed-code');
+      if (!btn || !code) return;
+
+      function flash() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      }
+
+      btn.addEventListener('click', function () {
+        var text = code.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(flash).catch(fallback);
+        } else {
+          fallback();
+        }
+
+        function fallback() {
+          var range = document.createRange();
+          range.selectNodeContents(code);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          try { document.execCommand('copy'); } catch (e) {}
+          sel.removeAllRanges();
+          flash();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
