@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=3">
-<link rel="stylesheet" href="correlated.css?v=6">
+<link rel="stylesheet" href="correlated.css?v=7">
 </head>
 <body>
 
@@ -42,19 +42,44 @@
   <section id="view-stimuli" class="view">
 
 
-  <p class="section-note stim-intro">Three stimulus domains, each drawn in the clean Bordalo&nbsp;et&nbsp;al. (2016) pedagogical style. In every domain an individual's <strong>group</strong> and <strong>trait</strong> are carried by two separate visual features. Each domain has three treatment cards — <strong>Symmetric</strong>, <strong>Majority</strong>, <strong>Minority</strong> — and its own switch to flip all three between <strong>Two&nbsp;groups</strong> (identity-inference view) and <strong>One&nbsp;group</strong> (pooled population, marginal prevalence only). Equal group sizes throughout (&mu;<sub>A</sub>&nbsp;=&nbsp;&mu;<sub>B</sub>&nbsp;=&nbsp;&frac12;).</p>
+  <p class="section-note stim-intro">Three settings, each drawn in the clean pedagogical style of Bordalo&nbsp;et&nbsp;al. (2016). Two are abstract illustrations (triangles &amp; circles; boys &amp; girls) and one is political. In every setting an individual's <strong>group</strong> and <strong>trait</strong> are carried by two separate visual features. Each setting card below holds its three treatment figures — <strong>Symmetric</strong>, <strong>Majority</strong>, <strong>Minority</strong> — and a switch (top right) that flips all three together between <strong>Two&nbsp;groups</strong> (identity-inference view) and <strong>One&nbsp;group</strong> (pooled population, marginal prevalence only). Equal group sizes throughout (&mu;<sub>A</sub>&nbsp;=&nbsp;&mu;<sub>B</sub>&nbsp;=&nbsp;&frac12;).</p>
 
-  <!-- ============ ABSTRACT ============ -->
-  <section class="section domain-section">
+  <!-- ============ TREATMENTS OVERVIEW ============ -->
+  <div class="card table-card">
+    <div class="table-head">
+      <h3>Treatments</h3>
+      <p>The three calibrations used in every setting — share holding trait&nbsp;1 in each group.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Treatment</th>
+          <th>Group A (&pi;<sub>1A</sub>)</th>
+          <th>Group B (&pi;<sub>1B</sub>)</th>
+          <th>R(1,A)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="treat"><span class="dot neutral"></span>Symmetric</td><td>0.65</td><td>0.65</td><td>1.00</td></tr>
+        <tr><td class="treat"><span class="dot majority"></span>Majority</td><td>0.65</td><td>0.95</td><td>0.68</td></tr>
+        <tr><td class="treat"><span class="dot minority"></span>Minority</td><td>0.45</td><td>0.65</td><td>0.69</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ ABSTRACT — SHAPES ============ -->
+  <section class="section domain-section d-abstract">
     <div class="section-head">
-      <span class="section-tag s1">Abstract</span>
-      <h2>Triangles &amp; Circles</h2>
-      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — abstract">
+      <div class="sh-titles">
+        <span class="section-tag s1">Abstract</span>
+        <h2>Triangles &amp; Circles</h2>
+      </div>
+      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — triangles and circles">
         <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
         <button type="button" class="gt-btn" data-mode="one">One group</button>
       </div>
     </div>
-    <p class="section-note">Groups are a <span class="muted-label">triangle</span> and a <span class="muted-label">circle</span>; the binary trait is encoded by colour — green vs blue.</p>
+    <p class="section-note">An abstract illustration. Groups are a <span class="muted-label">triangle</span> and a <span class="muted-label">circle</span> (the shape), and the binary trait is encoded by colour — green vs blue.</p>
     <div class="stim-row">
       <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Symmetric</div><div class="stim-fig" data-domain="abstract" data-treat="symmetric"></div></div>
       <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-domain="abstract" data-treat="majority"></div></div>
@@ -62,35 +87,40 @@
     </div>
   </section>
 
-  <!-- ============ GENDER ============ -->
-  <section class="section domain-section">
+  <!-- ============ ABSTRACT — FIGURES ============ -->
+  <section class="section domain-section d-abstract">
     <div class="section-head">
-      <span class="section-tag s2">Gender</span>
-      <h2>Boys &amp; Girls</h2>
-      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — gender">
+      <div class="sh-titles">
+        <span class="section-tag s1">Abstract</span>
+        <h2>Boys &amp; Girls</h2>
+      </div>
+      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — boys and girls">
         <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
         <button type="button" class="gt-btn" data-mode="one">One group</button>
       </div>
     </div>
-    <p class="section-note">Groups are <span class="muted-label">boys</span> and <span class="muted-label">girls</span> figures; the binary trait is encoded by t-shirt colour.</p>
+    <p class="section-note">A second abstract illustration, distinct from the shapes above. Groups are <span class="muted-label">boys</span> and <span class="muted-label">girls</span> figures, and the binary trait is encoded by a t-shirt colour, in the style of Bordalo&nbsp;et&nbsp;al. (2016).</p>
     <div class="stim-row">
       <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Symmetric</div><div class="stim-fig" data-domain="gender" data-treat="symmetric"></div></div>
       <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-domain="gender" data-treat="majority"></div></div>
       <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-domain="gender" data-treat="minority"></div></div>
     </div>
+    <p class="stim-cite">Icon convention after Bordalo, Coffman, Gennaioli &amp; Shleifer, “Stereotypes,” <em>Quarterly Journal of Economics</em> (2016). Icons drawn originally for this page.</p>
   </section>
 
   <!-- ============ POLITICAL ============ -->
-  <section class="section domain-section">
+  <section class="section domain-section d-political">
     <div class="section-head">
-      <span class="section-tag s3">Political</span>
-      <h2>Democrats &amp; Republicans</h2>
+      <div class="sh-titles">
+        <span class="section-tag s3">Political</span>
+        <h2>Democrats &amp; Republicans</h2>
+      </div>
       <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — political">
         <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
         <button type="button" class="gt-btn" data-mode="one">One group</button>
       </div>
     </div>
-    <p class="section-note">Groups are <span class="muted-label">Democrats</span> and <span class="muted-label">Republicans</span> in party colours blue and red; the binary trait is whether the figure wears a globe hat (supports the climate policy) or not.</p>
+    <p class="section-note">Groups are <span class="muted-label">Democrats</span> and <span class="muted-label">Republicans</span> in party colours blue and red, and the binary trait is whether the figure wears a globe hat (supports the climate policy) or not.</p>
     <div class="stim-row">
       <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Symmetric</div><div class="stim-fig" data-domain="political" data-treat="symmetric"></div></div>
       <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-domain="political" data-treat="majority"></div></div>
