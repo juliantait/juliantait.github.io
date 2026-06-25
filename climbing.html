@@ -103,11 +103,12 @@
     .climbing-text > :first-child { margin-top: 0; }
     .climbing-text > :last-child { margin-bottom: 0; }
     .climbing-photos {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
+      position: relative;
+      min-height: 0;
     }
     .climbing-photos img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -117,7 +118,8 @@
     }
     @media (max-width: 720px) {
       .climbing-top { grid-template-columns: 1fr; }
-      .climbing-photos img { height: auto; }
+      .climbing-photos { min-height: 0; }
+      .climbing-photos img { position: static; height: auto; }
     }
   </style>
 </head>
