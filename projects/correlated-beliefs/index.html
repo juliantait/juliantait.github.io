@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=3">
-<link rel="stylesheet" href="correlated.css?v=5">
+<link rel="stylesheet" href="correlated.css?v=6">
 </head>
 <body>
 
@@ -42,58 +42,59 @@
   <section id="view-stimuli" class="view">
 
 
-  <section class="section">
+  <p class="section-note stim-intro">Three stimulus domains, each drawn in the clean Bordalo&nbsp;et&nbsp;al. (2016) pedagogical style. In every domain an individual's <strong>group</strong> and <strong>trait</strong> are carried by two separate visual features. Each domain has three treatment cards — <strong>Symmetric</strong>, <strong>Majority</strong>, <strong>Minority</strong> — and its own switch to flip all three between <strong>Two&nbsp;groups</strong> (identity-inference view) and <strong>One&nbsp;group</strong> (pooled population, marginal prevalence only). Equal group sizes throughout (&mu;<sub>A</sub>&nbsp;=&nbsp;&mu;<sub>B</sub>&nbsp;=&nbsp;&frac12;).</p>
+
+  <!-- ============ ABSTRACT ============ -->
+  <section class="section domain-section">
     <div class="section-head">
-      <span class="section-tag s1">Stimuli</span>
-      <h2>Three domains, one structure</h2>
+      <span class="section-tag s1">Abstract</span>
+      <h2>Triangles &amp; Circles</h2>
+      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — abstract">
+        <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
+        <button type="button" class="gt-btn" data-mode="one">One group</button>
+      </div>
     </div>
-    <p class="section-note">Three Bordalo-style stimulus domains over the same treatment frequencies, which the table below defines. In each domain an individual's <strong>group</strong> and <strong>trait</strong> are carried by two separate visual features. Use the one switch on the card to flip all three blocks together between <strong>Two&nbsp;groups</strong> (identity-inference view) and <strong>One&nbsp;group</strong> (pooled population, marginal prevalence only). Visual style after Bordalo et&nbsp;al. (2016).</p>
-
-    <div class="card table-card">
-      <div class="table-head">
-        <h3>Treatments</h3>
-        <p>Share holding trait&nbsp;1 in each group.</p>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Treatment</th>
-            <th>Group A (&pi;<sub>1A</sub>)</th>
-            <th>Group B (&pi;<sub>1B</sub>)</th>
-            <th>R(1,A)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td class="treat"><span class="dot neutral"></span>Symmetric</td><td>0.65</td><td>0.65</td><td>1.00</td></tr>
-          <tr><td class="treat"><span class="dot majority"></span>Majority</td><td>0.65</td><td>0.95</td><td>0.68</td></tr>
-          <tr><td class="treat"><span class="dot minority"></span>Minority</td><td>0.45</td><td>0.65</td><td>0.69</td></tr>
-        </tbody>
-      </table>
+    <p class="section-note">Groups are a <span class="muted-label">triangle</span> and a <span class="muted-label">circle</span>; the binary trait is encoded by colour — green vs blue.</p>
+    <div class="stim-row">
+      <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Symmetric</div><div class="stim-fig" data-domain="abstract" data-treat="symmetric"></div></div>
+      <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-domain="abstract" data-treat="majority"></div></div>
+      <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-domain="abstract" data-treat="minority"></div></div>
     </div>
+  </section>
 
-    <div class="card design" id="domains-card">
-      <div class="design-head">
-        <span class="swatch domains"></span>
-        <span class="name">Stimulus domains</span>
-        <div class="gtoggle" id="groups-toggle" role="group" aria-label="Groups view">
-          <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
-          <button type="button" class="gt-btn" data-mode="one">One group</button>
-        </div>
+  <!-- ============ GENDER ============ -->
+  <section class="section domain-section">
+    <div class="section-head">
+      <span class="section-tag s2">Gender</span>
+      <h2>Boys &amp; Girls</h2>
+      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — gender">
+        <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
+        <button type="button" class="gt-btn" data-mode="one">One group</button>
       </div>
-      <div class="stim-row">
-        <div class="stim">
-          <div class="stim-label"><span class="dot neutral"></span>Symmetric <span class="stim-domain">Abstract</span></div>
-          <div class="stim-fig" data-domain="abstract" data-treat="symmetric"></div>
-        </div>
-        <div class="stim">
-          <div class="stim-label"><span class="dot majority"></span>Majority <span class="stim-domain">Gender</span></div>
-          <div class="stim-fig" data-domain="gender" data-treat="majority"></div>
-        </div>
-        <div class="stim">
-          <div class="stim-label"><span class="dot minority"></span>Minority <span class="stim-domain">Political</span></div>
-          <div class="stim-fig" data-domain="political" data-treat="minority"></div>
-        </div>
+    </div>
+    <p class="section-note">Groups are <span class="muted-label">boys</span> and <span class="muted-label">girls</span> figures; the binary trait is encoded by t-shirt colour.</p>
+    <div class="stim-row">
+      <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Symmetric</div><div class="stim-fig" data-domain="gender" data-treat="symmetric"></div></div>
+      <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-domain="gender" data-treat="majority"></div></div>
+      <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-domain="gender" data-treat="minority"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ POLITICAL ============ -->
+  <section class="section domain-section">
+    <div class="section-head">
+      <span class="section-tag s3">Political</span>
+      <h2>Democrats &amp; Republicans</h2>
+      <div class="gtoggle sec-toggle" role="group" aria-label="Groups view — political">
+        <button type="button" class="gt-btn on" data-mode="two">Two groups</button>
+        <button type="button" class="gt-btn" data-mode="one">One group</button>
       </div>
+    </div>
+    <p class="section-note">Groups are <span class="muted-label">Democrats</span> and <span class="muted-label">Republicans</span> in party colours blue and red; the binary trait is whether the figure wears a globe hat (supports the climate policy) or not.</p>
+    <div class="stim-row">
+      <div class="stim"><div class="stim-label"><span class="dot neutral"></span>Symmetric</div><div class="stim-fig" data-domain="political" data-treat="symmetric"></div></div>
+      <div class="stim"><div class="stim-label"><span class="dot majority"></span>Majority</div><div class="stim-fig" data-domain="political" data-treat="majority"></div></div>
+      <div class="stim"><div class="stim-label"><span class="dot minority"></span>Minority</div><div class="stim-fig" data-domain="political" data-treat="minority"></div></div>
     </div>
   </section>
 
@@ -800,7 +801,7 @@ run();
     fig._cap.innerHTML = cap + legend(D);
   }
 
-  var FIGS = Array.prototype.slice.call(document.querySelectorAll('.stim-fig[data-domain]')).map(function(fig){
+  function buildFig(fig){
     fig._domain = fig.getAttribute('data-domain');
     fig._treat  = fig.getAttribute('data-treat');
     fig._mode   = 'two';
@@ -810,20 +811,22 @@ run();
     fig._svg = svgBox; fig._cap = cap;
     render(fig);
     return fig;
-  });
+  }
 
-  // single card-level switch flips ALL blocks together
-  var toggle = document.getElementById('groups-toggle');
-  if(toggle){
+  // each domain SECTION owns ONE switch that flips its three treatment cards together
+  Array.prototype.slice.call(document.querySelectorAll('.domain-section')).forEach(function(sec){
+    var figs = Array.prototype.slice.call(sec.querySelectorAll('.stim-fig[data-domain]')).map(buildFig);
+    var toggle = sec.querySelector('.gtoggle');
+    if(!toggle) return;
     var btns = Array.prototype.slice.call(toggle.querySelectorAll('.gt-btn'));
     btns.forEach(function(b){
       b.addEventListener('click', function(){
         var mode = b.getAttribute('data-mode');
         btns.forEach(function(x){ x.classList.toggle('on', x===b); });
-        FIGS.forEach(function(fig){ fig._mode = mode; render(fig); });
+        figs.forEach(function(fig){ fig._mode = mode; render(fig); });
       });
     });
-  }
+  });
 })();
 </script>
 <script>

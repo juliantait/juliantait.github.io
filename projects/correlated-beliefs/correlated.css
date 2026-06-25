@@ -139,17 +139,18 @@
   #view-stimuli .stim-label .dot { width:7px; height:7px; border-radius:50%; }
   #view-stimuli .stim img { display:block; width:100%; height:auto; border-radius:6px; }
 
-  /* ---- interactive stimulus figures: one card-level switch + icon arrays ---- */
-  #view-stimuli .swatch.domains { background:linear-gradient(135deg,#2e9e6b,#2f7fd1 45%,#d63b3b); }
+  /* ---- interactive stimulus figures: per-section switch + icon arrays ---- */
+  #view-stimuli .stim-intro { margin-bottom:24px; }
+  #view-stimuli .section-tag.s3 { background:#b4453f; }
+  #view-stimuli .domain-section { margin-top:34px; }
+  #view-stimuli .domain-section .section-head { align-items:center; }
+  #view-stimuli .domain-section .section-note { margin-bottom:14px; }
+  #view-stimuli .muted-label { color:var(--muted); font-weight:600; }
   #view-stimuli .stim-fig { display:block; }
-  #view-stimuli .stim-domain {
-    margin-left:7px; font-size:0.68rem; font-weight:600; letter-spacing:0.04em;
-    text-transform:uppercase; color:var(--muted);
-  }
-  #view-stimuli #groups-toggle { margin-left:auto; }
+  #view-stimuli .sec-toggle { margin-left:auto; }
   #view-stimuli .gtoggle {
     display:inline-flex; gap:0; margin:0; border:1px solid var(--line);
-    border-radius:8px; overflow:hidden; background:#fff;
+    border-radius:8px; overflow:hidden; background:#fff; flex:none;
   }
   #view-stimuli .lg-svg { vertical-align:middle; margin-right:5px; }
   #view-stimuli .gt-btn {
