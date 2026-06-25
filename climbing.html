@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="static/css/style.css" />
   <style>
     .cragference-embed {
-      margin: var(--space-3) auto 0;
+      margin: 0 auto;
       text-align: center;
     }
 
@@ -97,8 +97,8 @@
       display: grid;
       grid-template-columns: 1.4fr 1fr;
       gap: var(--space-3);
-      align-items: start;
-      margin-bottom: var(--space-3);
+      align-items: stretch;
+      margin-bottom: var(--space-2);
     }
     .climbing-text > :first-child { margin-top: 0; }
     .climbing-text > :last-child { margin-bottom: 0; }
@@ -109,7 +109,7 @@
     }
     .climbing-photos img {
       width: 100%;
-      height: auto;
+      height: 100%;
       object-fit: cover;
       border-radius: var(--radius);
       box-shadow: var(--shadow-soft);
@@ -117,6 +117,7 @@
     }
     @media (max-width: 720px) {
       .climbing-top { grid-template-columns: 1fr; }
+      .climbing-photos img { height: auto; }
     }
   </style>
 </head>
