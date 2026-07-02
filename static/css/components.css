@@ -234,13 +234,15 @@ a[role='button']:hover,
   margin: 0;
 }
 
-/* Keyword chips - clearly spaced, distinct backgrounds */
+/* Keyword chips - clearly spaced, distinct backgrounds.
+   Always visible directly beneath the authors row (no longer inside the
+   collapsible abstract panel). */
 .abstract-keywords {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: var(--space-2) 0 0;
+  margin: 2px 0 0;
   font-size: 12px;
 }
 
