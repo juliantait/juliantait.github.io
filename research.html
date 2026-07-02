@@ -25,16 +25,10 @@
           </div>
           <span class="publication-tag">Experiment</span>
         </li>
-        <li class="publication-item">
+        <li class="publication-item is-expandable" role="button" tabindex="0" aria-expanded="false" aria-controls="abstract-value-for-money">
           <div class="publication-content">
             <h3 class="publication-title">Perceived Value-for-Money: An Experiment on Advice-Giving</h3>
-            <div class="publication-authors-row">
-              <p class="publication-authors">with R. Sloof & J. van de Ven</p>
-              <button type="button" class="abstract-btn" aria-expanded="false" aria-controls="abstract-value-for-money">
-                <span>Abstract</span>
-                <span class="abstract-chevron" aria-hidden="true">▾</span>
-              </button>
-            </div>
+            <p class="publication-authors">with R. Sloof & J. van de Ven</p>
             <p class="abstract-keywords">
               <span class="abstract-keywords-label">Keywords:</span>
               <span class="abstract-keyword">advice-giving</span>
@@ -45,11 +39,7 @@
             </p>
             <div class="abstract-panel" id="abstract-value-for-money">
               <div class="abstract-panel-inner">
-                <div class="abstract-card">
-                  <div class="abstract-inner-card">
-                    <p class="publication-abstract">Consulting is a lucrative business, yet little is known about how fees shape advisory incentives. Higher fees should elicit greater effort, but they may also create pressure to signal value – potentially distorting advice rather than improving it. We investigate this in a pre-registered experiment with 295 client–advisor pairs, in which advisors are randomly assigned a low or high flat fee before deciding whether to provide advice on their client's estimates in a dot-counting task. Contrary to the signalling hypothesis, we find that higher fees affect neither the frequency, boldness, nor quality of advice – suggesting that fees do not exacerbate advisors' desire to signal <em>perceived value for money</em>. Clients, however, comply more with expensive advice, prefer advisors who advise more frequently, and sanction those who suggest large changes from the status quo.</p>
-                  </div>
-                </div>
+                <p class="publication-abstract">Consulting is a lucrative business, yet little is known about how fees shape advisory incentives. Higher fees should elicit greater effort, but they may also create pressure to signal value – potentially distorting advice rather than improving it. We investigate this in a pre-registered experiment with 295 client–advisor pairs, in which advisors are randomly assigned a low or high flat fee before deciding whether to provide advice on their client's estimates in a dot-counting task. Contrary to the signalling hypothesis, we find that higher fees affect neither the frequency, boldness, nor quality of advice – suggesting that fees do not exacerbate advisors' desire to signal <em>perceived value for money</em>. Clients, however, comply more with expensive advice, prefer advisors who advise more frequently, and sanction those who suggest large changes from the status quo.</p>
               </div>
             </div>
           </div>
@@ -109,13 +99,14 @@
   <script src="static/js/partials.js"></script>
   <script>
     // Expandable abstract cards (disclosure pattern).
-    // Collapsed by default; animate max-height for robust cross-browser expand/collapse.
-    document.querySelectorAll('.abstract-btn').forEach(function (btn) {
-      var panel = document.getElementById(btn.getAttribute('aria-controls'));
+    // The whole publication card is the toggle; collapsed by default, we
+    // animate max-height for robust cross-browser expand/collapse.
+    document.querySelectorAll('.publication-item.is-expandable').forEach(function (card) {
+      var panel = card.querySelector('.abstract-panel');
       if (!panel) return;
 
-      btn.addEventListener('click', function () {
-        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+      function toggle() {
+        var isOpen = card.getAttribute('aria-expanded') === 'true';
 
         if (isOpen) {
           // Collapse: from current height (possibly 'none') back to a fixed px, then to 0 so it animates.
@@ -124,19 +115,33 @@
           requestAnimationFrame(function () {
             panel.style.maxHeight = '0px';
           });
-          btn.setAttribute('aria-expanded', 'false');
+          card.setAttribute('aria-expanded', 'false');
         } else {
           // Expand: to the measured content height; after the transition, release to 'none'
           // so later reflow (resize, chip wrap) never clips the content.
           panel.style.maxHeight = panel.scrollHeight + 'px';
-          btn.setAttribute('aria-expanded', 'true');
+          card.setAttribute('aria-expanded', 'true');
           panel.addEventListener('transitionend', function te(e) {
             if (e.propertyName !== 'max-height') return;
-            if (btn.getAttribute('aria-expanded') === 'true') {
+            if (card.getAttribute('aria-expanded') === 'true') {
               panel.style.maxHeight = 'none';
             }
             panel.removeEventListener('transitionend', te);
           });
+        }
+      }
+
+      card.addEventListener('click', function (e) {
+        // Let real links (DOI/PDF, etc.) work without toggling the abstract.
+        if (e.target.closest('a')) return;
+        toggle();
+      });
+
+      // Keyboard support since the card acts as a button.
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          toggle();
         }
       });
     });

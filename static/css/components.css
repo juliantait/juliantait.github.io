@@ -156,81 +156,29 @@ a[role='button']:hover,
 
 /* Expandable abstract card (disclosure) */
 
-/* Authors + Abstract pill share one row */
-.publication-authors-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.publication-authors-row .publication-authors {
-  margin: 0;
-}
-
-/* Pill-shaped toggle button */
-.abstract-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border: 1px solid transparent;
-  border-radius: 99px;
-  padding: 3px 12px;
+/* The whole card is the toggle when it has an abstract to reveal. */
+.publication-item.is-expandable {
   cursor: pointer;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
-.abstract-btn:hover {
-  background: var(--accent);
-  color: #fff;
-}
-
-.abstract-chevron {
-  font-size: 10px;
-  line-height: 1;
-  transition: transform var(--transition-medium);
-}
-
-/* Chevron flips when the disclosure is open (driven by aria state) */
-.abstract-btn[aria-expanded="true"] .abstract-chevron {
-  transform: rotate(180deg);
-}
-
-/* Collapse container: starts closed, JS animates max-height */
+/* Collapse container: starts closed, JS animates max-height.
+   No background/border of its own - the abstract flows cleanly inside the
+   publication card rather than sitting in extra nested boxes. */
 .abstract-panel {
   max-height: 0;
   overflow: hidden;
   transition: max-height var(--transition-medium);
 }
 
+/* Invisible padding/separator wrapper (not a box) - keeps the abstract
+   spaced from the meta above and gives the collapse animation a padded
+   inner element to measure. */
 .abstract-panel-inner {
   padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
 }
 
-/* Outer card */
-.abstract-card {
-  padding: var(--space-2);
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-/* Nested inner card holding the abstract text - softer, lighter edges */
-.abstract-inner-card {
-  padding: var(--space-2);
-  background: var(--bg-page);
-  border: 1px solid var(--accent-soft);
-  border-radius: 4px;
-}
-
-.abstract-inner-card .publication-abstract {
+.abstract-panel-inner .publication-abstract {
   margin: 0;
 }
 
@@ -262,8 +210,7 @@ a[role='button']:hover,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .abstract-panel,
-  .abstract-chevron {
+  .abstract-panel {
     transition: none;
   }
 }
