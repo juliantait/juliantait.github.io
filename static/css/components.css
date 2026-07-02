@@ -153,3 +153,103 @@ a[role='button']:hover,
   align-items: center;
   gap: 8px;
 }
+
+/* Expandable abstract card (disclosure) */
+.abstract-toggle {
+  margin-top: 4px;
+}
+
+/* Pill-shaped toggle button */
+.abstract-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  border-radius: 99px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.abstract-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.abstract-chevron {
+  font-size: 10px;
+  line-height: 1;
+  transition: transform var(--transition-medium);
+}
+
+.abstract-toggle.open .abstract-chevron {
+  transform: rotate(180deg);
+}
+
+/* Smooth expand/collapse via animated grid rows */
+.abstract-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-medium);
+}
+
+.abstract-toggle.open .abstract-panel {
+  grid-template-rows: 1fr;
+}
+
+.abstract-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.abstract-card {
+  margin-top: var(--space-1);
+  padding: var(--space-2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.abstract-card .publication-abstract {
+  margin: 0;
+}
+
+/* Keyword chips */
+.abstract-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: var(--space-2) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.abstract-keywords-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.abstract-keyword {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .abstract-panel,
+  .abstract-chevron {
+    transition: none;
+  }
+}

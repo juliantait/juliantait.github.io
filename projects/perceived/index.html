@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perceived Value for Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=9">
+<link rel="stylesheet" href="perceived.css?v=1">
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL (persistent) ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">EXPERIMENT</span>
+    <h1 class="hero-title">Perceived Value for Money</h1>
+    <p class="hero-sub">Does paying an advisor more distort their advice?</p>
+    <p class="hero-context">An interactive companion to the paper (with R. Sloof and J. van de Ven).</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <span class="topbar-title">Perceived Value for Money</span>
+    <nav>
+      <a href="#play" data-view="play" class="active">Play the task</a>
+      <a href="#found" data-view="found">What we found</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== PLAY VIEW ===================== -->
+  <section id="view-play" class="view">
+
+    <!-- role picker -->
+    <section class="panelcard">
+      <div class="card-head-row">
+        <div>
+          <h2 class="card-title">Play the estimation task</h2>
+          <p class="card-note">A grid of 100 dots, each red or black. The task is simply to judge <b>how many are red</b>.</p>
+        </div>
+        <div class="segmented" id="role-seg">
+          <button class="on" data-role="A">You are the client</button>
+          <button data-role="B">You are the advisor</button>
+        </div>
+      </div>
+      <p class="role-intro" id="role-intro"></p>
+    </section>
+
+    <!-- ============ ROLE A: CLIENT (decision-maker) ============ -->
+    <section class="panelcard" id="panel-A">
+      <h3 class="card-title" style="font-size:1.15rem">Your guess</h3>
+      <p class="card-note">You see the grid for exactly <b>5 seconds</b>, then it is hidden and you enter your estimate.</p>
+      <div class="note">The viewing time is fixed at 5 seconds for everyone, so working harder or staring longer cannot buy you more accuracy. That is the whole point of the design.</div>
+
+      <div class="stage-wrap">
+        <div class="dotstage" id="a-stage">
+          <span class="countpill" id="a-count">5</span>
+          <canvas id="a-canvas"></canvas>
+          <div class="dot-cover" id="a-cover">
+            <span class="dc-icon">&#9200;</span>
+            <span class="dc-msg" id="a-covermsg">Press start, watch for 5 seconds, then estimate the red count.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actionrow" id="a-startrow">
+        <button class="btn" id="a-start">Show the grid (5s)</button>
+      </div>
+
+      <div class="guessrow hidden" id="a-answer">
+        <div class="inp">
+          <label class="inp-label" for="a-guess">Red dots (0&ndash;100)</label>
+          <input type="number" id="a-guess" min="0" max="100" step="1" placeholder="?">
+        </div>
+        <button class="btn" id="a-submit">Submit estimate</button>
+      </div>
+
+      <div class="reveal hidden" id="a-reveal"></div>
+
+      <div class="actionrow hidden" id="a-nextrow">
+        <button class="btn ghost" id="a-next">New grid</button>
+      </div>
+
+      <div class="kpis" id="a-kpis" style="margin-top:20px"></div>
+    </section>
+
+    <!-- ============ ROLE B: ADVISOR ============ -->
+    <section class="panelcard hidden" id="panel-B">
+      <h3 class="card-title" style="font-size:1.15rem">Your advice</h3>
+      <p class="card-note">A client has already made a first guess on a grid you get to view for <b>6 seconds</b>. You decide whether to send advice, and if so, what revised red count to recommend.</p>
+
+      <!-- FEE toggle: the experimental treatment, front and centre -->
+      <div class="fee-block">
+        <div class="fee-lab">The client is paying you a flat fee of</div>
+        <div class="fee-seg" id="b-seg">
+          <button data-fee="low" class="on"><span class="fee-amt">&pound;0.35</span><span class="fee-tag">Low fee</span></button>
+          <button data-fee="high"><span class="fee-amt">&pound;1.75</span><span class="fee-tag">High fee</span></button>
+        </div>
+      </div>
+
+      <div class="note" id="b-teach">A flat fee is <b>sunk</b> the moment it is paid, so in theory it should change nothing about your advice, not whether you send it, not how far you shift the client, not its quality. As you play both fee levels, notice whether you personally feel any pull to intervene more when the client has paid you &pound;1.75.</div>
+
+      <div class="stage-wrap">
+        <div class="dotstage" id="b-stage">
+          <span class="countpill" id="b-count">6</span>
+          <canvas id="b-canvas"></canvas>
+          <div class="dot-cover" id="b-cover">
+            <span class="dc-icon">&#9200;</span>
+            <span class="dc-msg" id="b-covermsg">Press start to view the grid for 6 seconds.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actionrow" id="b-startrow">
+        <button class="btn" id="b-start">View the grid (6s)</button>
+      </div>
+
+      <div class="hidden" id="b-decide">
+        <p class="client-guess">Your client&rsquo;s first guess was <b id="b-client">&ndash;</b> red dots.</p>
+        <div class="slider-field advslider">
+          <label>Your recommended red count <span class="slideval" id="b-advval">50</span></label>
+          <input type="range" id="b-adv" min="0" max="100" step="1" value="50">
+        </div>
+        <p class="small" style="text-align:center;margin-bottom:12px">Sending advice costs you <b>&pound;0.07</b>, whatever the fee.</p>
+        <div class="actionrow">
+          <button class="btn" id="b-send">Send this advice (&minus;&pound;0.07)</button>
+          <button class="btn ghost" id="b-decline">Decline, send no advice</button>
+        </div>
+      </div>
+
+      <div class="reveal hidden" id="b-reveal"></div>
+
+      <div class="actionrow hidden" id="b-nextrow">
+        <button class="btn ghost" id="b-next">New grid</button>
+      </div>
+
+      <div class="kpis" id="b-kpis" style="margin-top:20px"></div>
+      <div class="advtrack" id="b-advtrack"></div>
+    </section>
+
+  </section>
+
+  <!-- ===================== FOUND VIEW ===================== -->
+  <section id="view-found" class="view hidden">
+
+    <!-- BLOCK 1: advisor side, the null result -->
+    <section class="panelcard">
+      <div class="block-head">
+        <span class="block-tag advisor">Advisor side</span>
+        <span class="block-headline">Higher fees move none of the three.</span>
+      </div>
+      <p class="card-note">The three pre-registered advisor outcomes, each measured under the low fee (&pound;0.35) and the high fee (&pound;1.75). The bars sit essentially on top of one another: paying the advisor five times as much shifts nothing.</p>
+
+      <div class="chartgrid" id="chartgrid"></div>
+
+      <div class="fee-legend">
+        <span><span class="sw" style="background:#64748b"></span>Low fee &pound;0.35</span>
+        <span><span class="sw" style="background:#d1971b"></span>High fee &pound;1.75</span>
+        <span>whiskers = 95% CI</span>
+      </div>
+    </section>
+
+    <!-- BLOCK 2: client side, the effects that DO appear -->
+    <section class="panelcard">
+      <div class="block-head">
+        <span class="block-tag client">Client side</span>
+        <span class="block-headline">The fee does move the client (exploratory).</span>
+      </div>
+      <p class="card-note">Away from the pre-registered advisor tests, the fee leaves clear traces on the client&rsquo;s behaviour. These effects are exploratory, not confirmatory.</p>
+
+      <div class="statcards">
+        <div class="statcard">
+          <div class="sc-v">Comply more</div>
+          <div class="sc-k">Clients <b>follow expensive advice more closely</b>, moving further towards a recommendation when they have paid the high fee for it.</div>
+        </div>
+        <div class="statcard">
+          <div class="sc-v">Reward activity</div>
+          <div class="sc-k">Clients <b>prefer advisors who advise more often</b>, rating and retaining frequent advisers more favourably.</div>
+        </div>
+        <div class="statcard">
+          <div class="sc-v">Punish big moves</div>
+          <div class="sc-k">Clients <b>sanction advisors who suggest large changes</b> from the status quo, penalising bold departures from their first guess.</div>
+        </div>
+      </div>
+
+      <div class="takeaway">
+        <b>An asymmetry.</b> Clients respond to the fee, complying more, rewarding activity and punishing bold moves, but advisors do not. The price paid changes the buyer&rsquo;s behaviour while leaving the seller&rsquo;s advice untouched.
+      </div>
+    </section>
+
+  </section>
+
+</main>
+
+<script>
+"use strict";
+/* =====================================================================
+   DOT STIMULUS  – a 10x10 grid of 100 solid dots, each red or black,
+   with slight positional jitter (mimicking assets/dots.png). The true
+   red count is drawn uniformly in [25, 75] each round.
+   ===================================================================== */
+function randInt(a, b){ return a + Math.floor(Math.random()*(b-a+1)); }   // inclusive
+
+function newLayout(){
+  var trueRed = randInt(25, 75);
+  var flags = [];
+  for(var i=0;i<100;i++) flags.push(i < trueRed);
+  for(var i=99;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=flags[i]; flags[i]=flags[j]; flags[j]=t; }
+  var dots = [];
+  for(var r=0;r<10;r++){
+    for(var c=0;c<10;c++){
+      dots.push({ col:c, row:r,
+        jx:(Math.random()-0.5)*0.44, jy:(Math.random()-0.5)*0.44,
+        red:flags[r*10+c] });
+    }
+  }
+  return { trueRed:trueRed, dots:dots };
+}
+function drawGrid(canvas, layout){
+  var dpr = window.devicePixelRatio || 1;
+  var css = canvas.clientWidth || 380;
+  canvas.width = Math.round(css*dpr);
+  canvas.height = Math.round(css*dpr);
+  var ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, css, css);
+  var pad = css*0.04, area = css - 2*pad, cell = area/10, rad = cell*0.30;
+  layout.dots.forEach(function(d){
+    var cx = pad + (d.col + 0.5 + d.jx)*cell;
+    var cy = pad + (d.row + 0.5 + d.jy)*cell;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad, 0, 2*Math.PI);
+    ctx.fillStyle = d.red ? '#e8241a' : '#16181f';
+    ctx.fill();
+  });
+}
+
+/* a reusable viewing countdown: shows the grid for `secs`, ticks a pill,
+   then calls done(). Returns nothing; guards against overlap via token. */
+function runViewing(opts){
+  var pill = opts.pill, cover = opts.cover;
+  var left = opts.secs;
+  cover.classList.add('gone');           // reveal the grid
+  pill.textContent = left;
+  pill.classList.add('on');
+  var tick = setInterval(function(){
+    left -= 1;
+    if(left <= 0){
+      clearInterval(tick);
+      pill.classList.remove('on');
+      cover.classList.remove('gone');     // hide the grid again
+      opts.done();
+    } else {
+      pill.textContent = left;
+    }
+  }, 1000);
+}
+
+var GBP = '£';
+function money(x){ return GBP + x.toFixed(2); }
+function kpi(v, k){ return '<div class="kpi"><div class="v">'+v+'</div><div class="k">'+k+'</div></div>'; }
+
+/* =====================================================================
+   ROLE A – the client (decision-maker)
+   Score: +£0.50 if exactly right, else −£0.10 per dot of error, min £0.
+   ===================================================================== */
+var A = { layout:null, total:0, rounds:0, phase:'idle' };
+function aEl(id){ return document.getElementById('a-'+id); }
+
+function aRenderKPIs(){
+  aEl('kpis').innerHTML =
+    kpi('<span class="money">'+money(A.total)+'</span>', 'total earned') +
+    kpi(A.rounds, 'grids played') +
+    kpi(A.rounds ? '<span class="money">'+money(A.total/A.rounds)+'</span>' : '&ndash;', 'average per grid');
+}
+function aReset(){
+  aEl('answer').classList.add('hidden');
+  aEl('reveal').classList.add('hidden');
+  aEl('nextrow').classList.add('hidden');
+  aEl('startrow').classList.remove('hidden');
+  aEl('covermsg').textContent = 'Press start, watch for 5 seconds, then estimate the red count.';
+  aEl('cover').classList.remove('gone');
+  A.phase = 'idle';
+}
+function aStart(){
+  A.layout = newLayout();
+  drawGrid(aEl('canvas'), A.layout);
+  aEl('startrow').classList.add('hidden');
+  A.phase = 'viewing';
+  runViewing({ pill:aEl('count'), cover:aEl('cover'), secs:5, done:function(){
+    aEl('covermsg').textContent = 'Grid hidden. How many dots were red?';
+    aEl('answer').classList.remove('hidden');
+    aEl('guess').value = '';
+    aEl('guess').focus();
+    A.phase = 'answer';
+  }});
+}
+function aSubmit(){
+  if(A.phase !== 'answer') return;
+  var g = parseInt(aEl('guess').value, 10);
+  if(isNaN(g)){ aEl('guess').focus(); return; }
+  g = Math.max(0, Math.min(100, g));
+  var truth = A.layout.trueRed;
+  var err = Math.abs(g - truth);
+  var pay = err === 0 ? 0.50 : Math.max(0, -0.10*err);
+  A.total += pay; A.rounds += 1;
+  var cls = err === 0 ? 'good' : (pay > 0 ? 'flat' : 'bad');
+  var verdict = err === 0
+      ? 'Bang on. You earn '+money(0.50)+'.'
+      : 'Off by '+err+' '+(err===1?'dot':'dots')+'. You earn '+money(pay)+'.';
+  aEl('reveal').innerHTML =
+    '<div class="rv-head">Reveal</div>'+
+    '<div class="rv-row"><span class="k">True red count</span><span class="v">'+truth+'</span></div>'+
+    '<div class="rv-row"><span class="k">Your estimate</span><span class="v">'+g+'</span></div>'+
+    '<div class="rv-row"><span class="k">Error</span><span class="v">'+err+'</span></div>'+
+    '<div class="rv-verdict '+cls+'">'+verdict+'</div>';
+  aEl('reveal').classList.remove('hidden');
+  aEl('answer').classList.add('hidden');
+  aEl('nextrow').classList.remove('hidden');
+  aRenderKPIs();
+  A.phase = 'result';
+}
+
+/* =====================================================================
+   ROLE B – the advisor
+   Earnings: flat fee (£0.35 low / £1.75 high) less £0.07 per advice sent.
+   ===================================================================== */
+var B = { layout:null, fee:'low', clientGuess:0, total:0, rounds:0,
+          advised:{low:0,high:0}, seen:{low:0,high:0}, phase:'idle' };
+var FEES = { low:0.35, high:1.75 };
+function bEl(id){ return document.getElementById('b-'+id); }
+
+function bRenderKPIs(){
+  bEl('kpis').innerHTML =
+    kpi('<span class="money">'+money(B.total)+'</span>', 'total earned') +
+    kpi(B.rounds, 'grids advised on') +
+    kpi((B.advised.low+B.advised.high), 'times you advised');
+}
+function bRenderTrack(){
+  function line(f){
+    var seen = B.seen[f], adv = B.advised[f];
+    var rate = seen ? Math.round(100*adv/seen)+'%' : '&ndash;';
+    return '<div class="at '+f+'"><div class="atk">'+(f==='low'?'Low fee '+money(0.35):'High fee '+money(1.75))+'</div>'+
+      '<div class="atv">'+rate+'</div>'+
+      '<div class="ats">advised in '+adv+' of '+seen+' grids</div></div>';
+  }
+  bEl('advtrack').innerHTML = line('low') + line('high');
+}
+function bSetFee(f){
+  B.fee = f;
+  Array.prototype.forEach.call(bEl('seg').children, function(btn){
+    btn.classList.toggle('on', btn.getAttribute('data-fee') === f);
+  });
+}
+function bReset(){
+  bEl('decide').classList.add('hidden');
+  bEl('reveal').classList.add('hidden');
+  bEl('nextrow').classList.add('hidden');
+  bEl('startrow').classList.remove('hidden');
+  bEl('covermsg').textContent = 'Press start to view the grid for 6 seconds.';
+  bEl('cover').classList.remove('gone');
+  B.phase = 'idle';
+}
+function bStart(){
+  B.layout = newLayout();
+  // simulated client first guess: truth plus modest noise, clamped to 0..100
+  var noise = Math.round((Math.random()*2-1)*9 + (Math.random()*2-1)*6);
+  B.clientGuess = Math.max(0, Math.min(100, B.layout.trueRed + noise));
+  drawGrid(bEl('canvas'), B.layout);
+  bEl('startrow').classList.add('hidden');
+  B.phase = 'viewing';
+  runViewing({ pill:bEl('count'), cover:bEl('cover'), secs:6, done:function(){
+    bEl('covermsg').textContent = 'Grid hidden. Decide on your advice.';
+    bEl('client').textContent = B.clientGuess;
+    bEl('adv').value = B.clientGuess;
+    bEl('advval').textContent = B.clientGuess;
+    bEl('decide').classList.remove('hidden');
+    B.phase = 'decide';
+  }});
+}
+function bResolve(advised){
+  if(B.phase !== 'decide') return;
+  var truth = B.layout.trueRed, fee = FEES[B.fee];
+  var rec = advised ? Math.max(0, Math.min(100, parseInt(bEl('adv').value, 10))) : null;
+  var cost = advised ? 0.07 : 0;
+  var earn = fee - cost;
+  B.total += earn; B.rounds += 1;
+  B.seen[B.fee] += 1;
+  if(advised) B.advised[B.fee] += 1;
+
+  var rows =
+    '<div class="rv-row"><span class="k">True red count</span><span class="v">'+truth+'</span></div>'+
+    '<div class="rv-row"><span class="k">Client&rsquo;s first guess</span><span class="v">'+B.clientGuess+' (off by '+Math.abs(B.clientGuess-truth)+')</span></div>';
+  var verdict, cls;
+  if(advised){
+    var before = Math.abs(B.clientGuess - truth);
+    var after = Math.abs(rec - truth);
+    rows += '<div class="rv-row"><span class="k">You recommended</span><span class="v">'+rec+' (off by '+after+')</span></div>';
+    if(after < before){ cls='good'; verdict='Your advice helped: it moved the client '+(before-after)+' closer to the truth.'; }
+    else if(after > before){ cls='bad'; verdict='Your advice hurt: it moved the client '+(after-before)+' further from the truth.'; }
+    else { cls='flat'; verdict='Your advice left the client exactly as accurate as before.'; }
+    rows += '<div class="rv-row"><span class="k">Fee &minus; advice cost</span><span class="v"><span class="money">'+money(fee)+' &minus; '+money(0.07)+' = '+money(earn)+'</span></span></div>';
+  } else {
+    cls='flat'; verdict='You sent no advice. The client keeps their first guess.';
+    rows += '<div class="rv-row"><span class="k">Fee (no advice cost)</span><span class="v"><span class="money">'+money(earn)+'</span></span></div>';
+  }
+  bEl('reveal').innerHTML =
+    '<div class="rv-head">Reveal</div>'+ rows +
+    '<div class="rv-verdict '+cls+'">'+verdict+'</div>';
+  bEl('reveal').classList.remove('hidden');
+  bEl('decide').classList.add('hidden');
+  bEl('nextrow').classList.remove('hidden');
+  bRenderKPIs();
+  bRenderTrack();
+  B.phase = 'result';
+}
+
+/* =====================================================================
+   ROLE SWITCHER + wiring
+   ===================================================================== */
+var ROLE_INTRO = {
+  A: 'As the <b>client</b>, you are the decision-maker. Your pay depends on how close your estimate is to the true number of red dots.',
+  B: 'As the <b>advisor</b>, you are paid a flat fee to help a client who has already guessed. The fee is the experiment&rsquo;s treatment, so watch how it feels.'
+};
+function setRole(role){
+  Array.prototype.forEach.call(document.getElementById('role-seg').children, function(btn){
+    btn.classList.toggle('on', btn.getAttribute('data-role') === role);
+  });
+  document.getElementById('role-intro').innerHTML = ROLE_INTRO[role];
+  document.getElementById('panel-A').classList.toggle('hidden', role !== 'A');
+  document.getElementById('panel-B').classList.toggle('hidden', role !== 'B');
+}
+
+(function wire(){
+  // role picker
+  Array.prototype.forEach.call(document.getElementById('role-seg').children, function(btn){
+    btn.addEventListener('click', function(){ setRole(btn.getAttribute('data-role')); });
+  });
+  setRole('A');
+
+  // Role A
+  aEl('start').addEventListener('click', aStart);
+  aEl('submit').addEventListener('click', aSubmit);
+  aEl('guess').addEventListener('keydown', function(e){ if(e.key === 'Enter') aSubmit(); });
+  aEl('next').addEventListener('click', function(){ aReset(); aStart(); });
+  aRenderKPIs();
+
+  // Role B
+  Array.prototype.forEach.call(bEl('seg').children, function(btn){
+    btn.addEventListener('click', function(){ bSetFee(btn.getAttribute('data-fee')); });
+  });
+  bEl('adv').addEventListener('input', function(){ bEl('advval').textContent = bEl('adv').value; });
+  bEl('start').addEventListener('click', bStart);
+  bEl('send').addEventListener('click', function(){ bResolve(true); });
+  bEl('decline').addEventListener('click', function(){ bResolve(false); });
+  bEl('next').addEventListener('click', function(){ bReset(); bStart(); });
+  bRenderKPIs();
+  bRenderTrack();
+})();
+
+/* =====================================================================
+   "WHAT WE FOUND" – three fee charts (inline SVG, chartCells style).
+   Grouped LOW vs HIGH bars with 95% CI whisker caps. NO line ever
+   connects the two bars. Numbers are illustrative.
+   ===================================================================== */
+var LOWCOL = '#64748b', HIGHCOL = '#d1971b';
+function feeChart(o){
+  var W=280, H=210, padL=42, padR=14, padT=18, padB=40;
+  var pw=W-padL-padR, ph=H-padT-padB, ymax=o.ymax;
+  function Y(v){ return padT + ph*(1 - v/ymax); }
+  var s = ['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit">'];
+  // gridlines + y labels
+  for(var k=0;k<=4;k++){
+    var v = ymax*k/4, yy = Y(v);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#999">'+o.fmt(v)+'</text>');
+  }
+  var bars = [['low', o.low, LOWCOL, o.lowLab], ['high', o.high, HIGHCOL, o.highLab]];
+  var slot = pw/2, bw = slot*0.40;
+  bars.forEach(function(b, i){
+    var d = b[1], cx = padL + slot*(i+0.5);
+    var x = cx - bw/2, yy = Y(d.m), h = (padT+ph) - yy;
+    s.push('<rect x="'+x+'" y="'+yy+'" width="'+bw+'" height="'+h+'" rx="2" fill="'+b[2]+'" stroke="#0002"/>');
+    // 95% CI whisker with caps (NO connecting line between the two bars)
+    var yhi = Y(d.hi), ylo = Y(d.lo), cw = bw*0.34;
+    s.push('<line x1="'+cx+'" y1="'+yhi+'" x2="'+cx+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    s.push('<line x1="'+(cx-cw)+'" y1="'+yhi+'" x2="'+(cx+cw)+'" y2="'+yhi+'" stroke="#33384a" stroke-width="1.4"/>');
+    s.push('<line x1="'+(cx-cw)+'" y1="'+ylo+'" x2="'+(cx+cw)+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    // value label above the whisker
+    s.push('<text x="'+cx+'" y="'+(yhi-6)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#333">'+o.fmt(d.m)+'</text>');
+    // x label
+    s.push('<text x="'+cx+'" y="'+(padT+ph+16)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="#555">'+b[3]+'</text>');
+  });
+  s.push('<text transform="translate(12,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="10" fill="#888">'+o.axis+'</text>');
+  s.push('</svg>');
+  return s.join('');
+}
+var CHARTS = [
+  { title:'Advice frequency', hyp:'H1', axis:'share of grids advised',
+    ymax:1, fmt:function(v){ return Math.round(v*100)+'%'; },
+    lowLab:'Low', highLab:'High',
+    low:{m:0.71, lo:0.64, hi:0.78}, high:{m:0.73, lo:0.66, hi:0.80} },
+  { title:'Advice boldness', hyp:'H2', axis:'mean shift from status quo (dots)',
+    ymax:14, fmt:function(v){ return v.toFixed(0); },
+    lowLab:'Low', highLab:'High',
+    low:{m:8.4, lo:7.1, hi:9.7}, high:{m:8.1, lo:6.8, hi:9.4} },
+  { title:'Advice quality', hyp:'H3', axis:'reduction in client error (dots)',
+    ymax:6, fmt:function(v){ return v.toFixed(0); },
+    lowLab:'Low', highLab:'High',
+    low:{m:3.1, lo:2.1, hi:4.1}, high:{m:3.3, lo:2.2, hi:4.4} }
+];
+(function renderCharts(){
+  var host = document.getElementById('chartgrid');
+  host.innerHTML = CHARTS.map(function(c){
+    return '<div class="minichart">'+
+      '<div class="mc-title">'+c.title+'</div>'+
+      '<div class="mc-hyp">'+c.hyp+'</div>'+
+      feeChart(c)+
+      '<div class="mc-note">illustrative, see paper for exact estimates</div>'+
+    '</div>';
+  }).join('');
+})();
+
+/* sticky header collapse: reveal compact title once the hero scrolls past */
+(function(){
+  var sentinel = document.getElementById('hdr-sentinel');
+  var topbar = document.getElementById('topbar');
+  if(sentinel && topbar && 'IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, {threshold:0}).observe(sentinel);
+  }
+})();
+
+/* ---- SPA router: swap only the lower content; shell stays fixed ---- */
+(function(){
+  var NAV = Array.prototype.slice.call(document.querySelectorAll('.topbar nav a[data-view]'));
+  var vPlay = document.getElementById('view-play');
+  var vFound = document.getElementById('view-found');
+  function setView(name){
+    if(name !== 'found' && name !== 'play') name = 'play';
+    var isFound = (name === 'found');
+    vPlay.classList.toggle('hidden', isFound);
+    vFound.classList.toggle('hidden', !isFound);
+    NAV.forEach(function(a){ a.classList.toggle('active', a.getAttribute('data-view') === name); });
+    document.title = isFound ? 'Perceived Value for Money – What we found'
+                             : 'Perceived Value for Money – Play the task';
+  }
+  NAV.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var name = a.getAttribute('data-view');
+      if(location.hash !== '#' + name){ location.hash = name; }  // -> hashchange -> route
+      else { setView(name); }
+    });
+  });
+  function route(){ setView((location.hash || '').replace(/^#/, '') || 'play'); }
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,162 @@
+
+  /* ============================================================================
+     PERCEIVED.CSS  (site-specific – "Perceived Value for Money")
+     ----------------------------------------------------------------------------
+     Everything that is NOT part of the shared shell (shell.css): the dot-
+     estimation game (canvas stage, countdown, decision controls, tallies) and
+     the "What we found" charts / statement cards. Loaded AFTER shell.css so it
+     can lean on the shared tokens + components.
+     ============================================================================ */
+
+  :root {
+    /* the two fee levels – a muted slate (LOW) and a warm gold/amber (HIGH) */
+    --low:#64748b; --low-soft:#eef1f5;
+    --high:#d1971b; --high-soft:#fbf1dc;
+    /* stimulus dot colours (mimic assets/dots.png) */
+    --dot-red:#e8241a; --dot-black:#16181f;
+  }
+
+  /* first play panelcard hugs the topbar a little tighter */
+  #view-play > .panelcard:first-of-type,
+  #view-found > .panelcard:first-of-type { margin-top:6px; }
+
+  /* ---- role / fee readouts shared bits ---- */
+  .role-intro { font-size:.92rem; color:var(--ink-soft); max-width:70ch; margin-top:2px; }
+  .role-intro b { color:var(--ink); }
+
+  /* ===================== DOT STAGE (canvas) ===================== */
+  .stage-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; margin:14px 0 4px; }
+  .dotstage {
+    position:relative; width:100%; max-width:400px; aspect-ratio:1/1;
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    box-shadow:var(--shadow-sm); overflow:hidden;
+  }
+  .dotstage canvas { display:block; width:100%; height:100%; }
+  /* the cover that hides the grid before/after viewing */
+  .dot-cover {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:8px; text-align:center;
+    background:linear-gradient(160deg,#f7f8fc,#eef0f7); color:var(--muted);
+    padding:22px; transition:opacity .2s;
+  }
+  .dot-cover.gone { opacity:0; pointer-events:none; }
+  .dot-cover .dc-icon { font-size:1.7rem; opacity:.5; }
+  .dot-cover .dc-msg { font-size:.9rem; font-weight:600; color:var(--ink-soft); max-width:26ch; }
+  /* countdown pill top-right of the stage while the grid is shown */
+  .countpill {
+    position:absolute; top:10px; right:10px; z-index:2;
+    background:var(--accent); color:#fff; font-weight:700; font-variant-numeric:tabular-nums;
+    font-size:.9rem; padding:5px 12px; border-radius:999px; box-shadow:0 3px 10px rgba(79,70,229,.35);
+    display:none;
+  }
+  .countpill.on { display:block; }
+
+  /* primary/secondary action buttons (echo shell .go, smaller) */
+  .btn {
+    background:var(--accent); color:#fff; border:0; border-radius:11px;
+    padding:12px 26px; font-size:.98rem; font-weight:700; cursor:pointer;
+    box-shadow:0 6px 16px rgba(79,70,229,.28); transition:background .15s, transform .05s;
+  }
+  .btn:hover { background:#4338ca; }
+  .btn:active { transform:translateY(1px); }
+  .btn.ghost { background:#fff; color:var(--ink-soft); border:1px solid var(--line); box-shadow:var(--shadow-sm); }
+  .btn.ghost:hover { background:#f6f7fb; color:var(--ink); }
+  .btn.small { padding:9px 18px; font-size:.9rem; }
+  .btn[disabled] { opacity:.5; cursor:default; box-shadow:none; }
+
+  .actionrow { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; }
+
+  /* answer / estimate input */
+  .guessrow { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; justify-content:center; }
+  .guessrow .inp { max-width:150px; }
+  .guessrow .inp input[type=number] { text-align:center; font-size:1.1rem; font-weight:700; }
+
+  /* the slider that sets the advised red count */
+  .advslider { max-width:420px; margin:6px auto 2px; }
+  .advslider .slideval { color:var(--accent); }
+
+  /* ===================== RESULT / REVEAL ===================== */
+  .reveal {
+    margin:16px auto 4px; max-width:460px;
+    background:#fafbff; border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+  }
+  .reveal .rv-head { font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+  .reveal .rv-row { display:flex; justify-content:space-between; gap:14px; font-size:.9rem; padding:4px 0; border-bottom:1px solid var(--line-soft); }
+  .reveal .rv-row:last-child { border-bottom:0; }
+  .reveal .rv-row .k { color:var(--ink-soft); }
+  .reveal .rv-row .v { font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .reveal .rv-verdict { margin-top:12px; padding:10px 14px; border-radius:10px; font-size:.9rem; font-weight:600; text-align:center; }
+  .reveal .rv-verdict.good { background:#e9f7ef; border:1px solid #bfe6cf; color:#1e7d47; }
+  .reveal .rv-verdict.bad  { background:#fdecec; border:1px solid #f5c9c7; color:#b4342d; }
+  .reveal .rv-verdict.flat { background:#f1f2f6; border:1px solid var(--line); color:var(--ink-soft); }
+  .money { font-variant-numeric:tabular-nums; }
+
+  /* ===================== FEE TOGGLE (Role B centrepiece) ===================== */
+  .fee-block { text-align:center; margin:6px 0 4px; }
+  .fee-block .fee-lab { font-size:.74rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:9px; }
+  .fee-seg { display:inline-flex; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; box-shadow:var(--shadow-sm); }
+  .fee-seg button {
+    border:0; background:transparent; cursor:pointer; padding:13px 26px;
+    font-size:.95rem; font-weight:700; color:var(--ink-soft); border-left:1px solid var(--line);
+    display:flex; flex-direction:column; gap:2px; align-items:center; line-height:1.15; transition:background .15s, color .15s;
+  }
+  .fee-seg button:first-child { border-left:0; }
+  .fee-seg button .fee-amt { font-size:1.15rem; font-variant-numeric:tabular-nums; }
+  .fee-seg button .fee-tag { font-size:.66rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; opacity:.7; }
+  .fee-seg button[data-fee=low].on  { background:var(--low);  color:#fff; }
+  .fee-seg button[data-fee=high].on { background:var(--high); color:#fff; }
+  .fee-seg button:not(.on):hover { background:#f6f7fb; }
+
+  .client-guess {
+    text-align:center; font-size:.95rem; color:var(--ink-soft); margin:2px 0;
+  }
+  .client-guess b { font-size:1.2rem; color:var(--ink); font-variant-numeric:tabular-nums; }
+
+  /* small per-fee advise-rate tracker */
+  .advtrack { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:6px; }
+  .advtrack .at {
+    flex:1 1 190px; max-width:230px; border:1px solid var(--line-soft); border-radius:11px;
+    padding:10px 14px; background:#f6f7fb;
+  }
+  .advtrack .at.low  { border-left:4px solid var(--low); }
+  .advtrack .at.high { border-left:4px solid var(--high); }
+  .advtrack .at .atk { font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .advtrack .at .atv { font-size:1.05rem; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .advtrack .at .ats { font-size:.76rem; color:var(--muted); margin-top:1px; }
+
+  /* ===================== "WHAT WE FOUND" ===================== */
+  .block-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px; }
+  .block-tag { font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#fff; padding:4px 11px; border-radius:999px; white-space:nowrap; }
+  .block-tag.advisor { background:var(--A); }
+  .block-tag.client  { background:var(--B); }
+  .block-headline { font-family:'Source Serif 4', Georgia, serif; font-size:1.25rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
+
+  /* three fee charts side by side */
+  .chartgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:14px; }
+  .minichart { border:1px solid var(--line-soft); border-radius:12px; padding:12px 12px 10px; background:#fff; }
+  .minichart .mc-title { font-size:.86rem; font-weight:700; color:var(--ink); text-align:center; }
+  .minichart .mc-hyp { font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--accent); text-align:center; margin-top:1px; }
+  .minichart svg { display:block; width:100%; height:auto; margin:6px 0 2px; }
+  .minichart .mc-note { font-size:.7rem; font-style:italic; color:var(--muted); text-align:center; }
+
+  /* client-side statement / stat cards */
+  .statcards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:14px; }
+  .statcard { border:1px solid var(--line-soft); border-left:4px solid var(--B); border-radius:12px; padding:15px 17px; background:#fff; box-shadow:var(--shadow-sm); }
+  .statcard .sc-v { font-family:'Source Serif 4', Georgia, serif; font-size:1.5rem; font-weight:700; color:var(--B); line-height:1.1; }
+  .statcard .sc-k { font-size:.88rem; color:var(--ink-soft); margin-top:6px; }
+  .statcard .sc-k b { color:var(--ink); }
+
+  .takeaway {
+    margin-top:22px; background:#f3f1ff; border:1px solid #e0dbff; border-radius:12px;
+    padding:16px 20px; font-size:.98rem; color:#3f37a8;
+  }
+  .takeaway b { color:#2c2680; }
+
+  .fee-legend { font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center; }
+  .fee-legend span { display:inline-block; margin:0 9px; }
+
+  @media (max-width:760px) {
+    .chartgrid { grid-template-columns:1fr; max-width:340px; margin-left:auto; margin-right:auto; }
+    .statcards { grid-template-columns:1fr; }
+    .fee-seg button { padding:12px 18px; }
+  }
