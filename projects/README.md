@@ -54,6 +54,7 @@ your `.view` sections.
 ```html
 <header class="hero" id="hero">
   <div class="hero-inner">
+    <a class="hero-home" href="/"><span class="hh-arrow" aria-hidden="true">&larr;</span> Home</a>
     <span class="eyebrow">EXPERIMENT</span>
     <h1 class="hero-title">Your Title</h1>
     <p class="hero-sub">A one-line question or subtitle.</p>
@@ -64,6 +65,7 @@ your `.view` sections.
 
 <div class="topbar" id="topbar">
   <div class="topbar-inner">
+    <a class="topbar-home" href="/"><span class="hh-arrow" aria-hidden="true">&larr;</span> Home</a>
     <span class="topbar-title">Your Title</span>
     <nav>
       <a href="#one" data-view="one" class="active">Tab one</a>
@@ -81,6 +83,15 @@ your `.view` sections.
 Conventions the two boilerplate scripts below rely on: nav links carry
 `data-view="X"` and `href="#X"`; each pane is `id="view-X"`; the initially hidden
 panes also carry `class="hidden"`.
+
+**Required: a "back to homepage" link in two places.** Every project page must
+include the `.hero-home` link at the top of `.hero-inner` (visible while the user
+is still at the top of the page) **and** the `.topbar-home` link on the left of
+`.topbar-inner`, before `.topbar-title` (always visible once the sticky bar
+detaches). Both point to `/` (the site root, `juliantait.eu`) and use the `&larr;
+Home` label. Both are styled in `shell.css` (`.hero-home` = low-opacity white on
+the dark hero that brightens on hover; `.topbar-home` = matches the nav-link look
+in both the merged-with-hero and stuck states), so you only need the markup above.
 
 ### Boilerplate script A – sticky header (copy verbatim)
 
@@ -169,7 +180,10 @@ stylesheet's `:root`, not in the shell.
 - **Self-contained vanilla JS only.** No frameworks, no external libraries, no build
   step. Inline SVG or `<canvas>` for charts.
 - **Bump the `?v=`** on any shared or linked stylesheet whenever you edit it, so
-  GitHub Pages caches do not serve a stale file.
+  GitHub Pages caches do not serve a stale file. When you edit `shared/shell.css`,
+  bump the `shell.css?v=` on **every** project page to the same new number.
+- **Include the home link** in both the hero and the topbar (see section 3). It is
+  styled in `shell.css`, so new pages inherit it for free from the markup.
 
 ## Deploy
 
