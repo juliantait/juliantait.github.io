@@ -48,16 +48,6 @@
     background-size:22px 22px; opacity:.5; pointer-events:none;
   }
   .hero-inner { position:relative; max-width:var(--maxw); margin:0 auto; padding:34px 28px 38px; }
-  /* subtle "back to homepage" link at the very top of the hero (dark gradient):
-     low-opacity white that brightens on hover. Sits above the eyebrow. */
-  .hero-home {
-    display:inline-flex; align-items:center; gap:6px;
-    font-size:.82rem; font-weight:600; text-decoration:none;
-    color:rgba(255,255,255,0.60); margin-bottom:14px;
-    transition:color .15s ease;
-  }
-  .hero-home:hover { color:#fff; }
-  .hero-home .hh-arrow { font-size:1em; line-height:1; }
   .eyebrow {
     display:inline-block; font-size:.72rem; font-weight:600; letter-spacing:.18em;
     text-transform:uppercase; color:rgba(255,255,255,0.72);
