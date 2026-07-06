@@ -68,21 +68,6 @@
     </div>
     <p class="card-note">Away from the pre-registered advisor tests, the fee leaves clear traces on the client&rsquo;s behaviour. These effects are exploratory, computed from the experiment data (Round 1); the retention comparisons use the REP treatment, in which clients could fire their advisor.</p>
 
-    <div class="statcards">
-      <div class="statcard">
-        <div class="sc-v">Comply more <span class="ic-slot" data-ic="followed"></span></div>
-        <div class="sc-k">Clients <b>follow expensive advice more closely</b>, moving further towards a recommendation when they have paid the high fee for it.</div>
-      </div>
-      <div class="statcard">
-        <div class="sc-v">Reward activity <span class="ic-slot" data-ic="retention"></span></div>
-        <div class="sc-k">Clients <b>prefer advisors who advise more often</b>, rating and retaining frequent advisers more favourably.</div>
-      </div>
-      <div class="statcard">
-        <div class="sc-v">Punish big moves <span class="ic-slot" data-ic="sanction"></span></div>
-        <div class="sc-k">Clients <b>sanction advisors who suggest large changes</b>, penalising bold departures from their first guess.</div>
-      </div>
-    </div>
-
     <div class="chartgrid" id="chartgrid2"></div>
 
     <div class="fee-legend">
@@ -530,19 +515,23 @@ var CHARTS = [
     note:'n = 167 (low fee), 146 (high fee)' }
 ];
 
-/* the exploratory client-side outcomes */
+/* the exploratory client-side outcomes; each card carries its own
+   takeaway line, so statement and figure travel together in the layout */
 var CHARTS2 = [
   { title:'Advice followed', info:'followed', hyp:'Exploratory', axis:'share of advised grids followed',
+    take:'<b>Comply more.</b> Clients follow advice they paid more for: 46% of advised grids under the high fee vs 41% under the low fee.',
     xlab:'Fees', ymax:0.6, fmt:PCT,
     bars:[{lab:'Low', col:LOWCOL, m:0.4051, se:0.0284},
           {lab:'High', col:HIGHCOL, m:0.4621, se:0.0289}],
     note:'n = 167 (low fee), 146 (high fee)' },
   { title:'Advice frequency by retention', info:'retention', hyp:'Exploratory', axis:'share of grids advised',
+    take:'<b>Reward activity.</b> Clients keep advisors who advise more often: retained advisors advised on 60% of grids, fired ones on 50%.',
     xlab:'Client’s decision', ymax:1, fmt:PCT,
     bars:[{lab:'Kept', col:KEPTCOL, m:0.5959, se:0.0253},
           {lab:'Fired', col:FIREDCOL, m:0.5000, se:0.0358}],
     note:'n = 98 (kept), 52 (fired); REP treatment' },
   { title:'Advice shift by retention', info:'sanction', hyp:'Exploratory', axis:'mean shift from client’s guess (dots)',
+    take:'<b>Punish big moves.</b> Clients fire advisors who suggest bold shifts from their first guess: 14.7 dots for fired vs 9.3 for retained advisors.',
     xlab:'Client’s decision', ymax:20, fmt:INT, fmtBar:DEC1,
     bars:[{lab:'Kept', col:KEPTCOL, m:9.2540, se:0.5311},
           {lab:'Fired', col:FIREDCOL, m:14.6687, se:1.5402}],
@@ -553,7 +542,8 @@ var CHARTS2 = [
   function render(hostId, charts){
     document.getElementById(hostId).innerHTML = charts.map(function(c){
       var inf = OUTCOME_INFO[c.info];
-      return '<div class="minichart">'+
+      return '<div class="minichart'+(c.take ? ' client' : '')+'">'+
+        (c.take ? '<div class="mc-take">'+c.take+'</div>' : '')+
         '<div class="mc-title">'+c.title+' '+InfoCard.buttonHTML(inf[0], inf[1])+'</div>'+
         '<div class="mc-hyp">'+c.hyp+'</div>'+
         seChart(c)+
@@ -563,11 +553,6 @@ var CHARTS2 = [
   }
   render('chartgrid', CHARTS);
   render('chartgrid2', CHARTS2);
-  /* (i) buttons on the client stat cards, same definitions as the figures */
-  Array.prototype.forEach.call(document.querySelectorAll('.ic-slot'), function(slot){
-    var inf = OUTCOME_INFO[slot.getAttribute('data-ic')];
-    if(inf) slot.innerHTML = InfoCard.buttonHTML(inf[0], inf[1]);
-  });
 })();
 
 /* sticky header collapse: reveal compact title once the hero scrolls past */
