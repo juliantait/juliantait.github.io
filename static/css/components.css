@@ -183,6 +183,15 @@ a[role='button']:hover,
   gap: var(--space-1);
 }
 
+/* Groups multiple type pills so space-between still pins the Abstract cue
+   to the bottom of the meta column. */
+.publication-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Visual cue only - the whole card toggles, so this stays out of the tab
    order and the accessibility tree (the card carries the button role). */
 .abstract-toggle {
@@ -238,6 +247,14 @@ a[role='button']:hover,
 
 .abstract-panel-inner .publication-abstract {
   margin: 0;
+}
+
+/* Real links inside the panel (project page, PDF, ...) - card click handler
+   lets these navigate without toggling the abstract. */
+.publication-links {
+  margin: var(--space-1) 0 0;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 /* Keyword chips - clearly spaced, distinct backgrounds.

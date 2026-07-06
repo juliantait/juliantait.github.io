@@ -107,6 +107,10 @@
     align-items: center;
   }
 
+  .publication-tags {
+    flex-direction: row;
+  }
+
   /* Course items stack */
   .course-item {
     flex-direction: column;
