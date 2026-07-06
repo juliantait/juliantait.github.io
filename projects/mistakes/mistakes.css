@@ -1,0 +1,152 @@
+
+  /* ============================================================================
+     MISTAKES.CSS  (site-specific – "The Honesty Penalty: Hiding Mistakes in Teams")
+     ----------------------------------------------------------------------------
+     Two views live in index.html behind the shared hash router: #results (the
+     findings of the vignette study and the two lab experiments, with estimates
+     computed from the cleaned data) and #model (the theoretical framework plus
+     an interactive equilibrium explorer). Loaded AFTER shell.css + infocard.css.
+     ============================================================================ */
+
+  :root {
+    /* stakes treatments – muted slate (LOW) and warm gold (HIGH), matching the
+       treatment-intensity convention used on the perceived page */
+    --low:#64748b;  --low-soft:#eef1f5;
+    --high:#d1971b; --high-soft:#fbf1dc;
+    /* disclosure behaviour – blue for a worker who stayed silent, warm red for
+       a worker who disclosed their mistake (the costly act on this page) */
+    --silent:#1f78b4; --disclosed:#b4342d;
+    /* team-formation treatments */
+    --strangers:#3f8e7f; --partners:#6a3d9a;
+  }
+
+  /* ===================== SHARED BLOCK FURNITURE ===================== */
+  .wrap > .takeaway:first-child { margin-top:6px; }
+  .takeaway {
+    margin-top:22px; background:#f3f1ff; border:1px solid #e0dbff; border-radius:12px;
+    padding:16px 20px; font-size:.98rem; color:#3f37a8;
+  }
+  .takeaway b { color:#2c2680; }
+
+  .block-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px; }
+  .block-tag {
+    font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:#fff; padding:4px 11px; border-radius:999px; white-space:nowrap;
+  }
+  .block-tag.vignette { background:var(--strangers); }
+  .block-tag.exp1 { background:var(--A); }
+  .block-tag.exp2 { background:var(--B); }
+  .block-tag.both { background:var(--accent); }
+  .block-tag.theory { background:var(--accent-2); }
+  .block-headline {
+    font-family:'Source Serif 4', Georgia, serif; font-size:1.25rem; font-weight:700;
+    letter-spacing:-.01em; color:var(--ink);
+  }
+
+  /* ===================== CHART GRIDS ===================== */
+  .chartgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:14px; }
+  .chartgrid.cols3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .minichart { border:1px solid var(--line-soft); border-radius:12px; padding:12px 12px 10px; background:#fff; }
+  .minichart .mc-title { font-size:.86rem; font-weight:700; color:var(--ink); text-align:center; }
+  .minichart .mc-hyp { font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--accent); text-align:center; margin-top:1px; }
+  .minichart svg { display:block; width:100%; height:auto; margin:6px 0 2px; }
+  .minichart .mc-note { font-size:.7rem; font-style:italic; color:var(--muted); text-align:center; }
+
+  .chart-legend { font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center; }
+  .chart-legend span { display:inline-block; margin:0 9px; }
+
+  /* ===================== STAT CARDS ===================== */
+  .statcards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:14px; }
+  .statcard { border:1px solid var(--line-soft); border-left:4px solid var(--accent); border-radius:12px; padding:15px 17px; background:#fff; box-shadow:var(--shadow-sm); }
+  .statcard .sc-v { font-family:'Source Serif 4', Georgia, serif; font-size:1.5rem; font-weight:700; color:var(--accent); line-height:1.1; }
+  .statcard .sc-k { font-size:.88rem; color:var(--ink-soft); margin-top:6px; }
+  .statcard .sc-k b { color:var(--ink); }
+  .statcards.red .statcard { border-left-color:var(--disclosed); }
+  .statcards.red .statcard .sc-v { color:var(--disclosed); }
+
+  /* ===================== SMALL DATA TABLES ===================== */
+  .datatable { overflow-x:auto; margin-top:12px; }
+  .datatable table { border-collapse:collapse; width:100%; font-size:.86rem; font-variant-numeric:tabular-nums; }
+  .datatable th, .datatable td { border:1px solid var(--line); padding:7px 10px; text-align:center; }
+  .datatable th { background:#f3f4f8; font-weight:600; color:var(--ink-soft); }
+  .datatable td.lab, .datatable th.lab { background:#f3f4f8; font-weight:600; text-align:left; }
+  .datatable .hi { color:#9a6d0e; font-weight:700; }
+  .datatable .lo { color:var(--low); font-weight:700; }
+  .tbl-note { font-size:.74rem; font-style:italic; color:var(--muted); margin-top:7px; }
+
+  /* ===================== TIMELINE (setting panel) ===================== */
+  .timeline { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 4px; }
+  .tl-step { background:#fafbff; border:1px solid var(--line-soft); border-radius:11px; padding:12px 14px; position:relative; }
+  .tl-step .tl-n {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; background:var(--accent); color:#fff;
+    font-size:.76rem; font-weight:700; margin-bottom:7px;
+  }
+  .tl-step .tl-t { font-size:.84rem; font-weight:700; color:var(--ink); }
+  .tl-step .tl-d { font-size:.8rem; color:var(--ink-soft); margin-top:3px; }
+
+  /* ===================== LEARNING FIGURE ===================== */
+  .figwrap { margin-top:12px; text-align:center; }
+  .figwrap img { max-width:100%; height:auto; border:1px solid var(--line-soft); border-radius:10px; }
+  .fig-note { font-size:.74rem; font-style:italic; color:var(--muted); margin-top:8px; text-align:center; }
+
+  /* ===================== MODEL VIEW ===================== */
+  /* the annotated punishment / utility equations */
+  .eq {
+    font-family:'Source Serif 4', Georgia, serif; font-size:1.16rem; color:var(--ink);
+    background:#fafbff; border:1px solid var(--line-soft); border-radius:11px;
+    padding:16px 18px; margin:12px 0; text-align:center; overflow-x:auto; white-space:nowrap;
+  }
+  .eq i { font-style:italic; }
+  .eq .t-blame { color:#8c4a12; }
+  .eq .t-honesty { color:#1e6b4f; }
+  .eq .t-payoff { color:var(--accent); }
+  .eq-labels { display:flex; justify-content:center; gap:26px; flex-wrap:wrap; margin:-4px 0 10px; }
+  .eq-labels span { font-size:.76rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+  .eq-labels .t-blame { color:#8c4a12; }
+  .eq-labels .t-honesty { color:#1e6b4f; }
+  .eq-labels .t-payoff { color:var(--accent); }
+  .eq.small-eq { font-size:1.02rem; }
+
+  .proplist { margin:10px 0 0 18px; font-size:.9rem; color:var(--ink-soft); }
+  .proplist li { margin:7px 0; }
+  .proplist b { color:var(--ink); }
+
+  .propbox {
+    border-left:4px solid var(--accent); background:#f6f5ff; border-radius:0 11px 11px 0;
+    padding:13px 17px; margin:14px 0; font-size:.94rem; color:var(--ink);
+  }
+  .propbox .pb-tag { display:block; font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:4px; }
+
+  /* hypothesis chips */
+  .hypgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+  .hypcard { border:1px solid var(--line-soft); border-radius:11px; padding:12px 15px; background:#fff; }
+  .hypcard .hc-id { font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); }
+  .hypcard .hc-t { font-size:.88rem; color:var(--ink); margin-top:3px; }
+  .hypcard .hc-verdict { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 9px; border-radius:999px; margin-top:8px; }
+  .hypcard .hc-verdict.null { background:#fdecec; color:#b4342d; border:1px solid #f5c9c7; }
+  .hypcard .hc-verdict.supported { background:#e9f7ef; color:#1e7d47; border:1px solid #bfe6cf; }
+
+  /* explorer */
+  .exp-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px 22px; margin-top:8px; }
+  .exp-warn {
+    display:none; background:#fdecec; border:1px solid #f5c9c7; color:#b4342d;
+    padding:9px 13px; border-radius:10px; font-size:.84rem; margin:10px 0 4px;
+  }
+  .exp-warn.on { display:block; }
+  .modelcharts { display:grid; grid-template-columns:1.15fr 1fr; gap:16px; margin-top:16px; }
+  .eqm-note { font-size:.8rem; color:var(--muted); margin-top:8px; }
+  .eqm-note b { color:var(--ink-soft); }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width:900px) {
+    .exp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .modelcharts { grid-template-columns:1fr; }
+  }
+  @media (max-width:760px) {
+    .chartgrid, .chartgrid.cols3 { grid-template-columns:1fr; max-width:340px; margin-left:auto; margin-right:auto; }
+    .statcards { grid-template-columns:1fr; }
+    .timeline { grid-template-columns:1fr 1fr; }
+    .hypgrid { grid-template-columns:1fr; }
+    .exp-grid { grid-template-columns:1fr; }
+  }

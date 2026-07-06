@@ -720,6 +720,12 @@
   .agg-controls .ac-end {
     display: flex; flex-direction: column; gap: 1px; font-size: 11px; line-height: 1.25;
   }
+  /* phone widths: the three fixed-minimum columns cannot fit, so stack —
+     the two end labels share a row and the slider spans full width below */
+  @media (max-width: 560px) {
+    .agg-controls .ac-slider-row { grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .agg-controls .ac-slider-row input[type=range] { grid-column: 1 / -1; grid-row: 2; }
+  }
   .agg-controls .ac-end.ac-end-r { text-align: right; }
   .agg-controls .ac-end b { font-size: 11.5px; font-weight: 700; color: var(--text); }
   .agg-controls .ac-end-rho { font-family: var(--font-mono); color: var(--blue); font-weight: 700; }
