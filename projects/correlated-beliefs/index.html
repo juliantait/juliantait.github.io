@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=11">
-<link rel="stylesheet" href="correlated.css?v=9">
+<link rel="stylesheet" href="correlated.css?v=10">
 </head>
 <body>
 
@@ -174,101 +174,77 @@
   <!-- ===================== OBJECTIVE (annotated utility) ===================== -->
   <section class="panelcard util-card">
     <h2 class="card-title">What each sender maximises</h2>
-    <p class="card-note">Every sender picks the message <code>m</code> &mdash; share the trait (<code>m=t</code>) or stay silent (<code>m=&empty;</code>) &mdash; to maximise this utility. The display reacts live: switch the interaction cost on and its term joins the equation; the inference term follows the switches and the over-inference setting below.</p>
+    <p class="card-note">Every sender picks the message <code>m</code> &mdash; share the trait (<code>m=t</code>) or stay silent (<code>m=&empty;</code>) &mdash; to maximise this utility. The display reacts live: each mechanism button below switches its part of the equation on or off, and while a mechanism is on its scale slider appears beneath the buttons.</p>
     <div class="utility-eq" id="utility-eq" aria-live="polite"></div>
 
-    <!-- Encounter / interaction-cost extension: compact toggle right next to the display -->
-    <div class="ue-ctl">
-      <div class="ue-row">
-        <span class="ue-label">Interaction cost <span class="muted-note">&mdash; encounter channel, &agrave; la Bursztyn et&nbsp;al. (2020)</span></span>
+    <!-- Mechanism toggles: three peer on/off buttons (identity inference ON by
+         default — the paper's main mechanism); an active mechanism reveals its
+         scale slider directly below the row -->
+    <div class="mech-row" role="group" aria-label="Model mechanisms">
+      <span class="mech">
+        <button type="button" class="mech-btn on" id="tg-inf" aria-pressed="true" onclick="toggleMech('inf')">Identity inference</button>
+        <span class="ibub-wrap">
+          <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-inf" aria-label="About the identity-inference channel" onclick="ibubToggle(this,event)">i</button>
+          <span class="ibub-pop" id="pop-inf" hidden>The paper's main mechanism. A shared view is group-diagnostic, so the sender bears the reputational inference cost <code>c<sub>i</sub>(1&minus;&delta;&#770;(g<sub>i</sub>|m))</code> with sensitivity <code>c<sub>i</sub>&sim;Exp</code>; the slider sets the scale <code>E[c<sub>i</sub>]</code> (canonical value&nbsp;1). Switch it off to remove identity inference entirely (<code>c<sub>i</sub>&rarr;0</code>). With the interaction cost active this recovers pure <em>pluralistic ignorance</em>: silence is driven only by the anticipated chance of meeting the opposing type, <code>S<sup>0</sup><sub>g,t</sub> = E<sub>e</sub>[&Phi;((e(1&minus;&rho;<sub>t</sub>)&minus;&mu;<sub>v</sub>)/&sigma;<sub>v</sub>)]</code>, and no longer depends on group identity. Switch it back on and the unprotected majority reappears.</span>
+        </span>
+      </span>
+      <span class="mech">
+        <button type="button" class="mech-btn" id="tg-ic" aria-pressed="false" onclick="toggleMech('ic')">Interaction cost</button>
         <span class="ibub-wrap">
           <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-ic" aria-label="About the interaction-cost extension" onclick="ibubToggle(this,event)">i</button>
-          <span class="ibub-pop" id="pop-ic" hidden>A second, <em>encounter</em> channel on top of identity inference: voicing a view risks meeting someone who disagrees. A sender who shares meets one person &mdash; an opponent with probability <code>1&minus;&rho;<sub>t</sub></code>, where <code>&rho;<sub>t</sub> = &mu;<sub>A</sub>&pi;<sub>t,A</sub> + &mu;<sub>B</sub>&pi;<sub>t,B</sub></code> is the marginal prevalence of the view &mdash; at an individual encounter disutility <code>e<sub>i</sub>&sim;Exp</code>, drawn independently of <code>(v<sub>i</sub>, c<sub>i</sub>)</code>. Utility gains the term <code>&minus;e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)</code> on sharing, so the silence rule becomes <code>m=t &hArr; v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>) + c<sub>i</sub>&Delta;L<sub>g,t</sub></code>. This splits the Bursztyn et&nbsp;al. social-image payoff into an intrinsic encounter cost (about your <em>view</em>) and the reputational inference cost (about your <em>group</em>).</span>
+          <span class="ibub-pop" id="pop-ic" hidden>A second, <em>encounter</em> channel on top of identity inference, &agrave; la Bursztyn et&nbsp;al. (2020): voicing a view risks meeting someone who disagrees. A sender who shares meets one person &mdash; an opponent with probability <code>1&minus;&rho;<sub>t</sub></code>, where <code>&rho;<sub>t</sub> = &mu;<sub>A</sub>&pi;<sub>t,A</sub> + &mu;<sub>B</sub>&pi;<sub>t,B</sub></code> is the marginal prevalence of the view &mdash; at an individual encounter disutility <code>e<sub>i</sub>&sim;Exp</code>, drawn independently of <code>(v<sub>i</sub>, c<sub>i</sub>)</code>. Utility gains the term <code>&minus;e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)</code> on sharing, so the silence rule becomes <code>m=t &hArr; v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>) + c<sub>i</sub>&Delta;L<sub>g,t</sub></code>. This splits the Bursztyn et&nbsp;al. social-image payoff into an intrinsic encounter cost (about your <em>view</em>) and the reputational inference cost (about your <em>group</em>).</span>
         </span>
-        <div class="segmented ue-seg" role="group" aria-label="Interaction-cost extension on or off">
-          <button type="button" id="ic-off" class="on" onclick="setIC(false)">Off</button>
-          <button type="button" id="ic-on" onclick="setIC(true)">On</button>
-        </div>
+      </span>
+      <span class="mech">
+        <button type="button" class="mech-btn" id="tg-oi" aria-pressed="false" onclick="toggleMech('oi')">Over-inference</button>
+        <span class="ibub-wrap">
+          <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-oi" aria-label="About the over-inference extension" onclick="ibubToggle(this,event)">i</button>
+          <span class="ibub-pop" id="pop-oi" hidden>A stereotyping observer, Bordalo et&nbsp;al. (2016), who over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code> and the stereotyped posterior <code>&delta;&#770;<sup>st</sup></code> replaces Bayes in the loss differential. Switching on sets <code>&theta; = 0.4</code>, the Bordalo et&nbsp;al. estimate; <code>&theta; = 0</code> is pure Bayes.</span>
+        </span>
+      </span>
+    </div>
+    <div class="mech-sliders">
+      <div class="slider-field mech-slider" id="opt-c">
+        <label>Inference-sensitivity scale <code>E[c<sub>i</sub>]</code>, <code>c<sub>i</sub>&sim;Exp</code> <span class="slideval" id="v-c">1.00</span></label>
+        <input type="range" id="in-c" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
       </div>
-      <div class="ue-opts" id="ic-opts" hidden>
-        <div class="slider-field ue-slider" id="opt-e">
-          <label>Encounter scale <code>E[e<sub>i</sub>]</code>, <code>e<sub>i</sub>&sim;Exp</code> <span class="slideval" id="v-e">1.00</span></label>
-          <input type="range" id="in-e" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
-        </div>
-        <div class="ue-inf">
-          <label class="cb"><input type="checkbox" id="ic-inf" checked onchange="toggleExt('inf')"> Identity-inference channel <span class="muted-note">&mdash; the paper's main mechanism</span></label>
-          <span class="ibub-wrap">
-            <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-inf" aria-label="About the identity-inference channel switch" onclick="ibubToggle(this,event)">i</button>
-            <span class="ibub-pop" id="pop-inf" hidden>Untick to switch identity inference off entirely (<code>c<sub>i</sub>&rarr;0</code>). With the encounter cost active this recovers pure <em>pluralistic ignorance</em>: silence is driven only by the anticipated chance of meeting the opposing type, <code>S<sup>0</sup><sub>g,t</sub> = E<sub>e</sub>[&Phi;((e(1&minus;&rho;<sub>t</sub>)&minus;&mu;<sub>v</sub>)/&sigma;<sub>v</sub>)]</code>, and no longer depends on group identity. Switch it back on and the unprotected majority reappears.</span>
-          </span>
-        </div>
+      <div class="slider-field mech-slider" id="opt-e" hidden>
+        <label>Encounter scale <code>E[e<sub>i</sub>]</code>, <code>e<sub>i</sub>&sim;Exp</code> <span class="slideval" id="v-e">1.00</span></label>
+        <input type="range" id="in-e" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
+      </div>
+      <div class="slider-field mech-slider" id="opt-theta" hidden>
+        <label>Over-inference <code>&theta;</code> <span class="slideval" id="v-theta">0.00</span></label>
+        <input type="range" id="in-theta" min="0" max="1" step="0.01" value="0" oninput="syncSliders()">
       </div>
     </div>
 
     <p class="util-foot" id="utility-foot"></p>
-  </section>
 
-  <!-- ===================== PARAMETERS ===================== -->
-  <section class="panelcard">
-
-    <!-- Collapsible Parameters: base controls + expressive utility + over-inference (collapsed by default) -->
-    <details class="params-collapse" id="params-details">
-      <summary class="params-summary">
-        <span class="ps-chevron" aria-hidden="true"></span>
-        <span class="ps-title">Parameters</span>
+    <!-- Primitive distributions — the base parameters, folded into this block -->
+    <div class="dist-block">
+      <div class="dist-head">
+        <h3 class="sub-title">Primitive distributions</h3>
         <span class="ibub-wrap">
           <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-canon" aria-label="About the canonical model" onclick="ibubToggle(this,event)">i</button>
           <span class="ibub-pop" id="pop-canon" hidden><strong>Canonical model.</strong> Heterogeneity in both primitives &mdash; expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code> and inference sensitivity <code>c<sub>i</sub>&sim;Exp(1)</code> (Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule <code>m=t &hArr; v<sub>i</sub> &gt; c<sub>i</sub>&Delta;L<sub>g,t</sub></code> numerically.</span>
         </span>
-        <span class="ps-hint">base controls, expressive utility &amp; over-inference</span>
-      </summary>
-      <div class="params-body">
-
-        <!-- Base controls + Expressive utility, side by side -->
-        <div class="pb-block">
-          <div class="param-cols">
-            <div class="param-col">
-              <h3 class="sub-title">Base controls</h3>
-              <div class="slider-field">
-                <label>Cost scale <code>E[c<sub>i</sub>]</code>, <code>c<sub>i</sub>&sim;Exp</code> <span class="slideval" id="v-c">1.00</span></label>
-                <input type="range" id="in-c" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
-              </div>
-              <div class="slider-field">
-                <label>Group prior <code>&mu; = Pr(A)</code> <span class="slideval" id="v-mu">0.50</span></label>
-                <input type="range" id="in-mu" min="0.05" max="0.95" step="0.01" value="0.5" oninput="syncSliders()">
-              </div>
-            </div>
-            <div class="param-col">
-              <h3 class="sub-title">Expressive utility <code>v<sub>i</sub></code></h3>
-              <div class="slider-field">
-                <label>Mean <code>&mu;<sub>v</sub></code> <span class="slideval" id="v-muv">0.47</span></label>
-                <input type="range" id="in-muv" min="-2" max="2" step="0.01" value="0.47" oninput="syncSliders()">
-              </div>
-              <div class="slider-field">
-                <label>Std. dev. <code>&sigma;<sub>v</sub></code> <span class="slideval" id="v-sigv">0.70</span></label>
-                <input type="range" id="in-sigv" min="0.1" max="2" step="0.01" value="0.7" oninput="syncSliders()">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Over-inference (Bordalo et al. 2016) — compact row with info bubble -->
-        <div class="subsection ext">
-          <div class="ext-row">
-            <label class="cb"><input type="checkbox" id="ext-oi" onchange="toggleExt('oi')"> Over-inference <span class="muted-note">&mdash; stereotyping observer, Bordalo et&nbsp;al. (2016); sets <code>&theta;=0.4</code></span></label>
-            <span class="ibub-wrap">
-              <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-oi" aria-label="About the over-inference extension" onclick="ibubToggle(this,event)">i</button>
-              <span class="ibub-pop" id="pop-oi" hidden>The observer over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code> and the stereotyped posterior <code>&delta;&#770;<sup>st</sup></code> replaces Bayes in the loss differential. <code>&theta; = 0</code> is pure Bayes; <code>&theta; &approx; 0.4</code> is the Bordalo et&nbsp;al. estimate.</span>
-            </span>
-            <div class="slider-field ext-opt" id="opt-theta">
-              <label>Over-inference <code>&theta;</code> <span class="slideval" id="v-theta">0.00</span></label>
-              <input type="range" id="in-theta" min="0" max="1" step="0.01" value="0" oninput="syncSliders()">
-            </div>
-          </div>
-        </div>
-
       </div>
-    </details>
+      <p class="dist-note">The population primitives behind every solve: expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code>, inference sensitivity <code>c<sub>i</sub>&sim;Exp</code> (scale on the identity-inference slider above), encounter disutility <code>e<sub>i</sub>&sim;Exp</code> (interaction-cost slider), and the group prior <code>&mu; = Pr(A)</code>.</p>
+      <div class="dist-cols">
+        <div class="slider-field">
+          <label>Mean <code>&mu;<sub>v</sub></code> of <code>v<sub>i</sub></code> <span class="slideval" id="v-muv">0.47</span></label>
+          <input type="range" id="in-muv" min="-2" max="2" step="0.01" value="0.47" oninput="syncSliders()">
+        </div>
+        <div class="slider-field">
+          <label>Std. dev. <code>&sigma;<sub>v</sub></code> of <code>v<sub>i</sub></code> <span class="slideval" id="v-sigv">0.70</span></label>
+          <input type="range" id="in-sigv" min="0.1" max="2" step="0.01" value="0.7" oninput="syncSliders()">
+        </div>
+        <div class="slider-field">
+          <label>Group prior <code>&mu; = Pr(A)</code> <span class="slideval" id="v-mu">0.50</span></label>
+          <input type="range" id="in-mu" min="0.05" max="0.95" step="0.01" value="0.5" oninput="syncSliders()">
+        </div>
+      </div>
+    </div>
 
     <button class="go" onclick="run()">Solve &amp; render &#9654;</button>
   </section>
@@ -546,47 +522,29 @@ function syncSliders(){
   updateExtUI();
   renderInputs();
 }
-var icOn = false;   // encounter / interaction-cost extension (Off by default)
-function extState(){
-  return {
-    ic:  icOn,
-    oi:  document.getElementById('ext-oi').checked,
-    inf: document.getElementById('ic-inf').checked
-  };
-}
-/* encounter extension Off/On segmented toggle (next to the utility display).
-   Its options (E[e] slider, inference-channel switch) only exist while on;
-   switching off restores the inference channel so no hidden state lingers. */
-function setIC(on){
-  icOn = !!on;
-  document.getElementById('ic-off').classList.toggle('on', !icOn);
-  document.getElementById('ic-on').classList.toggle('on', icOn);
-  var opts = document.getElementById('ic-opts');
-  if(icOn){ opts.removeAttribute('hidden'); }
-  else {
-    opts.setAttribute('hidden','');
-    document.getElementById('ic-inf').checked = true;
-  }
-  syncSliders();   // refresh read-outs + utility display
+/* mechanism toggles — three peer on/off buttons next to the utility display.
+   Identity inference starts ON (the paper's main mechanism); interaction cost
+   and over-inference start OFF. With the defaults (E[c]=1, ic off, oi off)
+   the solve is bit-identical to the verified baseline; identity inference
+   off is the c_i -> 0 switch. */
+var mech = {inf:true, ic:false, oi:false};
+function extState(){ return {ic:mech.ic, oi:mech.oi, inf:mech.inf}; }
+function toggleMech(key){
+  mech[key] = !mech[key];
+  var btn = document.getElementById('tg-'+key);
+  btn.classList.toggle('on', mech[key]);
+  btn.setAttribute('aria-pressed', mech[key] ? 'true' : 'false');
+  // Over-inference: theta jumps to the Bordalo point estimate 0.4 on switch-on, back to 0 on switch-off.
+  if(key === 'oi'){ document.getElementById('in-theta').value = mech.oi ? 0.4 : 0; }
+  syncSliders();   // refresh read-outs + slider visibility + utility display
   if(!document.getElementById('results').classList.contains('hidden')) run();
 }
-/* an extension component was switched on/off (src: 'oi'|'inf') */
-function toggleExt(src){
-  var x = extState();
-  // Over-inference: default theta to the Bordalo point estimate 0.4 on tick, 0 on untick.
-  if(src === 'oi'){ document.getElementById('in-theta').value = x.oi ? 0.4 : 0; }
-  syncSliders();   // refresh read-outs + utility display
-  if(src && !document.getElementById('results').classList.contains('hidden')) run();
-}
-/* slider dimming and the live utility display */
+/* per-mechanism slider visibility and the live utility display */
 function updateExtUI(){
-  var x = extState();
-  dimOpt('opt-theta', 'in-theta', !x.oi);
+  document.getElementById('opt-c').hidden     = !mech.inf;
+  document.getElementById('opt-e').hidden     = !mech.ic;
+  document.getElementById('opt-theta').hidden = !mech.oi;
   renderUtility();
-}
-function dimOpt(optId, inputId, dim){
-  document.getElementById(optId).classList.toggle('dim', dim);
-  document.getElementById(inputId).disabled = dim;
 }
 
 /* =====================================================================
@@ -671,7 +629,7 @@ function renderUtility(){
     bits.push('<code>e<sub>i</sub>&sim;Exp</code>, E[e]='+num('in-e').toFixed(2)+' encounter disutility, <code>&rho;<sub>t</sub></code> prevalence of the view');
   }
   bits.push(x.inf
-    ? '<code>c<sub>i</sub>&sim;Exp(1)</code> inference sensitivity'
+    ? '<code>c<sub>i</sub>&sim;Exp</code>, E[c]='+num('in-c').toFixed(2)+' inference sensitivity'
     : 'identity-inference channel <b>off</b> (c<sub>i</sub>&rarr;0)');
   bits.push('<code>'+dHat+'(g|m)</code> observer posterior &mdash; '+
     (x.oi ? 'stereotyped (Bordalo), &theta;='+num('in-theta').toFixed(2) : 'Bayes'));
