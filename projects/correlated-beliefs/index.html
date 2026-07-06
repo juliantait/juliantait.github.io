@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=11">
-<link rel="stylesheet" href="correlated.css?v=7">
+<link rel="stylesheet" href="correlated.css?v=8">
 </head>
 <body>
 
@@ -135,6 +135,14 @@
   <section id="view-model" class="view hidden">
 
 
+  <!-- ===================== OBJECTIVE (annotated utility) ===================== -->
+  <section class="panelcard util-card">
+    <h2 class="card-title">What each sender maximises</h2>
+    <p class="card-note">Every sender picks the message <code>m</code> &mdash; share the trait (<code>m=t</code>) or stay silent (<code>m=&empty;</code>) &mdash; to maximise this utility. The terms react live to the extension switches below: turn a channel on and its term lights up, turn it off and it fades out.</p>
+    <div class="utility-eq" id="utility-eq" aria-live="polite"></div>
+    <p class="util-foot" id="utility-foot"></p>
+  </section>
+
   <!-- ===================== PARAMETERS ===================== -->
   <section class="panelcard">
 
@@ -210,26 +218,65 @@
       </div>
     </div>
 
-    <!-- Extensions -->
+    <!-- Extensions: progressive disclosure — compact entries that fold out -->
     <div class="subsection ext">
-      <h3 class="sub-title">Extensions <span class="muted-note">— off by default, more coming</span></h3>
+      <h3 class="sub-title">Extensions <span class="muted-note">— off by default; expand an entry to activate &amp; tune it</span></h3>
+      <div class="ext-list">
 
-      <label class="cb"><input type="checkbox" id="ext-oi" onchange="toggleExt(true)"> Over-inference (Bordalo et&nbsp;al. 2016)</label>
-      <div class="panel" id="panel-oi">
-        <p class="small">The observer over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code>. <code>&theta; = 0</code> is pure Bayes.</p>
-        <div class="slider-field" style="max-width:360px">
-          <label>Over-inference <code>&theta;</code> <span class="slideval" id="v-theta">0.00</span></label>
-          <input type="range" id="in-theta" min="0" max="1" step="0.01" value="0" oninput="syncSliders()">
+        <!-- 1. Interaction cost / encounter channel (à la Bursztyn) -->
+        <div class="ext-item" id="exti-ic">
+          <button type="button" class="ext-head" onclick="extExpand('ic')" aria-expanded="false" aria-controls="ext-body-ic">
+            <span class="ext-chev" aria-hidden="true"></span>
+            <span class="ext-name">Interaction cost <span class="ext-sub">encounter channel, &agrave; la Bursztyn et&nbsp;al. (2020)</span></span>
+            <span class="ext-status" id="ext-status-ic">off</span>
+          </button>
+          <div class="ext-body" id="ext-body-ic">
+            <p class="small">A second, <em>encounter</em> channel on top of identity inference: voicing a view risks meeting someone who disagrees. A sender who shares meets one person &mdash; an opponent with probability <code>1&minus;&rho;<sub>t</sub></code>, where <code>&rho;<sub>t</sub> = &mu;<sub>A</sub>&pi;<sub>t,A</sub> + &mu;<sub>B</sub>&pi;<sub>t,B</sub></code> is the marginal prevalence of the view &mdash; at an individual encounter disutility <code>e<sub>i</sub>&sim;Exp</code>, drawn independently of <code>(v<sub>i</sub>, c<sub>i</sub>)</code>. Utility gains the term <code>&minus;e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)</code> on sharing, so the silence rule becomes <code>m=t &hArr; v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>) + c<sub>i</sub>&Delta;L<sub>g,t</sub></code>. This splits the Bursztyn et&nbsp;al. social-image payoff into an intrinsic encounter cost (about your <em>view</em>) and the reputational inference cost (about your <em>group</em>).</p>
+            <label class="cb"><input type="checkbox" id="ext-ic" onchange="toggleExt('ic')"> Activate the encounter cost <code>e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)</code></label>
+            <div class="slider-field ext-opt" id="opt-e" style="max-width:360px">
+              <label>Encounter scale <code>E[e<sub>i</sub>]</code>, <code>e<sub>i</sub>&sim;Exp</code> <span class="slideval" id="v-e">1.00</span></label>
+              <input type="range" id="in-e" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
+            </div>
+            <div class="ext-divider"></div>
+            <label class="cb"><input type="checkbox" id="ic-inf" checked onchange="toggleExt('inf')"> Identity-inference channel <span class="muted-note">&mdash; the paper's main mechanism</span></label>
+            <p class="small">Untick to switch identity inference off entirely (<code>c<sub>i</sub>&rarr;0</code>). With the encounter cost active this recovers pure <em>pluralistic ignorance</em>: silence is driven only by the anticipated chance of meeting the opposing type, <code>S<sup>0</sup><sub>g,t</sub> = E<sub>e</sub>[&Phi;((e(1&minus;&rho;<sub>t</sub>)&minus;&mu;<sub>v</sub>)/&sigma;<sub>v</sub>)]</code>, and no longer depends on group identity. Switch it back on and the unprotected majority reappears.</p>
+          </div>
         </div>
-      </div>
 
-      <label class="cb"><input type="checkbox" id="ext-het" onchange="toggleExt()"> Uniform cost <code>c&sim;U[0,C]</code> <span class="muted-note">(vintage)</span></label>
-      <div class="panel" id="panel-het">
-        <p class="small">Replaces the canonical <code>c<sub>i</sub>&sim;Exp(1)</code> with a uniform draw from <code>U[0,C]</code> (the cost-scale slider above is disabled). Kept for comparison: in the current model heterogeneous inference sensitivity is built into the baseline, so this is no longer an extension of the paper. The silence rate averages the probit over the cost draw in closed form.</p>
-        <div class="slider-field" style="max-width:360px">
-          <label>Cost scale <code>C</code> <span class="slideval" id="v-C">1.40</span></label>
-          <input type="range" id="in-C" min="0.1" max="5" step="0.05" value="1.4" oninput="syncSliders()">
+        <!-- 2. Over-inference (Bordalo et al. 2016) -->
+        <div class="ext-item" id="exti-oi">
+          <button type="button" class="ext-head" onclick="extExpand('oi')" aria-expanded="false" aria-controls="ext-body-oi">
+            <span class="ext-chev" aria-hidden="true"></span>
+            <span class="ext-name">Over-inference <span class="ext-sub">stereotyping observer, Bordalo et&nbsp;al. (2016)</span></span>
+            <span class="ext-status" id="ext-status-oi">off</span>
+          </button>
+          <div class="ext-body" id="ext-body-oi">
+            <p class="small">The observer over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code> and the stereotyped posterior <code>&delta;&#770;<sup>st</sup></code> replaces Bayes in the loss differential. <code>&theta; = 0</code> is pure Bayes; <code>&theta; &approx; 0.4</code> is the Bordalo et&nbsp;al. estimate.</p>
+            <label class="cb"><input type="checkbox" id="ext-oi" onchange="toggleExt('oi')"> Activate over-inference <span class="muted-note">(sets <code>&theta;=0.4</code>)</span></label>
+            <div class="slider-field ext-opt" id="opt-theta" style="max-width:360px">
+              <label>Over-inference <code>&theta;</code> <span class="slideval" id="v-theta">0.00</span></label>
+              <input type="range" id="in-theta" min="0" max="1" step="0.01" value="0" oninput="syncSliders()">
+            </div>
+          </div>
         </div>
+
+        <!-- 3. Vintage uniform cost -->
+        <div class="ext-item" id="exti-het">
+          <button type="button" class="ext-head" onclick="extExpand('het')" aria-expanded="false" aria-controls="ext-body-het">
+            <span class="ext-chev" aria-hidden="true"></span>
+            <span class="ext-name">Uniform cost <span class="ext-sub">c&sim;U[0,C] &mdash; vintage variant</span></span>
+            <span class="ext-status" id="ext-status-het">off</span>
+          </button>
+          <div class="ext-body" id="ext-body-het">
+            <p class="small">Replaces the canonical <code>c<sub>i</sub>&sim;Exp(1)</code> with a uniform draw from <code>U[0,C]</code> (the cost-scale slider above is disabled). Kept for comparison: in the current model heterogeneous inference sensitivity is built into the baseline, so this is no longer an extension of the paper. The silence rate averages the probit over the cost draw in closed form.</p>
+            <label class="cb"><input type="checkbox" id="ext-het" onchange="toggleExt('het')"> Activate uniform cost <code>c&sim;U[0,C]</code></label>
+            <div class="slider-field ext-opt" id="opt-C" style="max-width:360px">
+              <label>Cost scale <code>C</code> <span class="slideval" id="v-C">1.40</span></label>
+              <input type="range" id="in-C" min="0.1" max="5" step="0.05" value="1.4" oninput="syncSliders()">
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
       </div>
@@ -296,6 +343,17 @@
    evaluated by Gauss-Laguerre quadrature. Verified against the numerical
    appendix on the calibrated treatments (delta(A|empty) = 0.5904 MAJORITY,
    0.5038 MINORITY; all DL and dS entries; iteration counts 169/272).
+   Extensions (all default OFF; the OFF path is bit-identical to the
+   verified baseline):
+   — encounter / interaction cost (app_extensions_model/encounter.tex, à la
+     Bursztyn et al. 2020): sharing trait t adds -e_i(1-rho_t) with
+     e_i ~ Exp(1) (scaled by E[e]) and rho_t the marginal prevalence, so
+     S_{g,t} = E_{e,c}[Phi((e(1-rho_t) + c*DL - mu_v)/sigma_v)] by nested
+     Gauss-Laguerre. Its inference-off switch (c_i -> 0) recovers the pure
+     pluralistic-ignorance level S0 = E_e[Phi((e(1-rho_t)-mu_v)/sigma_v)].
+   — over-inference (overinference.tex, Bordalo et al. 2016): stereotyped
+     likelihood pi^st in the disclosure posterior.
+   — vintage uniform cost c ~ U[0,C]: closed-form probit average.
    ===================================================================== */
 function erf(x){ // Abramowitz & Stegun 7.1.26, |err|<1.5e-7
   var s = x<0?-1:1; x=Math.abs(x);
@@ -327,19 +385,35 @@ var GL = (function(){
   return {x:x, w:w};
 })();
 
-// Cell silence rate. Canonical: c_i ~ Exp(1) scaled by c (= E[c_i], 1 in the
-// paper), S = E_c[Phi((c*x*D - mu_v)/sigma_v)] via Gauss-Laguerre over x.
+// Cell silence rate at a fixed additive threshold shift (the realised
+// encounter cost e*(1-rho_t); 0 with the encounter extension off).
+// Canonical: c_i ~ Exp(1) scaled by c (= E[c_i], 1 in the paper),
+// S = E_c[Phi((c*x*D + shift - mu_v)/sigma_v)] via Gauss-Laguerre over x.
 // Vintage uniform-cost variant c~U[0,C]: closed form averaging the probit.
-function silenceRateCell(D, muV, sigV, c, hetero, C){
+// infOn=false switches the inference channel off entirely (c_i -> 0).
+function cellCore(D, muV, sigV, c, hetero, C, shift, infOn){
+  if(!infOn){ return Phi((shift - muV)/sigV); }
   if(hetero){
-    if(Math.abs(D) < 1e-12){ return Phi(-muV/sigV); }
-    var uLow  = -muV/sigV;
-    var uHigh = (C*D - muV)/sigV;
+    if(Math.abs(D) < 1e-12){ return Phi((shift - muV)/sigV); }
+    var uLow  = (shift - muV)/sigV;
+    var uHigh = (C*D + shift - muV)/sigV;
     return (sigV/(D*C))*(gamma_(uHigh) - gamma_(uLow));
   }
-  if(Math.abs(D) < 1e-12 || c === 0){ return Phi(-muV/sigV); }
+  if(Math.abs(D) < 1e-12 || c === 0){ return Phi((shift - muV)/sigV); }
   var s = 0;
-  for(var k=0;k<GL.x.length;k++){ s += GL.w[k]*Phi((c*GL.x[k]*D - muV)/sigV); }
+  for(var k=0;k<GL.x.length;k++){ s += GL.w[k]*Phi((c*GL.x[k]*D + shift - muV)/sigV); }
+  return s;
+}
+// Encounter extension wrapper (encounter.tex eq. Sgt_ext): averages cellCore
+// over the encounter disutility e_i ~ Exp(1) scaled by eBar = E[e_i], at the
+// cell's mean opponent cost encMean = eBar*(1-rho_t). encMean = 0 (extension
+// off) takes the plain path, bit-identical to the verified baseline.
+function silenceRateCell(D, muV, sigV, c, hetero, C, encMean, infOn){
+  if(encMean === 0){ return cellCore(D, muV, sigV, c, hetero, C, 0, infOn); }
+  var s = 0;
+  for(var k=0;k<GL.x.length;k++){
+    s += GL.w[k]*cellCore(D, muV, sigV, c, hetero, C, encMean*GL.x[k], infOn);
+  }
   return s;
 }
 
@@ -361,9 +435,14 @@ function stereotypedPi(p, theta){
 // Solve the cutoff PBE. Mirrors simulator_2.solve_pbe (damping 0.5, tol 1e-12).
 function solvePBE(pi1A, pi1B, o){
   var muA=o.muA, muV=o.muV, sigV=o.sigV, c=o.c, theta=o.theta||0,
-      hetero=o.hetero||false, C=o.C||1.4;
+      hetero=o.hetero||false, C=o.C||1.4,
+      eBar=o.eBar||0, infOn=(o.inf!==false);
   var p = {A1:pi1A, A2:1-pi1A, B1:pi1B, B2:1-pi1B};
   var muG = {A:muA, B:1-muA};
+  // encounter extension: marginal prevalence rho_t of each view and the
+  // cell's mean opponent cost eBar*(1-rho_t) (0 with the extension off)
+  var rho = {1: muA*p.A1 + (1-muA)*p.B1, 2: muA*p.A2 + (1-muA)*p.B2};
+  var enc = {1: eBar*(1-rho[1]), 2: eBar*(1-rho[2])};
   var pst = stereotypedPi(p, theta);
   // disclosure posteriors on group A (over-inference theta; Bayes at theta=0)
   var mtA = {
@@ -380,7 +459,7 @@ function solvePBE(pi1A, pi1B, o){
     for(var gi=0; gi<2; gi++){ var g=gi?'B':'A';
       for(var t=1; t<=2; t++){
         var D = muS[g] - mtg[g][t];
-        S[g+t] = silenceRateCell(D, muV, sigV, c, hetero, C);
+        S[g+t] = silenceRateCell(D, muV, sigV, c, hetero, C, enc[t], infOn);
       }
     }
     var numA = muG.A*(pi.A[1]*S.A1 + pi.A[2]*S.A2);
@@ -399,6 +478,7 @@ function solvePBE(pi1A, pi1B, o){
   var agg = muG.A*(pi.A[1]*S.A1+pi.A[2]*S.A2) + muG.B*(pi.B[1]*S.B1+pi.B[2]*S.B2);
   var silG = { A: pi.A[1]*S.A1+pi.A[2]*S.A2, B: pi.B[1]*S.B1+pi.B[2]*S.B2 };
   return {S:S, mt:mt, muSA:muSA, D:D, muG:muG, pi:p, agg:agg, silG:silG,
+          rho:rho, enc:enc,
           iters:it+1, converged:converged,
           baseline:Phi(-muV/sigV)};
 }
@@ -474,22 +554,108 @@ function syncSliders(){
   document.getElementById('v-sigv').textContent= num('in-sigv').toFixed(2);
   document.getElementById('v-theta').textContent= num('in-theta').toFixed(2);
   document.getElementById('v-C').textContent   = num('in-C').toFixed(2);
+  document.getElementById('v-e').textContent   = num('in-e').toFixed(2);
+  updateExtUI();
   renderInputs();
 }
-function toggleExt(fromOI){
-  var oi=document.getElementById('ext-oi').checked;
-  var het=document.getElementById('ext-het').checked;
-  document.getElementById('panel-oi').classList.toggle('on', oi);
-  document.getElementById('panel-het').classList.toggle('on', het);
+function extState(){
+  return {
+    ic:  document.getElementById('ext-ic').checked,
+    oi:  document.getElementById('ext-oi').checked,
+    het: document.getElementById('ext-het').checked,
+    inf: document.getElementById('ic-inf').checked
+  };
+}
+/* progressive disclosure: expand/collapse one extension entry */
+function extExpand(key){
+  var item = document.getElementById('exti-'+key);
+  var open = item.classList.toggle('open');
+  item.querySelector('.ext-head').setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+/* an extension component was switched on/off (src: 'ic'|'oi'|'het'|'inf') */
+function toggleExt(src){
+  var x = extState();
   // c slider is governed by the cost distribution when hetero is on (reveal only — stays Solve-gated)
-  document.getElementById('in-c').disabled = het;
-  document.getElementById('c-ctrl').style.opacity = het ? 0.45 : 1;
-  // Over-inference ONLY: default theta to the Bordalo point estimate 0.4 on tick, 0 on untick, and render immediately.
-  if(fromOI){
-    document.getElementById('in-theta').value = oi ? 0.4 : 0;
-    syncSliders();   // refresh the theta read-out (v-theta) + derived
-    if(!document.getElementById('results').classList.contains('hidden')) run();
-  }
+  document.getElementById('in-c').disabled = x.het;
+  document.getElementById('c-ctrl').style.opacity = x.het ? 0.45 : 1;
+  // Over-inference: default theta to the Bordalo point estimate 0.4 on tick, 0 on untick.
+  if(src === 'oi'){ document.getElementById('in-theta').value = x.oi ? 0.4 : 0; }
+  syncSliders();   // refresh read-outs + status badges + utility display
+  if(src && !document.getElementById('results').classList.contains('hidden')) run();
+}
+/* compact-entry status badges, slider dimming, and the live utility display */
+function updateExtUI(){
+  var x = extState();
+  var icTags = [];
+  if(x.ic)  icTags.push('E[e]='+num('in-e').toFixed(2));
+  if(!x.inf) icTags.push('inference off');
+  setExtStatus('ic',  icTags.join(' &middot; '), x.ic || !x.inf);
+  setExtStatus('oi',  x.oi  ? '&theta;='+num('in-theta').toFixed(2) : '', x.oi);
+  setExtStatus('het', x.het ? 'C='+num('in-C').toFixed(2)           : '', x.het);
+  dimOpt('opt-e',     'in-e',     !x.ic);
+  dimOpt('opt-theta', 'in-theta', !x.oi);
+  dimOpt('opt-C',     'in-C',     !x.het);
+  renderUtility();
+}
+function setExtStatus(key, html, on){
+  var el = document.getElementById('ext-status-'+key);
+  el.innerHTML = on ? html : 'off';
+  el.classList.toggle('on', !!on);
+}
+function dimOpt(optId, inputId, dim){
+  document.getElementById(optId).classList.toggle('dim', dim);
+  document.getElementById(inputId).disabled = dim;
+}
+
+/* =====================================================================
+   UTILITY DISPLAY — the sender's objective, annotated with over/under
+   curly braces; terms fade in/out with the extension switches.
+   ===================================================================== */
+function braceSVG(dir){
+  var d = (dir === 'over')
+    ? 'M2,12 C2,6.5 5,5 10,5 L42,5 C46.5,5 49,3.8 50,1.2 C51,3.8 53.5,5 58,5 L90,5 C95,5 98,6.5 98,12'
+    : 'M2,1 C2,6.5 5,8 10,8 L42,8 C46.5,8 49,9.2 50,11.8 C51,9.2 53.5,8 58,8 L90,8 C95,8 98,6.5 98,1';
+  return '<svg class="u-brace" viewBox="0 0 100 13" preserveAspectRatio="none" aria-hidden="true">'+
+    '<path d="'+d+'" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round"/></svg>';
+}
+// one column of the equation: math with an optional over/under brace + label
+function uCol(math, brace, label, color, off){
+  var top = (brace === 'over')  ? '<span class="u-lab">'+label+'</span>'+braceSVG('over') : '';
+  var bot = (brace === 'under') ? braceSVG('under')+'<span class="u-lab">'+label+'</span>' : '';
+  return '<span class="u-col'+(off ? ' u-off' : '')+'"'+(color ? ' style="color:'+color+'"' : '')+'>'+
+    '<span class="u-top">'+top+'</span>'+
+    '<span class="u-math">'+math+'</span>'+
+    '<span class="u-bot">'+bot+'</span></span>';
+}
+function renderUtility(){
+  var x = extState();
+  var dHat = '&delta;&#770;'+(x.oi ? '<sup>st</sup>' : '');
+  document.getElementById('utility-eq').innerHTML =
+    uCol('U<sub>i</sub>(m)&thinsp;=', null, '', null, false) +
+    uCol('[', null, '', null, false) +
+    uCol('v<sub>i</sub>', 'over', 'expressive utility', '#4f46e5', false) +
+    uCol('&minus;&thinsp;e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)', 'under', 'interaction cost', '#b4453f', !x.ic) +
+    uCol(']&thinsp;&middot;&thinsp;<b>1</b>[m=t<sub>i</sub>]', null, '', null, false) +
+    uCol('&minus;&thinsp;c<sub>i</sub>(1&minus;'+dHat+'(g<sub>i</sub>&thinsp;|&thinsp;m))', 'under',
+         x.oi ? 'inference cost &middot; over-inference &theta;' : 'inference cost', '#2e7d68', !x.inf);
+  var bits = [];
+  bits.push('<code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code> expressive value');
+  bits.push(x.ic
+    ? '<code>e<sub>i</sub>&sim;Exp</code>, E[e]='+num('in-e').toFixed(2)+' encounter disutility, <code>&rho;<sub>t</sub></code> prevalence of the view'
+    : 'interaction cost <b>off</b> (e<sub>i</sub>=0)');
+  bits.push(x.inf
+    ? (x.het ? '<code>c&sim;U[0,'+num('in-C').toFixed(2)+']</code> inference sensitivity (vintage uniform)'
+             : '<code>c<sub>i</sub>&sim;Exp(1)</code> inference sensitivity')
+    : 'identity-inference channel <b>off</b> (c<sub>i</sub>&rarr;0)');
+  bits.push('<code>'+dHat+'(g|m)</code> observer posterior &mdash; '+
+    (x.oi ? 'stereotyped (Bordalo), &theta;='+num('in-theta').toFixed(2) : 'Bayes'));
+  var rule;
+  if(x.inf && x.ic)      rule = 'v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>) + c<sub>i</sub>&Delta;L<sub>g,t</sub>';
+  else if(x.inf)         rule = 'v<sub>i</sub> &gt; c<sub>i</sub>&Delta;L<sub>g,t</sub>';
+  else if(x.ic)          rule = 'v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)';
+  else                   rule = 'v<sub>i</sub> &gt; 0';
+  document.getElementById('utility-foot').innerHTML =
+    bits.join(' &nbsp;&middot;&nbsp; ')+'.<br>Share rule: <code>m=t &hArr; '+rule+'</code>.';
 }
 
 /* =====================================================================
@@ -501,13 +667,15 @@ function fmt(x){ return (Math.round(x*1000)/1000).toFixed(3); }
 function pct(x){ return (Math.round(x*1000)/10).toFixed(1)+'%'; }
 
 function run(){
-  var oi  = document.getElementById('ext-oi').checked;
-  var het = document.getElementById('ext-het').checked;
+  var x = extState();
+  var oi = x.oi, het = x.het;
   var o = {
     muA: num('in-mu'), muV: num('in-muv'), sigV: num('in-sigv'),
     c: het ? 1 : num('in-c'),
     theta: oi ? num('in-theta') : 0,
-    hetero: het, C: num('in-C')
+    hetero: het, C: num('in-C'),
+    eBar: x.ic ? num('in-e') : 0,
+    inf: x.inf
   };
   var r = solvePBE(st.pi1A, st.pi1B, o);
   lastR = r; lastO = o;
@@ -533,6 +701,8 @@ function renderSilView(){
 
 function renderKPIs(r,o){
   var tags=[];
+  if(o.eBar>0)      tags.push('interaction cost E[e]='+o.eBar.toFixed(2));
+  if(o.inf===false) tags.push('inference channel off');
   if(o.theta>0) tags.push('over-inference &theta;='+o.theta.toFixed(2));
   if(o.hetero)  tags.push('c&sim;U[0,'+o.C.toFixed(2)+']');
   var extra = tags.length? '<div class="kpi"><div class="v" style="font-size:.95rem">'+tags.join('<br>')+'</div><div class="k">active extensions</div></div>' : '';
