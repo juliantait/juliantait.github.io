@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects &mdash; Julian Tait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=11">
+<style>
+  /* ==========================================================================
+     PROJECTS INDEX (unlisted) — page-specific styles on top of shell.css.
+     Cards with hand-drawn situation sketches; hovering a card gently animates
+     its sketch. Sketch palette is deliberately limited to the shell tokens
+     plus the two colours the project pages already use for "warning/red"
+     (#b4453f, cf. correlated-beliefs) and "fee gold" (#d1971b, cf. perceived).
+     ========================================================================== */
+
+  .index-lead { max-width:70ch; font-size:.95rem; color:var(--ink-soft); margin:6px 0 4px; }
+  .index-lead b { color:var(--ink); }
+
+  .pgrid { display:grid; grid-template-columns:repeat(2, 1fr); gap:24px; margin-top:20px; }
+
+  .pcard {
+    position:relative; display:flex; flex-direction:column;
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); overflow:hidden; text-decoration:none; color:inherit;
+    transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  }
+  .pcard:hover, .pcard:focus-visible {
+    transform:translateY(-4px);
+    box-shadow:0 2px 4px rgba(18,28,53,0.05), 0 20px 48px rgba(18,28,53,0.14);
+    border-color:#d7dcec;
+  }
+  .pcard:focus-visible { outline:2px solid var(--accent-2); outline-offset:2px; }
+
+  /* --- sketch pane --- */
+  .pcard-sketch {
+    background:linear-gradient(180deg, #fafbff 0%, #f4f6fd 100%);
+    border-bottom:1px solid var(--line-soft);
+    padding:16px 20px 8px;
+  }
+  .sk { display:block; width:100%; height:auto; }
+  .sk text { font-family:'Inter', system-ui, sans-serif; }
+  .sk .say { font-family:'Source Serif 4', Georgia, serif; font-style:italic; }
+
+  /* --- card body --- */
+  .pcard-body { display:flex; flex-direction:column; flex:1; padding:16px 22px 20px; }
+  .pcard-tags { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+  .pcard-tags span {
+    font-size:.64rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:3px 10px;
+  }
+  .pcard-title {
+    font-family:'Source Serif 4', Georgia, serif; font-size:1.4rem; font-weight:700;
+    letter-spacing:-0.015em; line-height:1.15; color:var(--ink);
+  }
+  .pcard-sub { font-size:.88rem; color:var(--muted); margin-top:3px; }
+  .pcard-q {
+    margin-top:13px; padding:10px 14px 11px;
+    background:#f6f6fe; border-left:3px solid var(--accent); border-radius:0 10px 10px 0;
+    font-size:.88rem; line-height:1.5; color:var(--ink-soft);
+  }
+  .pcard-q .q-label {
+    display:block; font-size:.64rem; font-weight:700; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:3px;
+  }
+  .pcard-go {
+    margin-top:auto; padding-top:15px;
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:.86rem; font-weight:700; color:var(--accent);
+  }
+  .pcard-go .arr { transition:transform .2s ease; }
+  .pcard:hover .pcard-go .arr { transform:translateX(5px); }
+
+  /* --- under-construction ribbon (mistakes) --- */
+  .wip-badge {
+    position:absolute; top:14px; right:14px; z-index:2;
+    font-size:.64rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    color:#8a6410; background:#fdf4dd; border:1px dashed #e3c26a; border-radius:999px;
+    padding:4px 11px;
+  }
+
+  /* ==========================================================================
+     SKETCH ANIMATIONS — one subtle move per card, on card hover.
+     All transforms use transform-box:fill-box so origins sit on the element.
+     ========================================================================== */
+  .sk [class^="an-"], .sk [class*=" an-"] { transform-box:fill-box; transform-origin:center; }
+
+  /* correlated-beliefs: the observer's red mental image of the speaker swells,
+     the thought dots brighten */
+  .an-redfig { transition:transform .4s ease; }
+  .pcard:hover .an-redfig { transform:scale(1.16); }
+  .an-thinkdots { opacity:.55; transition:opacity .35s ease; }
+  .pcard:hover .an-thinkdots { opacity:1; }
+
+  /* perceived: the fee coin slides along the dashed path toward the advisor,
+     the client's scales tip */
+  .an-coin { transition:transform .7s cubic-bezier(.45,.05,.35,1); }
+  .pcard:hover .an-coin { transform:translate(-64px, 9px); }
+  .an-scale { transition:transform .5s ease; transform-origin:50% 0; }
+  .pcard:hover .an-scale { transform:rotate(-7deg); }
+
+  /* experts: the hidden expert lights up — bulb on, halo drawn, "?" gone */
+  .an-bulb { opacity:.28; transition:opacity .4s ease; }
+  .pcard:hover .an-bulb { opacity:1; }
+  .an-rays { opacity:0; transition:opacity .4s ease .1s, transform .4s ease .1s; transform:scale(.6); }
+  .pcard:hover .an-rays { opacity:1; transform:scale(1); }
+  .an-halo { opacity:0; transition:opacity .45s ease; }
+  .pcard:hover .an-halo { opacity:.7; }
+  .an-qmark { transition:opacity .3s ease; }
+  .pcard:hover .an-qmark { opacity:0; }
+
+  /* mistakes: the "admit" bubble leans forward, the hidden option fades back */
+  .an-admit { transition:transform .35s ease; }
+  .pcard:hover .an-admit { transform:scale(1.07); }
+  .an-omit { opacity:.8; transition:opacity .35s ease; }
+  .pcard:hover .an-omit { opacity:.28; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pcard, .pcard-go .arr, .sk * { transition:none !important; }
+    .pcard:hover { transform:none; }
+  }
+  @media (max-width:860px) { .pgrid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="eyebrows">
+      <span class="eyebrow">JULIAN TAIT</span>
+      <span class="eyebrow">INTERACTIVE COMPANIONS</span>
+    </div>
+    <h1 class="hero-title">Projects</h1>
+    <p class="hero-sub">Research you can play with</p>
+    <p class="hero-context">Each paper gets an interactive companion page &mdash; models you can solve, experiments you can run on yourself, simulations you can break.</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-home" href="/"><span class="hh-arrow" aria-hidden="true">&larr;</span> Home</a>
+    <span class="topbar-title">Projects</span>
+    <nav>
+      <a href="/research.html">The papers behind them</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <p class="index-lead">Four situations from the research: <b>a speaker</b> whose opinion gives them away, <b>an advisor</b> whose fee may colour their advice, <b>a group</b> that must find its one true expert, and <b>a team member</b> deciding whether to own up to a slip. Hover a card &mdash; each sketch acts out its situation.</p>
+
+  <div class="pgrid">
+
+    <!-- ============ 1. CORRELATED BELIEFS — The Unprotected Majority ============ -->
+    <a class="pcard" href="/projects/correlated-beliefs/">
+      <div class="pcard-sketch">
+        <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: a person says 'I believe X'; an observer pictures the same person coloured red in a thought bubble — inferring their identity from the opinion.">
+          <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- the speaker (neutral) -->
+            <circle cx="48" cy="76" r="9"/>
+            <path d="M 35 118 C 35 95, 61 95, 61 118"/>
+            <!-- speech bubble -->
+            <rect x="66" y="24" width="88" height="40" rx="12" fill="#fff"/>
+            <path d="M 80 64 L 71 77 L 96 64" fill="#fff"/>
+            <!-- the observer -->
+            <circle cx="248" cy="76" r="9"/>
+            <path d="M 235 118 C 235 95, 261 95, 261 118"/>
+            <!-- observer's thought bubble -->
+            <ellipse cx="206" cy="34" rx="35" ry="22" fill="#fff"/>
+          </g>
+          <text class="say" x="110" y="49" text-anchor="middle" font-size="13.5" fill="#1d2433">&ldquo;I believe X&rdquo;</text>
+          <!-- thought dots trailing to the observer -->
+          <g class="an-thinkdots" fill="none" stroke="#1d2433" stroke-width="2.2">
+            <circle cx="228" cy="59" r="4.5"/>
+            <circle cx="237" cy="67" r="2.8"/>
+          </g>
+          <!-- the mental image: the SAME speaker, silhouetted RED -->
+          <g class="an-redfig" fill="#b4453f">
+            <circle cx="206" cy="26" r="5.5"/>
+            <path d="M 197 46 C 197 32, 215 32, 215 46 Z"/>
+          </g>
+        </svg>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-tags"><span>Experiment</span><span>Theory</span></div>
+        <h2 class="pcard-title">The Unprotected Majority</h2>
+        <p class="pcard-sub">How identity inference silences mainstream opinions</p>
+        <p class="pcard-q"><span class="q-label">Research question</span>When voicing an opinion lets listeners infer which group you belong to, can that inference silence even mainstream, majority-held views?</p>
+        <span class="pcard-go">Explore the model &amp; stimuli <span class="arr">&rarr;</span></span>
+      </div>
+    </a>
+
+    <!-- ============ 2. PERCEIVED — Perceived Value for Money ============ -->
+    <a class="pcard" href="/projects/perceived/">
+      <div class="pcard-sketch">
+        <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: an advisor gives advice in a speech bubble while a fee coin travels from the client, who weighs the advice on a small balance scale.">
+          <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- the advisor -->
+            <circle cx="50" cy="76" r="9"/>
+            <path d="M 37 118 C 37 95, 63 95, 63 118"/>
+            <!-- advice bubble -->
+            <rect x="70" y="20" width="78" height="42" rx="12" fill="#fff"/>
+            <path d="M 84 62 L 75 75 L 100 62" fill="#fff"/>
+            <!-- the client -->
+            <circle cx="248" cy="76" r="9"/>
+            <path d="M 235 118 C 235 95, 261 95, 261 118"/>
+          </g>
+          <!-- the advice: a confident upward call -->
+          <g fill="none" stroke="#4f46e5" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 82 52 L 98 40 L 110 47 L 133 30"/>
+            <path d="M 124 30 L 133 30 L 132 39"/>
+          </g>
+          <!-- the fee path: client pays advisor -->
+          <g fill="none" stroke="#8a93a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 234 90 C 198 66, 118 66, 72 88" stroke-dasharray="1 8"/>
+            <path d="M 81 81 L 72 88 L 83 92"/>
+          </g>
+          <!-- the fee coin (slides toward the advisor on hover) -->
+          <g class="an-coin">
+            <circle cx="168" cy="70" r="10.5" fill="#fff" stroke="#d1971b" stroke-width="2.6"/>
+            <text x="168" y="75" text-anchor="middle" font-size="11.5" font-weight="700" fill="#d1971b">&pound;</text>
+          </g>
+          <!-- the client weighing the advice (tips on hover) -->
+          <g class="an-scale" fill="none" stroke="#1d2433" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 248 40 V 54"/>
+            <path d="M 241 54 H 255"/>
+            <path d="M 228 40 H 268"/>
+            <path d="M 228 40 V 48"/>
+            <path d="M 220 48 Q 228 58, 236 48"/>
+            <path d="M 268 40 V 48"/>
+            <path d="M 260 48 Q 268 58, 276 48"/>
+          </g>
+        </svg>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-tags"><span>Experiment</span><span>with R. Sloof &amp; J. van de Ven</span></div>
+        <h2 class="pcard-title">Perceived Value for Money</h2>
+        <p class="pcard-sub">An experiment on advice-giving</p>
+        <p class="pcard-q"><span class="q-label">Research question</span>Does paying an advisor a higher fee push them to distort their advice to signal value &mdash; or does the fee only change how the client responds to it?</p>
+        <span class="pcard-go">Explore the results &amp; play the task <span class="arr">&rarr;</span></span>
+      </div>
+    </a>
+
+    <!-- ============ 3. EXPERTS — Experts and Dispersed Information ============ -->
+    <a class="pcard" href="/projects/experts/">
+      <div class="pcard-sketch">
+        <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: a row of five identical-looking people with question marks above them; one of them is the hidden true expert, revealed by a lit bulb.">
+          <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- five look-alike members -->
+            <circle cx="46" cy="88" r="8"/>  <path d="M 35 122 C 35 102, 57 102, 57 122"/>
+            <circle cx="98" cy="88" r="8"/>  <path d="M 87 122 C 87 102, 109 102, 109 122"/>
+            <circle cx="150" cy="88" r="8"/> <path d="M 139 122 C 139 102, 161 102, 161 122"/>
+            <circle cx="202" cy="88" r="8"/> <path d="M 191 122 C 191 102, 213 102, 213 122"/>
+            <circle cx="254" cy="88" r="8"/> <path d="M 243 122 C 243 102, 265 102, 265 122"/>
+          </g>
+          <!-- who is it? -->
+          <g fill="#8a93a6" font-size="16" font-weight="700" text-anchor="middle">
+            <text x="46" y="62">?</text>
+            <text x="98" y="62">?</text>
+            <text x="150" y="62">?</text>
+            <text class="an-qmark" x="202" y="62">?</text>
+            <text x="254" y="62">?</text>
+          </g>
+          <!-- the hidden expert: bulb lights up on hover -->
+          <circle class="an-halo" cx="202" cy="98" r="30" fill="none" stroke="#4f46e5" stroke-width="2" stroke-dasharray="3 6" stroke-linecap="round"/>
+          <g class="an-bulb" fill="none" stroke="#4f46e5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="202" cy="47" r="8" fill="#fff"/>
+            <path d="M 199 56 h 6"/>
+            <path d="M 200 60 h 4"/>
+          </g>
+          <g class="an-rays" fill="none" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round">
+            <path d="M 202 33 v -7"/>
+            <path d="M 190 38 l -6 -5"/>
+            <path d="M 214 38 l 6 -5"/>
+          </g>
+        </svg>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-tags"><span>Experiment</span><span>Simulation &amp; game</span></div>
+        <h2 class="pcard-title">Experts and Dispersed Information</h2>
+        <p class="pcard-sub">Error rates and confidence in expert vs novice judgement</p>
+        <p class="pcard-q"><span class="q-label">Research question</span>When one member of a group has far more data than the rest, how do their mistakes and confidence diverge &mdash; and does the group weight its hidden expert enough?</p>
+        <span class="pcard-go">Explore the simulator <span class="arr">&rarr;</span></span>
+      </div>
+    </a>
+
+    <!-- ============ 4. MISTAKES — Admit or Omit (under construction) ============ -->
+    <a class="pcard" href="/projects/mistakes/">
+      <span class="wip-badge">Page under construction</span>
+      <div class="pcard-sketch">
+        <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: a team member holding a flawed document chooses between a speech bubble admitting it to the team and a faded hidden bubble concealing it.">
+          <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- the team member who slipped -->
+            <circle cx="64" cy="76" r="9"/>
+            <path d="M 51 118 C 51 95, 77 95, 77 118"/>
+            <!-- the manager (tie) and a teammate -->
+            <circle cx="222" cy="78" r="8.5"/>
+            <path d="M 210 118 C 210 97, 234 97, 234 118"/>
+            <path d="M 222 96 l -3.5 5 l 3.5 10 l 3.5 -10 Z"/>
+            <circle cx="266" cy="82" r="7.5"/>
+            <path d="M 256 118 C 256 100, 276 100, 276 118"/>
+          </g>
+          <!-- the mistake: a cracked piece of work -->
+          <g transform="rotate(8 88 102)">
+            <rect x="78" y="88" width="21" height="27" rx="3" fill="#fff" stroke="#1d2433" stroke-width="2.2"/>
+            <path d="M 83 94 l 6 6 l -5 5 l 7 6" fill="none" stroke="#b4453f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <!-- the decision -->
+          <text x="76" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#8a93a6">?</text>
+          <!-- ADMIT: speak up toward the team -->
+          <g class="an-admit">
+            <rect x="100" y="22" width="56" height="36" rx="12" fill="#fff" stroke="#1d2433" stroke-width="2.4"/>
+            <path d="M 112 58 L 103 71 L 126 58" fill="#fff" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="128" y="47" text-anchor="middle" font-size="18" font-weight="700" fill="#4f46e5">!</text>
+          </g>
+          <!-- OMIT: the same slip, tucked away out of sight -->
+          <g class="an-omit">
+            <rect x="8" y="24" width="46" height="34" rx="11" fill="none" stroke="#8a93a6" stroke-width="2.2" stroke-dasharray="5 5"/>
+            <path d="M 44 58 L 52 68" fill="none" stroke="#8a93a6" stroke-width="2.2" stroke-dasharray="5 5" stroke-linecap="round"/>
+            <g transform="rotate(-6 31 41)">
+              <rect x="24" y="32" width="14" height="18" rx="2" fill="none" stroke="#8a93a6" stroke-width="1.8"/>
+              <path d="M 27 36 l 4 4 l -3 3 l 4 4" fill="none" stroke="#b4453f" stroke-width="1.8" stroke-opacity=".6" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-tags"><span>Experiment</span><span>with R. Sloof &amp; J. van de Ven</span></div>
+        <h2 class="pcard-title">Admit or Omit</h2>
+        <p class="pcard-sub">Hiding mistakes in teams</p>
+        <p class="pcard-q"><span class="q-label">Research question</span>When a team member slips up, what determines whether they admit the mistake or quietly omit it &mdash; and what does concealment cost the team?</p>
+        <span class="pcard-go">Interactive page coming shortly <span class="arr">&rarr;</span></span>
+      </div>
+    </a>
+
+  </div>
+</main>
+
+<script>
+/* sticky header collapse: reveal compact title once the hero scrolls past */
+(function(){
+  var sentinel = document.getElementById('hdr-sentinel');
+  var topbar = document.getElementById('topbar');
+  if(sentinel && topbar && 'IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, {threshold:0}).observe(sentinel);
+  }
+})();
+</script>
+
+</body>
+</html>
