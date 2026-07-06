@@ -180,7 +180,7 @@
         <span class="ps-hint">base controls, expressive utility &amp; extensions</span>
       </summary>
       <div class="params-body">
-        <p class="note"><strong>Baseline model.</strong> Constant-cost core (<code>c = 1</code>, Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule numerically.</p>
+        <p class="note"><strong>Canonical model.</strong> Heterogeneity in both primitives — expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code> and inference sensitivity <code>c<sub>i</sub>&sim;Exp(1)</code> (Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule <code>m=t &hArr; v<sub>i</sub> &gt; c<sub>i</sub>&Delta;L<sub>g,t</sub></code> numerically.</p>
 
     <!-- Base controls + Expressive utility, side by side -->
     <div class="subsection">
@@ -188,7 +188,7 @@
         <div class="param-col">
           <h3 class="sub-title">Base controls</h3>
           <div class="slider-field" id="c-ctrl">
-            <label>Cost sensitivity <code>c</code> <span class="slideval" id="v-c">1.00</span></label>
+            <label>Cost scale <code>E[c<sub>i</sub>]</code>, <code>c<sub>i</sub>&sim;Exp</code> <span class="slideval" id="v-c">1.00</span></label>
             <input type="range" id="in-c" min="0" max="3" step="0.05" value="1" oninput="syncSliders()">
           </div>
           <div class="slider-field">
@@ -223,9 +223,9 @@
         </div>
       </div>
 
-      <label class="cb"><input type="checkbox" id="ext-het" onchange="toggleExt()"> Heterogeneous cost <code>c&sim;U[0,C]</code></label>
+      <label class="cb"><input type="checkbox" id="ext-het" onchange="toggleExt()"> Uniform cost <code>c&sim;U[0,C]</code> <span class="muted-note">(vintage)</span></label>
       <div class="panel" id="panel-het">
-        <p class="small">Cost sensitivity is drawn per sender from <code>U[0,C]</code> (the scalar <code>c</code> above is disabled). The silence rate averages the probit over the cost draw in closed form.</p>
+        <p class="small">Replaces the canonical <code>c<sub>i</sub>&sim;Exp(1)</code> with a uniform draw from <code>U[0,C]</code> (the cost-scale slider above is disabled). Kept for comparison: in the current model heterogeneous inference sensitivity is built into the baseline, so this is no longer an extension of the paper. The silence rate averages the probit over the cost draw in closed form.</p>
         <div class="slider-field" style="max-width:360px">
           <label>Cost scale <code>C</code> <span class="slideval" id="v-C">1.40</span></label>
           <input type="range" id="in-C" min="0.1" max="5" step="0.05" value="1.4" oninput="syncSliders()">
@@ -289,10 +289,13 @@
 <script>
 "use strict";
 /* =====================================================================
-   MATH  (faithful port of simulator.py: solve_pbe / silence_rate_cell /
-   stereotyped_likelihood, constant-cost baseline with c, plus the two
-   extensions). Verified against simulator.py on the calibrated treatments.
-   --- UNCHANGED: solver math is preserved verbatim. ---
+   MATH  (faithful port of simulator_2.py: solve_pbe / silence_rate_cell /
+   stereotyped_likelihood). Canonical model: heterogeneity in BOTH
+   primitives — v_i ~ N(mu_v, sigma_v^2) and inference sensitivity
+   c_i ~ Exp(1) (unit mean), so S_{g,t} = E_c[Phi((c*DL - mu_v)/sigma_v)],
+   evaluated by Gauss-Laguerre quadrature. Verified against the numerical
+   appendix on the calibrated treatments (delta(A|empty) = 0.5904 MAJORITY,
+   0.5038 MINORITY; all DL and dS entries; iteration counts 169/272).
    ===================================================================== */
 function erf(x){ // Abramowitz & Stegun 7.1.26, |err|<1.5e-7
   var s = x<0?-1:1; x=Math.abs(x);
@@ -304,14 +307,40 @@ function Phi(x){ return 0.5*(1+erf(x/Math.SQRT2)); }            // standard norm
 function phi(x){ return Math.exp(-0.5*x*x)/Math.sqrt(2*Math.PI); } // pdf
 function gamma_(u){ return u*Phi(u)+phi(u); }                   // antiderivative of Phi
 
-// Cell silence rate. Baseline: S = Phi((c*D - mu_v)/sigma_v).
-// Heterogeneous cost c~U[0,C]: closed form averaging the probit over c.
+// 40-point Gauss-Laguerre nodes/weights (alpha=0), computed once at load
+// (Numerical Recipes gaulag). Integrates E_{c~Exp(1)}[f(c)] = sum w_k f(x_k).
+var GL = (function(){
+  var n=40, x=[], w=[], z=0, pp=0, p2=0;
+  for(var i=1;i<=n;i++){
+    if(i===1) z = 3/(1+2.4*n);
+    else if(i===2) z += 15/(1+2.5*n);
+    else z += ((1+2.55*(i-2))/(1.9*(i-2)))*(z - x[i-3]);
+    for(var it=0; it<100; it++){
+      var p1=1; p2=0;
+      for(var j=1;j<=n;j++){ var p3=p2; p2=p1; p1=((2*j-1-z)*p2-(j-1)*p3)/j; }
+      pp = n*(p1-p2)/z;
+      var z1=z; z = z1 - p1/pp;
+      if(Math.abs(z-z1) < 1e-14) break;
+    }
+    x.push(z); w.push(-1/(pp*n*p2));
+  }
+  return {x:x, w:w};
+})();
+
+// Cell silence rate. Canonical: c_i ~ Exp(1) scaled by c (= E[c_i], 1 in the
+// paper), S = E_c[Phi((c*x*D - mu_v)/sigma_v)] via Gauss-Laguerre over x.
+// Vintage uniform-cost variant c~U[0,C]: closed form averaging the probit.
 function silenceRateCell(D, muV, sigV, c, hetero, C){
-  if(!hetero){ return Phi((c*D - muV)/sigV); }
-  if(Math.abs(D) < 1e-12){ return Phi(-muV/sigV); }
-  var uLow  = -muV/sigV;
-  var uHigh = (C*D - muV)/sigV;
-  return (sigV/(D*C))*(gamma_(uHigh) - gamma_(uLow));
+  if(hetero){
+    if(Math.abs(D) < 1e-12){ return Phi(-muV/sigV); }
+    var uLow  = -muV/sigV;
+    var uHigh = (C*D - muV)/sigV;
+    return (sigV/(D*C))*(gamma_(uHigh) - gamma_(uLow));
+  }
+  if(Math.abs(D) < 1e-12 || c === 0){ return Phi(-muV/sigV); }
+  var s = 0;
+  for(var k=0;k<GL.x.length;k++){ s += GL.w[k]*Phi((c*GL.x[k]*D - muV)/sigV); }
+  return s;
 }
 
 // Bordalo (2016) stereotyped likelihoods. theta=0 returns pi unchanged.
@@ -329,7 +358,7 @@ function stereotypedPi(p, theta){
   };
 }
 
-// Solve the cutoff PBE. Mirrors simulator.solve_pbe (damping 0.5, tol 1e-12).
+// Solve the cutoff PBE. Mirrors simulator_2.solve_pbe (damping 0.5, tol 1e-12).
 function solvePBE(pi1A, pi1B, o){
   var muA=o.muA, muV=o.muV, sigV=o.sigV, c=o.c, theta=o.theta||0,
       hetero=o.hetero||false, C=o.C||1.4;
