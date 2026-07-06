@@ -1,0 +1,39 @@
+
+  /* ============================================================================
+     INFOCARD.CSS  (shared across project sites)
+     ----------------------------------------------------------------------------
+     A small (i) button that opens a consistent pop-up card (title + short
+     explanation). Markup is produced by infocard.js (InfoCard.buttonHTML) or
+     written by hand:
+
+       <button type="button" class="ic-btn" aria-expanded="false"
+               data-ic-title="Title" data-ic-body="Explanation">i</button>
+
+     Styled entirely from the shell.css design tokens. Loaded AFTER shell.css.
+     The correlated-beliefs page's ad-hoc popovers can migrate to this component
+     by swapping its triggers for .ic-btn markup.
+     ============================================================================ */
+
+  .ic-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:16px; height:16px; border-radius:50%; box-sizing:border-box;
+    border:1px solid var(--line); background:#fff; color:var(--accent);
+    font-family:'Source Serif 4', Georgia, serif; font-style:italic; font-weight:700;
+    font-size:11px; line-height:1; cursor:pointer; vertical-align:2px;
+    padding:0; margin-left:5px; transition:background .15s, color .15s, border-color .15s;
+  }
+  .ic-btn:hover, .ic-btn[aria-expanded="true"] {
+    background:var(--accent); border-color:var(--accent); color:#fff;
+  }
+
+  .ic-card {
+    position:fixed; z-index:300; width:min(320px, calc(100vw - 16px));
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); padding:12px 15px; text-align:left;
+  }
+  .ic-card .ic-title {
+    font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:5px;
+  }
+  .ic-card .ic-body { font-size:.82rem; color:var(--ink-soft); line-height:1.5; }
+  .ic-card .ic-body b { color:var(--ink); }

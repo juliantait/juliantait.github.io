@@ -62,6 +62,8 @@
     margin-top:22px; background:#f3f1ff; border:1px solid #e0dbff; border-radius:12px;
     padding:16px 20px; font-size:.98rem; color:#3f37a8;
   }
+  /* the takeaway leads the results page */
+  .wrap > .takeaway:first-child { margin-top:6px; }
   .takeaway b { color:#2c2680; }
 
   .fee-legend { font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center; }
@@ -101,9 +103,17 @@
 
   .pg-panel { display:flex; flex-direction:column; gap:10px; }
   .pg-top { display:flex; flex-direction:column; gap:8px; }
-  .pg-cols { display:grid; grid-template-columns:264px 1fr; gap:24px; align-items:start; }
+  /* three stable columns: grid + its button | inputs & reveal | stats.
+     Every region stays mounted (controls disable rather than hide) and the
+     reveal reserves its height, so progressing never reflows the card. */
+  .pg-cols { display:grid; grid-template-columns:264px minmax(0,1fr) 200px; gap:24px; align-items:start; }
   .pg-left { display:flex; flex-direction:column; align-items:center; gap:10px; }
-  .pg-right { display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .pg-mid { display:flex; flex-direction:column; gap:12px; min-width:0; }
+  .pg-side { display:flex; flex-direction:column; }
+  #play-overlay .pg-mid .reveal { min-height:212px; }
+  #play-overlay .pg-side .kpis { flex-direction:column; gap:8px; margin:0; }
+  #play-overlay .pg-side .kpi { flex:0 0 auto; }
+  .reveal .rv-empty { color:var(--muted); font-size:.84rem; text-align:center; padding:70px 10px; }
 
   /* overlay-scoped compact overrides so the whole game fits ~700px tall */
   #play-overlay .note { margin:0; font-size:.8rem; padding:8px 12px; }
@@ -111,8 +121,6 @@
   #play-overlay .kpis { margin:2px 0 0; gap:8px; }
   #play-overlay .kpi { flex:1 1 110px; padding:8px 11px; }
   #play-overlay .kpi .v { font-size:1.05rem; }
-  #play-overlay .advtrack { margin-top:2px; }
-  #play-overlay .costline { text-align:center; margin:2px 0 8px; }
 
   /* ===================== DOT STAGE (canvas) ===================== */
   .dotstage {
@@ -174,33 +182,10 @@
   .reveal .rv-verdict.flat { background:#f1f2f6; border:1px solid var(--line); color:var(--ink-soft); }
   .money { font-variant-numeric:tabular-nums; }
 
-  /* ===================== FEE TOGGLE (Role B centrepiece) ===================== */
-  .fee-block { text-align:center; }
-  .fee-block .fee-lab { font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
-  .fee-seg { display:inline-flex; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; box-shadow:var(--shadow-sm); }
-  .fee-seg button {
-    border:0; background:transparent; cursor:pointer; padding:9px 24px;
-    font-size:.92rem; font-weight:700; color:var(--ink-soft); border-left:1px solid var(--line);
-    display:flex; flex-direction:column; gap:1px; align-items:center; line-height:1.12; transition:background .15s, color .15s;
-  }
-  .fee-seg button:first-child { border-left:0; }
-  .fee-seg button .fee-amt { font-size:1.1rem; font-variant-numeric:tabular-nums; }
-  .fee-seg button .fee-tag { font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; opacity:.7; }
-  .fee-seg button[data-fee=low].on  { background:var(--low);  color:#fff; }
-  .fee-seg button[data-fee=high].on { background:var(--high); color:#fff; }
-  .fee-seg button:not(.on):hover { background:#f6f7fb; }
-
-  .client-guess { text-align:center; font-size:.9rem; color:var(--ink-soft); margin:0; }
+  /* ===================== ROLE B (advisor) bits ===================== */
+  .client-guess { text-align:left; font-size:.9rem; color:var(--ink-soft); margin:0; }
   .client-guess b { font-size:1.15rem; color:var(--ink); font-variant-numeric:tabular-nums; }
-
-  /* per-fee advise-rate tracker */
-  .advtrack { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
-  .advtrack .at { flex:1 1 150px; max-width:210px; border:1px solid var(--line-soft); border-radius:11px; padding:8px 12px; background:#f6f7fb; }
-  .advtrack .at.low  { border-left:4px solid var(--low); }
-  .advtrack .at.high { border-left:4px solid var(--high); }
-  .advtrack .at .atk { font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
-  .advtrack .at .atv { font-size:1rem; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; margin-top:1px; }
-  .advtrack .at .ats { font-size:.72rem; color:var(--muted); margin-top:1px; }
+  #b-decide { display:flex; flex-direction:column; gap:10px; }
 
   /* ===================== RESPONSIVE ===================== */
   @media (max-width:760px) {
@@ -212,5 +197,6 @@
   @media (max-width:720px) {
     .pg-cols { grid-template-columns:1fr; }
     .pg-left { order:-1; }
-    .fee-seg button { padding:9px 16px; }
+    #play-overlay .pg-side .kpis { flex-direction:row; }
+    #play-overlay .pg-mid .reveal { min-height:0; }
   }
