@@ -8,7 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=11">
-<link rel="stylesheet" href="correlated.css?v=10">
+<link rel="stylesheet" href="/projects/shared/infocard.css?v=2">
+<link rel="stylesheet" href="correlated.css?v=11">
+<script src="/projects/shared/infocard.js?v=2"></script>
 </head>
 <body>
 
@@ -183,23 +185,23 @@
     <div class="mech-row" role="group" aria-label="Model mechanisms">
       <span class="mech">
         <button type="button" class="mech-btn on" id="tg-inf" aria-pressed="true" onclick="toggleMech('inf')">Identity inference</button>
-        <span class="ibub-wrap">
-          <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-inf" aria-label="About the identity-inference channel" onclick="ibubToggle(this,event)">i</button>
-          <span class="ibub-pop" id="pop-inf" hidden>The paper's main mechanism. A shared view is group-diagnostic, so the sender bears the reputational inference cost <code>c<sub>i</sub>(1&minus;&delta;&#770;(g<sub>i</sub>|m))</code> with sensitivity <code>c<sub>i</sub>&sim;Exp</code>; the slider sets the scale <code>E[c<sub>i</sub>]</code> (canonical value&nbsp;1). Switch it off to remove identity inference entirely (<code>c<sub>i</sub>&rarr;0</code>). With the interaction cost active this recovers pure <em>pluralistic ignorance</em>: silence is driven only by the anticipated chance of meeting the opposing type, <code>S<sup>0</sup><sub>g,t</sub> = E<sub>e</sub>[&Phi;((e(1&minus;&rho;<sub>t</sub>)&minus;&mu;<sub>v</sub>)/&sigma;<sub>v</sub>)]</code>, and no longer depends on group identity. Switch it back on and the unprotected majority reappears.</span>
+        <span class="ic-host">
+          <button type="button" class="ic-btn" aria-expanded="false" aria-label="About the identity-inference channel" data-ic-content="pop-inf">i</button>
+          <span id="pop-inf" hidden>The paper's main mechanism. A shared view is group-diagnostic, so the sender bears the reputational inference cost <code>c<sub>i</sub>(1&minus;&delta;&#770;(g<sub>i</sub>|m))</code> with sensitivity <code>c<sub>i</sub>&sim;Exp</code>; the slider sets the scale <code>E[c<sub>i</sub>]</code> (canonical value&nbsp;1). Switch it off to remove identity inference entirely (<code>c<sub>i</sub>&rarr;0</code>). With the interaction cost active this recovers pure <em>pluralistic ignorance</em>: silence is driven only by the anticipated chance of meeting the opposing type, <code>S<sup>0</sup><sub>g,t</sub> = E<sub>e</sub>[&Phi;((e(1&minus;&rho;<sub>t</sub>)&minus;&mu;<sub>v</sub>)/&sigma;<sub>v</sub>)]</code>, and no longer depends on group identity. Switch it back on and the unprotected majority reappears.</span>
         </span>
       </span>
       <span class="mech">
         <button type="button" class="mech-btn" id="tg-ic" aria-pressed="false" onclick="toggleMech('ic')">Interaction cost</button>
-        <span class="ibub-wrap">
-          <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-ic" aria-label="About the interaction-cost extension" onclick="ibubToggle(this,event)">i</button>
-          <span class="ibub-pop" id="pop-ic" hidden>A second, <em>encounter</em> channel on top of identity inference, &agrave; la Bursztyn et&nbsp;al. (2020): voicing a view risks meeting someone who disagrees. A sender who shares meets one person &mdash; an opponent with probability <code>1&minus;&rho;<sub>t</sub></code>, where <code>&rho;<sub>t</sub> = &mu;<sub>A</sub>&pi;<sub>t,A</sub> + &mu;<sub>B</sub>&pi;<sub>t,B</sub></code> is the marginal prevalence of the view &mdash; at an individual encounter disutility <code>e<sub>i</sub>&sim;Exp</code>, drawn independently of <code>(v<sub>i</sub>, c<sub>i</sub>)</code>. Utility gains the term <code>&minus;e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)</code> on sharing, so the silence rule becomes <code>m=t &hArr; v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>) + c<sub>i</sub>&Delta;L<sub>g,t</sub></code>. This splits the Bursztyn et&nbsp;al. social-image payoff into an intrinsic encounter cost (about your <em>view</em>) and the reputational inference cost (about your <em>group</em>).</span>
+        <span class="ic-host">
+          <button type="button" class="ic-btn" aria-expanded="false" aria-label="About the interaction-cost extension" data-ic-content="pop-ic">i</button>
+          <span id="pop-ic" hidden>A second, <em>encounter</em> channel on top of identity inference, &agrave; la Bursztyn et&nbsp;al. (2020): voicing a view risks meeting someone who disagrees. A sender who shares meets one person &mdash; an opponent with probability <code>1&minus;&rho;<sub>t</sub></code>, where <code>&rho;<sub>t</sub> = &mu;<sub>A</sub>&pi;<sub>t,A</sub> + &mu;<sub>B</sub>&pi;<sub>t,B</sub></code> is the marginal prevalence of the view &mdash; at an individual encounter disutility <code>e<sub>i</sub>&sim;Exp</code>, drawn independently of <code>(v<sub>i</sub>, c<sub>i</sub>)</code>. Utility gains the term <code>&minus;e<sub>i</sub>(1&minus;&rho;<sub>t</sub>)</code> on sharing, so the silence rule becomes <code>m=t &hArr; v<sub>i</sub> &gt; e<sub>i</sub>(1&minus;&rho;<sub>t</sub>) + c<sub>i</sub>&Delta;L<sub>g,t</sub></code>. This splits the Bursztyn et&nbsp;al. social-image payoff into an intrinsic encounter cost (about your <em>view</em>) and the reputational inference cost (about your <em>group</em>).</span>
         </span>
       </span>
       <span class="mech">
         <button type="button" class="mech-btn" id="tg-oi" aria-pressed="false" onclick="toggleMech('oi')">Over-inference</button>
-        <span class="ibub-wrap">
-          <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-oi" aria-label="About the over-inference extension" onclick="ibubToggle(this,event)">i</button>
-          <span class="ibub-pop" id="pop-oi" hidden>A stereotyping observer, Bordalo et&nbsp;al. (2016), who over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code> and the stereotyped posterior <code>&delta;&#770;<sup>st</sup></code> replaces Bayes in the loss differential. Switching on sets <code>&theta; = 0.4</code>, the Bordalo et&nbsp;al. estimate; <code>&theta; = 0</code> is pure Bayes.</span>
+        <span class="ic-host">
+          <button type="button" class="ic-btn" aria-expanded="false" aria-label="About the over-inference extension" data-ic-content="pop-oi">i</button>
+          <span id="pop-oi" hidden>A stereotyping observer, Bordalo et&nbsp;al. (2016), who over-reads a representative trait: likelihoods become <code>&pi;<sup>st</sup><sub>t,g</sub> &prop; &pi;<sub>t,g</sub>R(t,g)<sup>&theta;</sup></code> and the stereotyped posterior <code>&delta;&#770;<sup>st</sup></code> replaces Bayes in the loss differential. Switching on sets <code>&theta; = 0.4</code>, the Bordalo et&nbsp;al. estimate; <code>&theta; = 0</code> is pure Bayes.</span>
         </span>
       </span>
     </div>
@@ -224,9 +226,9 @@
     <div class="dist-block">
       <div class="dist-head">
         <h3 class="sub-title">Primitive distributions</h3>
-        <span class="ibub-wrap">
-          <button type="button" class="ibub" aria-expanded="false" aria-controls="pop-canon" aria-label="About the canonical model" onclick="ibubToggle(this,event)">i</button>
-          <span class="ibub-pop" id="pop-canon" hidden><strong>Canonical model.</strong> Heterogeneity in both primitives &mdash; expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code> and inference sensitivity <code>c<sub>i</sub>&sim;Exp(1)</code> (Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule <code>m=t &hArr; v<sub>i</sub> &gt; c<sub>i</sub>&Delta;L<sub>g,t</sub></code> numerically.</span>
+        <span class="ic-host">
+          <button type="button" class="ic-btn" aria-expanded="false" aria-label="About the canonical model" data-ic-content="pop-canon">i</button>
+          <span id="pop-canon" hidden><strong>Canonical model.</strong> Heterogeneity in both primitives &mdash; expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code> and inference sensitivity <code>c<sub>i</sub>&sim;Exp(1)</code> (Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule <code>m=t &hArr; v<sub>i</sub> &gt; c<sub>i</sub>&Delta;L<sub>g,t</sub></code> numerically.</span>
         </span>
       </div>
       <p class="dist-note">The population primitives behind every solve: expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code>, inference sensitivity <code>c<sub>i</sub>&sim;Exp</code> (scale on the identity-inference slider above), encounter disutility <code>e<sub>i</sub>&sim;Exp</code> (interaction-cost slider), and the group prior <code>&mu; = Pr(A)</code>.</p>
@@ -548,42 +550,10 @@ function updateExtUI(){
 }
 
 /* =====================================================================
-   INFO BUBBLES — (i) buttons toggle a small explanation popover.
-   Click/tap toggles (works on touch); outside click or Escape closes.
+   INFO BUBBLES — handled by the shared InfoCard component
+   (/projects/shared/infocard.js): .ic-btn triggers read their content from
+   the hidden #pop-* spans via data-ic-content.
    ===================================================================== */
-function ibubClose(){
-  Array.prototype.slice.call(document.querySelectorAll('.ibub-pop:not([hidden])')).forEach(function(p){
-    p.setAttribute('hidden','');
-  });
-  Array.prototype.slice.call(document.querySelectorAll('.ibub[aria-expanded="true"]')).forEach(function(b){
-    b.setAttribute('aria-expanded','false');
-  });
-}
-function ibubToggle(btn, ev){
-  // keep host elements inert: a <summary> must not fold, a <label> must not tick
-  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-  var pop = document.getElementById(btn.getAttribute('aria-controls'));
-  var wasClosed = pop.hasAttribute('hidden');
-  ibubClose();
-  if(!wasClosed) return;
-  pop.removeAttribute('hidden');
-  btn.setAttribute('aria-expanded','true');
-  // nudge the popover back inside the viewport if it overflows an edge
-  if(typeof window !== 'undefined' && window.innerWidth && pop.getBoundingClientRect){
-    pop.style.transform = ''; pop.style.removeProperty('--arrow-shift');
-    var r = pop.getBoundingClientRect(), pad = 10, dx = 0;
-    if(r.left < pad) dx = pad - r.left;
-    else if(r.right > window.innerWidth - pad) dx = (window.innerWidth - pad) - r.right;
-    if(dx){
-      pop.style.transform = 'translateX(calc(-50% + '+Math.round(dx)+'px))';
-      pop.style.setProperty('--arrow-shift', (-Math.round(dx))+'px');  // keep the arrow on the (i)
-    }
-  }
-}
-document.addEventListener('click', function(e){
-  if(!(e.target && e.target.closest && e.target.closest('.ibub-wrap'))) ibubClose();
-});
-document.addEventListener('keydown', function(e){ if(e.key === 'Escape') ibubClose(); });
 
 /* =====================================================================
    UTILITY DISPLAY — the sender's objective, annotated with over/under

@@ -35,5 +35,6 @@
     font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
     color:var(--accent); margin-bottom:5px;
   }
+  .ic-card .ic-title:empty { display:none; }
   .ic-card .ic-body { font-size:.82rem; color:var(--ink-soft); line-height:1.5; }
   .ic-card .ic-body b { color:var(--ink); }

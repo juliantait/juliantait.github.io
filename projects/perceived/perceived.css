@@ -27,6 +27,7 @@
   .playbtn:hover { background:#4338ca; }
   .playbtn:active { transform:translateY(1px); }
   .playbtn .tri { font-size:.7em; }
+  @media (max-width:560px) { .playbtn { padding:8px 12px; font-size:.8rem; } }
 
   /* ===================== RESULTS PAGE (default view) ===================== */
   .wrap > .panelcard:first-of-type { margin-top:6px; }
