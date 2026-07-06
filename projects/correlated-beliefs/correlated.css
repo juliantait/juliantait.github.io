@@ -56,8 +56,9 @@
   .ratio-chips .chip.alt b { color:#2e7d68; }
   .trait-foot .derived { margin:0; background:none; border:0; padding:0; font-size:.79rem; flex:1 1 auto; min-width:200px; }
 
-  /* collapsible Parameters section */
-  .params-collapse { border:1px solid var(--line); border-radius:12px; background:#fcfcff; margin:14px 0 0; overflow:hidden; }
+  /* collapsible Parameters section (no overflow clip — the summary's info
+     popover must be able to hang below the closed panel) */
+  .params-collapse { border:1px solid var(--line); border-radius:12px; background:#fcfcff; margin:14px 0 0; }
   .params-summary { list-style:none; cursor:pointer; user-select:none; display:flex; align-items:center; gap:10px; padding:11px 16px; }
   .params-summary::-webkit-details-marker { display:none; }
   .params-summary .ps-chevron {
@@ -70,6 +71,7 @@
   .params-summary .ps-hint { font-size:.78rem; color:var(--muted); margin-left:auto; }
   .params-summary:hover .ps-title { color:var(--accent); }
   .params-body { padding:2px 16px 14px; }
+  .params-body .pb-block { margin-top:10px; }
 
   /* base controls + expressive utility, side by side */
   .param-cols { display:grid; grid-template-columns:1fr 1fr; gap:14px 26px; }
@@ -96,30 +98,56 @@
     .u-lab { font-size:.62rem; }
   }
 
-  /* ===== extensions — progressive-disclosure accordion ===== */
-  .ext-list { display:flex; flex-direction:column; gap:10px; margin-top:2px; }
-  .ext-item { border:1px solid var(--line); border-radius:11px; background:#fcfcff; overflow:hidden; }
-  .ext-head { display:flex; align-items:center; gap:10px; width:100%; border:0; background:transparent; padding:11px 14px; cursor:pointer; text-align:left; font:inherit; }
-  .ext-head:hover .ext-name { color:var(--accent); }
-  .ext-chev {
-    width:0; height:0; flex:none;
-    border-left:6px solid var(--accent); border-top:5px solid transparent; border-bottom:5px solid transparent;
-    transition:transform .15s ease;
+  /* ===== encounter extension control — compact pill next to the utility display ===== */
+  .ue-ctl { display:flex; flex-direction:column; align-items:center; gap:9px; margin-top:14px; }
+  .ue-row {
+    display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:8px 10px;
+    border:1px solid var(--line); border-radius:999px; background:#fcfcff; padding:6px 8px 6px 16px;
   }
-  .ext-item.open .ext-chev { transform:rotate(90deg); }
-  .ext-name { font-weight:700; font-size:.9rem; color:var(--ink); min-width:0; }
-  .ext-name .ext-sub { font-weight:500; color:var(--muted); font-size:.78rem; margin-left:7px; }
-  .ext-status {
-    margin-left:auto; flex:none; font-size:.72rem; font-weight:700; letter-spacing:.03em;
-    padding:3px 10px; border-radius:999px; background:#eef0f6; color:var(--muted); font-variant-numeric:tabular-nums;
-  }
-  .ext-status.on { background:var(--accent); color:#fff; }
-  .ext-body { display:none; padding:4px 16px 14px; border-top:1px solid var(--line-soft); }
-  .ext-item.open .ext-body { display:block; }
-  .ext-body .cb { margin:10px 0 8px; }
+  .ue-label { font-size:.84rem; font-weight:700; color:var(--ink); }
+  .ue-label .muted-note { font-weight:500; color:var(--muted); font-size:.78rem; }
+  .ue-seg { border-radius:999px; }
+  .ue-seg button { padding:5px 14px; font-size:.76rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase; }
+  .ue-opts { display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:8px 28px; padding:0 6px; }
+  .ue-opts[hidden] { display:none; }
+  .ue-slider { width:min(300px, 100%); margin:0; }
+  .ue-inf { display:flex; align-items:center; gap:8px; }
+  .ue-inf .cb { display:flex; align-items:center; gap:8px; font-weight:600; font-size:.86rem; cursor:pointer; margin:0; }
+  .ue-inf .cb input { width:15px; height:15px; accent-color:var(--accent); cursor:pointer; }
+  .ue-inf .muted-note, .ext-row .muted-note { font-weight:500; color:var(--muted); font-size:.78rem; }
+
+  /* ===== over-inference — compact single-row extension ===== */
+  .ext-row { display:flex; align-items:center; flex-wrap:wrap; gap:10px 14px; }
+  .ext-row .cb { margin:0; }
+  .ext-row .ext-opt { flex:1 1 230px; max-width:340px; margin-left:auto; }
   .ext-opt { transition:opacity .2s ease; }
   .ext-opt.dim { opacity:.45; }
-  .ext-divider { border-top:1px dashed var(--line); margin:13px 0 3px; }
+
+  /* ===== (i) info bubbles — tap/click toggles a popover explanation ===== */
+  .ibub-wrap { position:relative; display:inline-flex; align-items:center; flex:none; vertical-align:middle; }
+  .ibub {
+    width:18px; height:18px; padding:0; flex:none; box-sizing:border-box;
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--line); border-radius:50%; background:var(--card);
+    color:var(--muted); cursor:pointer;
+    font-family:'Source Serif 4', Georgia, serif; font-style:italic; font-weight:700;
+    font-size:.72rem; line-height:1;
+    transition:color .15s, border-color .15s, box-shadow .15s;
+  }
+  .ibub:hover, .ibub[aria-expanded="true"] { color:var(--accent); border-color:var(--accent); box-shadow:0 1px 4px rgba(79,70,229,0.25); }
+  .ibub-pop {
+    display:block; position:absolute; z-index:60; top:calc(100% + 9px); left:50%; transform:translateX(-50%);
+    width:min(360px, 88vw); padding:11px 14px;
+    background:var(--card); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow);
+    font-size:.8rem; font-weight:400; font-style:normal; line-height:1.55; color:var(--ink-soft);
+    text-align:left; text-transform:none; letter-spacing:0; white-space:normal; cursor:auto;
+  }
+  .ibub-pop[hidden] { display:none; }
+  .ibub-pop::before {
+    content:''; position:absolute; top:-5px; left:calc(50% - 5px + var(--arrow-shift, 0px));
+    width:9px; height:9px; transform:rotate(45deg);
+    background:var(--card); border-left:1px solid var(--line); border-top:1px solid var(--line);
+  }
 
   /* who-stays-silent count chips */
   .silcounts { display:flex; flex-wrap:wrap; justify-content:center; gap:14px 44px; margin-top:12px; }
