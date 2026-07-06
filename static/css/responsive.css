@@ -95,6 +95,18 @@
     align-self: flex-start;
   }
 
+  /* Expandable card: stack the top row too; pill and Abstract cue share a line */
+  .publication-main {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .publication-meta {
+    flex-direction: row;
+    align-self: flex-start;
+    align-items: center;
+  }
+
   /* Course items stack */
   .course-item {
     flex-direction: column;

@@ -156,9 +156,65 @@ a[role='button']:hover,
 
 /* Expandable abstract card (disclosure) */
 
-/* The whole card is the toggle when it has an abstract to reveal. */
+/* The whole card is the toggle when it has an abstract to reveal.
+   Stacked layout: the top row (content + meta) sits above the full-width
+   abstract panel, so the divider spans the whole card. */
 .publication-item.is-expandable {
   cursor: pointer;
+  display: block;
+}
+
+.publication-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Right-hand column: type pill on top, Abstract affordance pinned to the
+   bottom so it lines up with the keyword pills row. */
+.publication-meta {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+/* Visual cue only - the whole card toggles, so this stays out of the tab
+   order and the accessibility tree (the card carries the button role). */
+.abstract-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.publication-item.is-expandable:hover .abstract-toggle {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+
+.abstract-toggle-chevron {
+  transition: transform var(--transition-medium);
+}
+
+.publication-item.is-expandable[aria-expanded="true"] .abstract-toggle-chevron {
+  transform: rotate(180deg);
 }
 
 /* Collapse container: starts closed, JS animates max-height.
@@ -170,10 +226,12 @@ a[role='button']:hover,
   transition: max-height var(--transition-medium);
 }
 
-/* Invisible padding/separator wrapper (not a box) - keeps the abstract
-   spaced from the meta above and gives the collapse animation a padded
-   inner element to measure. */
+/* Invisible padding/separator wrapper (not a box) - gives the collapse
+   animation a padded inner element to measure. The margin above the divider
+   equals the card's bottom padding, so the line appears exactly where the
+   collapsed card visually ends and the card reads as extending below it. */
 .abstract-panel-inner {
+  margin-top: var(--space-2);
   padding-top: var(--space-2);
   border-top: 1px solid var(--border);
 }
@@ -210,7 +268,8 @@ a[role='button']:hover,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .abstract-panel {
+  .abstract-panel,
+  .abstract-toggle-chevron {
     transition: none;
   }
 }
