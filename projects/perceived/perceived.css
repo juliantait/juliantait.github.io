@@ -63,14 +63,6 @@
     font-weight:700; color:var(--B); line-height:1.15; margin-bottom:3px;
   }
 
-  .takeaway {
-    margin-top:22px; background:#f3f1ff; border:1px solid #e0dbff; border-radius:12px;
-    padding:16px 20px; font-size:.98rem; color:#3f37a8;
-  }
-  /* the takeaway leads the results page */
-  .wrap > .takeaway:first-child { margin-top:6px; }
-  .takeaway b { color:#2c2680; }
-
   .fee-legend { font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center; }
   .fee-legend span { display:inline-block; margin:0 9px; }
 

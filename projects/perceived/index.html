@@ -38,16 +38,11 @@
 <!-- ===================== RESULTS (the page itself) ===================== -->
 <main class="wrap">
 
-  <!-- MAIN TAKEAWAY -->
-  <div class="takeaway">
-    <b>An asymmetry.</b> Clients respond to the fee, complying more, rewarding activity and punishing bold moves, but advisors do not. The price paid changes the buyer&rsquo;s behaviour while leaving the seller&rsquo;s advice untouched.
-  </div>
-
   <!-- BLOCK 1: advisor side, the null result -->
   <section class="panelcard">
     <div class="block-head">
       <span class="block-tag advisor">Advisor side</span>
-      <span class="block-headline">Higher fees move none of the three.</span>
+      <span class="block-headline">Higher fees don&rsquo;t change advisor behaviour</span>
     </div>
     <p class="card-note">The three pre-registered advisor outcomes, each measured under the low fee (&pound;0.35) and the high fee (&pound;1.75), computed from the experiment data (Round 1). The estimates are statistically indistinguishable across the two fee levels: paying the advisor five times as much shifts nothing.</p>
 
@@ -457,7 +452,7 @@ var OUTCOME_INFO = {
   retention: ['Reward: retention and advising',
     'In the REP treatment the client decides after Round 1 whether to keep or fire their advisor, who is then replaced. Advisors who advised on more grids are fired less often; this protective effect appears in the high-fee group.'],
   sanction: ['Punish: firing and advice shift',
-    'Fired advisors had recommended larger moves from the client’s first guess than retained advisors (14.7 vs 9.3 dots on average). Larger recommended shifts significantly raise the probability of being fired.']
+    'Fired advisors had recommended larger moves from the client’s first guess than retained advisors (14.7 vs 9.3 dots on average). Larger recommended shifts significantly raise the probability of being fired. This is not just quality-sanctioning: the gap survives controlling for realised advice quality (about 4.2 dots after adjustment, p = .002, matching the paper’s Table C.1 specification), and shift size is nearly unrelated to quality in rank terms.']
 };
 
 function seChart(o){
