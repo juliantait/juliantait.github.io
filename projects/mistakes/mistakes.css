@@ -2,10 +2,12 @@
   /* ============================================================================
      MISTAKES.CSS  (site-specific – "The Honesty Penalty: Hiding Mistakes in Teams")
      ----------------------------------------------------------------------------
-     Two views live in index.html behind the shared hash router: #results (the
+     Three pages share this stylesheet: index.html (the homepage, holding the
+     shared-pattern hypothesis and results-summary cards), results.html (the
      findings of the vignette study and the two lab experiments, with estimates
-     computed from the cleaned data) and #model (the theoretical framework plus
-     an interactive equilibrium explorer). Loaded AFTER shell.css + infocard.css.
+     computed from the cleaned data) and model.html (the theoretical framework
+     plus an interactive equilibrium explorer). Loaded AFTER shell.css +
+     infocard.css.
      ============================================================================ */
 
   :root {
@@ -38,10 +40,42 @@
   .block-tag.exp2 { background:var(--B); }
   .block-tag.both { background:var(--accent); }
   .block-tag.theory { background:var(--accent-2); }
+  .block-tag.results { background:var(--accent); }
   .block-headline {
     font-family:'Source Serif 4', Georgia, serif; font-size:1.25rem; font-weight:700;
     letter-spacing:-.01em; color:var(--ink);
   }
+
+  /* page-level section header – the hero's eyebrow pill restyled for the light
+     page body, marking where the Experiment 2 material begins */
+  .section-head { margin:36px 4px 0; }
+  .sec-eyebrow {
+    display:inline-block; font-size:.72rem; font-weight:600; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-soft);
+    padding:5px 12px; border:1px solid var(--line); border-radius:999px;
+    background:var(--card); margin-bottom:10px;
+  }
+  .sec-headline {
+    font-family:'Source Serif 4', Georgia, serif; font-size:1.5rem; font-weight:700;
+    letter-spacing:-.01em; color:var(--ink); line-height:1.2;
+  }
+  .section-note { font-size:.88rem; color:var(--muted); margin-top:4px; }
+
+  /* labelled (i) trigger row – the eq-labels "label + i button" idiom, reused
+     wherever a card parks its detail behind an info bubble */
+  .ic-links { font-size:.8rem; font-weight:600; color:var(--muted); margin-top:12px; }
+
+  /* rich info-bubble content (tables served via data-ic-content) */
+  .ic-card .ic-body table {
+    border-collapse:collapse; width:100%; font-size:.74rem;
+    font-variant-numeric:tabular-nums; margin:2px 0 8px;
+  }
+  .ic-card .ic-body th, .ic-card .ic-body td { border:1px solid var(--line); padding:3px 7px; text-align:center; }
+  .ic-card .ic-body th { background:#f3f4f8; font-weight:600; }
+  .ic-card .ic-body th:first-child, .ic-card .ic-body td:first-child { text-align:left; }
+  .ic-card .ic-body .lo { color:var(--low); font-weight:700; }
+  .ic-card .ic-body .hi { color:#9a6d0e; font-weight:700; }
+  .ic-card .ic-body p + p { margin-top:6px; }
 
   /* ===================== CHART GRIDS ===================== */
   .chartgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:14px; }

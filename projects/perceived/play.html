@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perceived Value for Money &mdash; Play the task</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
+<link rel="stylesheet" href="/projects/shared/infocard.css?v=2">
+<link rel="stylesheet" href="perceived.css?v=3">
+<script src="/projects/shared/infocard.js?v=2"></script>
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL (persistent) ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">EXPERIMENT</span>
+    <h1 class="hero-title">Perceived Value for Money</h1>
+    <p class="hero-sub">Does paying an advisor more distort their advice?</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="/">Julian Tait</a>
+    <nav class="topbar-mainnav" aria-label="Site">
+      <a href="/projects/">All projects</a>
+    </nav>
+    <span class="topbar-title">Perceived Value for Money</span>
+    <nav>
+      <a href="./">Overview</a>
+      <a href="play.html" class="active">Play the task</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ===================== PLAY OVERLAY (full-screen pop-up experiment) ===================== -->
+<div id="play-overlay" class="as-page">
+  <div class="pg-card">
+    <div class="pg-head">
+      <div>
+        <span class="pg-eyebrow">Single-player task</span>
+        <h2 class="pg-title">Judge how many dots are red</h2>
+      </div>
+      <div class="segmented" id="role-seg">
+        <button class="on" data-role="A">You are the client</button>
+        <button data-role="B">You are the advisor</button>
+      </div>
+    </div>
+    <p class="pg-intro" id="role-intro"></p>
+
+    <!-- ============ ROLE A: CLIENT (decision-maker) ============ -->
+    <section class="pg-panel" id="panel-A">
+      <div class="pg-top">
+        <div class="note">Viewing is fixed at <b>5 seconds</b> for everyone, so working harder or staring longer cannot buy accuracy. That is the whole point of the design.</div>
+      </div>
+      <div class="pg-cols">
+        <div class="pg-left">
+          <div class="dotstage" id="a-stage">
+            <span class="countpill" id="a-count">5</span>
+            <canvas id="a-canvas"></canvas>
+            <div class="dot-cover" id="a-cover">
+              <span class="dc-icon">&#9200;</span>
+              <span class="dc-msg" id="a-covermsg">Press start, watch for 5 seconds, then estimate the red count.</span>
+            </div>
+          </div>
+          <div class="actionrow">
+            <button class="btn" id="a-action">Show the grid (5s)</button>
+          </div>
+        </div>
+        <div class="pg-mid">
+          <div class="guessrow" id="a-answer">
+            <div class="inp">
+              <label class="inp-label" for="a-guess">Red dots (0&ndash;100)</label>
+              <input type="number" id="a-guess" min="0" max="100" step="1" placeholder="?" disabled>
+            </div>
+            <button class="btn" id="a-submit" disabled>Submit estimate</button>
+          </div>
+          <div class="reveal" id="a-reveal"><div class="rv-empty">The reveal appears here after you submit.</div></div>
+        </div>
+        <div class="pg-side">
+          <div class="kpis" id="a-kpis"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ROLE B: ADVISOR ============ -->
+    <section class="pg-panel hidden" id="panel-B">
+      <div class="pg-top">
+        <!-- the fee is assigned at random and simply announced -->
+        <div class="note" id="b-feenote">You are paid a flat fee of <b id="b-fee">&pound;0.35</b> for every grid, whether or not you advise. Sending advice costs you <b>&pound;0.07</b>.</div>
+      </div>
+      <div class="pg-cols">
+        <div class="pg-left">
+          <div class="dotstage" id="b-stage">
+            <span class="countpill" id="b-count">6</span>
+            <canvas id="b-canvas"></canvas>
+            <div class="dot-cover" id="b-cover">
+              <span class="dc-icon">&#9200;</span>
+              <span class="dc-msg" id="b-covermsg">Press start to view the grid for 6 seconds.</span>
+            </div>
+          </div>
+          <div class="actionrow">
+            <button class="btn" id="b-action">View the grid (6s)</button>
+          </div>
+        </div>
+        <div class="pg-mid">
+          <div id="b-decide">
+            <p class="client-guess">Your client&rsquo;s first guess was <b id="b-client">&ndash;</b> red dots.</p>
+            <div class="slider-field advslider">
+              <label>Your recommended red count <span class="slideval" id="b-advval">&ndash;</span></label>
+              <input type="range" id="b-adv" min="0" max="100" step="1" value="50" disabled>
+            </div>
+            <div class="actionrow" style="justify-content:flex-start">
+              <button class="btn" id="b-send" disabled>Send advice (&minus;&pound;0.07)</button>
+              <button class="btn ghost" id="b-decline" disabled>Decline</button>
+            </div>
+          </div>
+          <div class="reveal" id="b-reveal"><div class="rv-empty">The reveal appears here after you decide.</div></div>
+        </div>
+        <div class="pg-side">
+          <div class="kpis" id="b-kpis"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+</main>
+<script>
+
+"use strict";
+/* =====================================================================
+   DOT STIMULUS  – a 10x10 grid of 100 solid dots, each red or black,
+   with slight positional jitter (mimicking assets/dots.png). The true
+   red count is drawn uniformly in [25, 75] each round.
+   ===================================================================== */
+function randInt(a, b){ return a + Math.floor(Math.random()*(b-a+1)); }   // inclusive
+
+function newLayout(){
+  var trueRed = randInt(25, 75);
+  var flags = [];
+  for(var i=0;i<100;i++) flags.push(i < trueRed);
+  for(var i=99;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=flags[i]; flags[i]=flags[j]; flags[j]=t; }
+  var dots = [];
+  for(var r=0;r<10;r++){
+    for(var c=0;c<10;c++){
+      dots.push({ col:c, row:r,
+        jx:(Math.random()-0.5)*0.44, jy:(Math.random()-0.5)*0.44,
+        red:flags[r*10+c] });
+    }
+  }
+  return { trueRed:trueRed, dots:dots };
+}
+function drawGrid(canvas, layout){
+  var dpr = window.devicePixelRatio || 1;
+  var css = canvas.clientWidth || 260;
+  canvas.width = Math.round(css*dpr);
+  canvas.height = Math.round(css*dpr);
+  var ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, css, css);
+  var pad = css*0.04, area = css - 2*pad, cell = area/10, rad = cell*0.30;
+  layout.dots.forEach(function(d){
+    var cx = pad + (d.col + 0.5 + d.jx)*cell;
+    var cy = pad + (d.row + 0.5 + d.jy)*cell;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad, 0, 2*Math.PI);
+    ctx.fillStyle = d.red ? '#e8241a' : '#16181f';
+    ctx.fill();
+  });
+}
+
+/* a reusable viewing countdown: shows the grid for `secs`, ticks a pill,
+   then calls done(). */
+function runViewing(opts){
+  var pill = opts.pill, cover = opts.cover;
+  var left = opts.secs;
+  cover.classList.add('gone');           // reveal the grid
+  pill.textContent = left;
+  pill.classList.add('on');
+  var tick = setInterval(function(){
+    left -= 1;
+    if(left <= 0){
+      clearInterval(tick);
+      pill.classList.remove('on');
+      cover.classList.remove('gone');     // hide the grid again
+      opts.done();
+    } else {
+      pill.textContent = left;
+    }
+  }, 1000);
+}
+
+var GBP = '£';
+function money(x){ return GBP + x.toFixed(2); }
+function kpi(v, k){ return '<div class="kpi"><div class="v">'+v+'</div><div class="k">'+k+'</div></div>'; }
+
+/* =====================================================================
+   ROLE A – the client (decision-maker)
+   Score (the experiment's rule): £0.50 minus £0.10 per dot of error, min £0.
+   The action button under the grid morphs (start → counting → new grid)
+   and every panel region stays mounted, so the layout never reflows.
+   ===================================================================== */
+var A = { layout:null, total:0, rounds:0, phase:'idle' };
+function aEl(id){ return document.getElementById('a-'+id); }
+
+function aRenderKPIs(){
+  aEl('kpis').innerHTML =
+    kpi('<span class="money">'+money(A.total)+'</span>', 'total earned') +
+    kpi(A.rounds, 'grids played') +
+    kpi(A.rounds ? '<span class="money">'+money(A.total/A.rounds)+'</span>' : '&ndash;', 'average per grid');
+}
+function aPhase(p){
+  A.phase = p;
+  var btn = aEl('action');
+  btn.textContent = p === 'result' ? 'New grid' : 'Show the grid (5s)';
+  btn.disabled = (p === 'viewing' || p === 'answer');
+  aEl('guess').disabled = aEl('submit').disabled = (p !== 'answer');
+}
+function aStart(){
+  A.layout = newLayout();
+  drawGrid(aEl('canvas'), A.layout);
+  aEl('reveal').innerHTML = '<div class="rv-empty">The reveal appears here after you submit.</div>';
+  aPhase('viewing');
+  runViewing({ pill:aEl('count'), cover:aEl('cover'), secs:5, done:function(){
+    aEl('covermsg').textContent = 'Grid hidden. How many dots were red?';
+    aPhase('answer');
+    aEl('guess').value = '';
+    aEl('guess').focus();
+  }});
+}
+function aSubmit(){
+  if(A.phase !== 'answer') return;
+  var g = parseInt(aEl('guess').value, 10);
+  if(isNaN(g)){ aEl('guess').focus(); return; }
+  g = Math.max(0, Math.min(100, g));
+  var truth = A.layout.trueRed;
+  var err = Math.abs(g - truth);
+  // the experiment's rule: £0.50 minus £0.10 per dot of error, never below £0
+  var pay = Math.max(0, 0.50 - 0.10*err);
+  A.total += pay; A.rounds += 1;
+  var cls = err === 0 ? 'good' : (pay > 0 ? 'flat' : 'bad');
+  var verdict = err === 0
+      ? 'Bang on. You earn '+money(0.50)+'.'
+      : 'Off by '+err+' '+(err===1?'dot':'dots')+'. You earn '+money(pay)+'.';
+  aEl('reveal').innerHTML =
+    '<div class="rv-head">Reveal</div>'+
+    '<div class="rv-row"><span class="k">True red count</span><span class="v">'+truth+'</span></div>'+
+    '<div class="rv-row"><span class="k">Your estimate</span><span class="v">'+g+'</span></div>'+
+    '<div class="rv-row"><span class="k">Error</span><span class="v">'+err+'</span></div>'+
+    '<div class="rv-verdict '+cls+'">'+verdict+'</div>';
+  aEl('covermsg').textContent = 'Press the button below the grid for a new round.';
+  aRenderKPIs();
+  aPhase('result');
+}
+
+/* =====================================================================
+   ROLE B – the advisor
+   The fee level is assigned at random when the page loads and simply
+   announced – the player sees one fee, no treatment labels, no framing.
+   Earnings: flat fee less £0.07 per advice sent.
+   ===================================================================== */
+var FEES = { low:0.35, high:1.75 };
+var B = { layout:null, fee:(Math.random() < 0.5 ? 'low' : 'high'),
+          clientGuess:0, total:0, rounds:0, advised:0, phase:'idle' };
+function bEl(id){ return document.getElementById('b-'+id); }
+
+function bRenderKPIs(){
+  bEl('kpis').innerHTML =
+    kpi('<span class="money">'+money(B.total)+'</span>', 'total earned') +
+    kpi(B.rounds, 'grids played') +
+    kpi(B.advised, 'times you advised');
+}
+function bPhase(p){
+  B.phase = p;
+  var btn = bEl('action');
+  btn.textContent = p === 'result' ? 'New grid' : 'View the grid (6s)';
+  btn.disabled = (p === 'viewing' || p === 'decide');
+  bEl('adv').disabled = bEl('send').disabled = bEl('decline').disabled = (p !== 'decide');
+}
+function bStart(){
+  B.layout = newLayout();
+  // simulated client first guess: truth plus modest noise, clamped to 0..100
+  var noise = Math.round((Math.random()*2-1)*9 + (Math.random()*2-1)*6);
+  B.clientGuess = Math.max(0, Math.min(100, B.layout.trueRed + noise));
+  drawGrid(bEl('canvas'), B.layout);
+  bEl('reveal').innerHTML = '<div class="rv-empty">The reveal appears here after you decide.</div>';
+  bEl('client').textContent = '–';
+  bEl('advval').textContent = '–';
+  bPhase('viewing');
+  runViewing({ pill:bEl('count'), cover:bEl('cover'), secs:6, done:function(){
+    bEl('covermsg').textContent = 'Grid hidden. Decide on your advice.';
+    bEl('client').textContent = B.clientGuess;
+    bEl('adv').value = B.clientGuess;
+    bEl('advval').textContent = B.clientGuess;
+    bPhase('decide');
+  }});
+}
+function bResolve(advised){
+  if(B.phase !== 'decide') return;
+  var truth = B.layout.trueRed, fee = FEES[B.fee];
+  var rec = advised ? Math.max(0, Math.min(100, parseInt(bEl('adv').value, 10))) : null;
+  var cost = advised ? 0.07 : 0;
+  var earn = fee - cost;
+  B.total += earn; B.rounds += 1;
+  if(advised) B.advised += 1;
+
+  var rows =
+    '<div class="rv-row"><span class="k">True red count</span><span class="v">'+truth+'</span></div>'+
+    '<div class="rv-row"><span class="k">Client&rsquo;s first guess</span><span class="v">'+B.clientGuess+' (off by '+Math.abs(B.clientGuess-truth)+')</span></div>';
+  var verdict, cls;
+  if(advised){
+    var before = Math.abs(B.clientGuess - truth);
+    var after = Math.abs(rec - truth);
+    rows += '<div class="rv-row"><span class="k">You recommended</span><span class="v">'+rec+' (off by '+after+')</span></div>';
+    if(after < before){ cls='good'; verdict='Your advice helped: it moved the client '+(before-after)+' closer to the truth.'; }
+    else if(after > before){ cls='bad'; verdict='Your advice hurt: it moved the client '+(after-before)+' further from the truth.'; }
+    else { cls='flat'; verdict='Your advice left the client exactly as accurate as before.'; }
+    rows += '<div class="rv-row"><span class="k">Fee &minus; advice cost</span><span class="v"><span class="money">'+money(fee)+' &minus; '+money(0.07)+' = '+money(earn)+'</span></span></div>';
+  } else {
+    cls='flat'; verdict='You sent no advice. The client keeps their first guess.';
+    rows += '<div class="rv-row"><span class="k">Fee (no advice cost)</span><span class="v"><span class="money">'+money(earn)+'</span></span></div>';
+  }
+  bEl('reveal').innerHTML =
+    '<div class="rv-head">Reveal</div>'+ rows +
+    '<div class="rv-verdict '+cls+'">'+verdict+'</div>';
+  bEl('covermsg').textContent = 'Press the button below the grid for a new round.';
+  bRenderKPIs();
+  bPhase('result');
+}
+
+/* =====================================================================
+   ROLE SWITCHER + wiring
+   ===================================================================== */
+var ROLE_INTRO = {
+  A: 'As the <b>client</b>, you are the decision-maker. Your pay depends on how close your estimate is to the true number of red dots.',
+  B: 'As the <b>advisor</b>, you are paid a flat fee to help a client who has already guessed. On each grid you choose whether to send a recommendation or decline.'
+};
+function setRole(role){
+  Array.prototype.forEach.call(document.getElementById('role-seg').children, function(btn){
+    btn.classList.toggle('on', btn.getAttribute('data-role') === role);
+  });
+  document.getElementById('role-intro').innerHTML = ROLE_INTRO[role];
+  document.getElementById('panel-A').classList.toggle('hidden', role !== 'A');
+  document.getElementById('panel-B').classList.toggle('hidden', role !== 'B');
+}
+
+(function wire(){
+  // role picker
+  Array.prototype.forEach.call(document.getElementById('role-seg').children, function(btn){
+    btn.addEventListener('click', function(){ setRole(btn.getAttribute('data-role')); });
+  });
+  setRole('A');
+
+  // Role A – one button under the grid starts rounds and requests new grids
+  aEl('action').addEventListener('click', function(){
+    if(A.phase === 'idle' || A.phase === 'result') aStart();
+  });
+  aEl('submit').addEventListener('click', aSubmit);
+  aEl('guess').addEventListener('keydown', function(e){ if(e.key === 'Enter') aSubmit(); });
+  aRenderKPIs();
+
+  // Role B – announce the randomly assigned fee, same one-button flow
+  bEl('fee').textContent = money(FEES[B.fee]);
+  bEl('adv').addEventListener('input', function(){ bEl('advval').textContent = bEl('adv').value; });
+  bEl('action').addEventListener('click', function(){
+    if(B.phase === 'idle' || B.phase === 'result') bStart();
+  });
+  bEl('send').addEventListener('click', function(){ bResolve(true); });
+  bEl('decline').addEventListener('click', function(){ bResolve(false); });
+  bRenderKPIs();
+})();
+
+/* sticky header collapse: reveal compact title once the hero scrolls past */
+(function(){
+  var sentinel = document.getElementById('hdr-sentinel');
+  var topbar = document.getElementById('topbar');
+  if(sentinel && topbar && 'IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, {threshold:0}).observe(sentinel);
+  }
+})();
+</script>
+
+</body>
+</html>

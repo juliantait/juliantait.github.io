@@ -2,12 +2,495 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Honesty Penalty &ndash; Model</title>
-<link rel="canonical" href="index.html#model">
-<meta http-equiv="refresh" content="0; url=index.html#model">
-<script>location.replace('index.html#model');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
+<link rel="stylesheet" href="/projects/shared/infocard.css?v=2">
+<link rel="stylesheet" href="mistakes.css?v=5">
+<script src="/projects/shared/infocard.js?v=2"></script>
 </head>
 <body>
-<p>Redirecting to the <a href="index.html#model">interactive model</a>&hellip;</p>
+
+<!-- ===================== SHARED SHELL (persistent) ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="eyebrows">
+      <span class="eyebrow">EXPERIMENT</span>
+      <span class="eyebrow">THEORY</span>
+    </div>
+    <h1 class="hero-title">The Honesty Penalty</h1>
+    <p class="hero-sub">Hiding mistakes in teams &ndash; why does silence pay?</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="/">Julian Tait</a>
+    <nav class="topbar-mainnav" aria-label="Site">
+      <a href="/projects/">All projects</a>
+    </nav>
+    <span class="topbar-title">The Honesty Penalty</span>
+    <nav>
+      <a href="./">Overview</a>
+      <a href="results.html">Results</a>
+      <a href="model.html" class="active">Model</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ===================== MODEL VIEW ===================== -->
+<section id="view-model" class="view">
+
+  <div class="takeaway">
+    <b>The model in one line.</b> A manager punishes out of blame, which scales with the payoff lost to a mistake, and rewards honesty, which recovers part of that loss. Workers weigh the team benefit of disclosing against the extra punishment it attracts &ndash; so the equilibrium disclosure rate falls as the stakes rise. That is the prediction the experiments were built to test (and did not find).
+  </div>
+
+  <!-- MODEL BLOCK 1: the game -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag theory">The game</span>
+      <span class="block-headline">Two workers, a manager, and a noisy failure signal.</span>
+    </div>
+    <p class="card-note">A risk-neutral manager and two risk-neutral workers. Each worker independently makes a mistake with probability <i>m</i> and privately learns it; a worker who made a mistake sends a report <i>r<sub>i</sub></i>&nbsp;&isin;&nbsp;{0,1} (only genuine mistakes can be disclosed). The manager then picks a project and, after payoffs realise, may punish each worker.</p>
+
+    <div class="datatable">
+      <table>
+        <tr><th class="lab">Team performance</th><th>Project A (ambitious)</th><th>Project B (backup)</th></tr>
+        <tr><td class="lab">No mistakes</td><td>&pi;<sup>S</sup> with prob. <i>q</i>, &nbsp;&pi;<sup>F</sup> with prob. 1&minus;<i>q</i></td><td>&pi;<sup>B</sup></td></tr>
+        <tr><td class="lab">Mistake by one or both workers</td><td>&pi;<sup>F</sup></td><td>&pi;<sup>B</sup></td></tr>
+      </table>
+      <p class="tbl-note">Payoffs are per team member, with <i>q</i>&pi;<sup>S</sup>&nbsp;+&nbsp;(1&minus;<i>q</i>)&pi;<sup>F</sup> &gt; &pi;<sup>B</sup> &gt; &pi;<sup>F</sup>: without mistakes the ambitious project is worth the risk, but after a mistake the backup is strictly better. Because A can also fail by pure chance (probability 1&minus;<i>q</i>), a failure is a noisy signal &ndash; it gives a silent worker cover.</p>
+    </div>
+    <p class="card-note" style="margin-top:10px">Disclosure is valuable because it lets the manager switch to the backup and recover &pi;<sup>B</sup>&minus;&pi;<sup>F</sup> for every team member. The question the model answers: when do workers nevertheless keep quiet?</p>
+  </section>
+
+  <!-- MODEL BLOCK 2: punishment function -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag theory">Punishment</span>
+      <span class="block-headline">Blame minus honesty.</span>
+    </div>
+    <p class="card-note">Punishment is not a chosen incentive scheme but an emotional response, in the spirit of anger-from-blaming behaviour (Battigalli, Dufwenberg &amp; Smith 2019). Worker <i>i</i>&rsquo;s punishment given the report pair (<i>r<sub>i</sub></i>,&nbsp;<i>r<sub>j</sub></i>) is:</p>
+
+    <div class="eq">
+      <i>p<sub>i</sub></i>(<i>r<sub>i</sub></i>,<i>r<sub>j</sub></i>) &nbsp;=&nbsp;
+      <span class="t-blame"><i>w<sub>b</sub></i>&thinsp;<i>b<sub>i</sub></i>(<i>r<sub>i</sub></i>,<i>r<sub>j</sub></i>)&thinsp;(&pi;<sup>S</sup>&minus;&pi;<sup>F</sup>)</span>
+      &nbsp;&minus;&nbsp;
+      <span class="t-honesty"><i>w<sub>h</sub></i>&thinsp;<i>h<sub>i</sub></i>(<i>r<sub>i</sub></i>,<i>r<sub>j</sub></i>)&thinsp;&Delta;&pi;</span>
+    </div>
+    <div class="eq-labels">
+      <span class="t-blame">blame part <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Blame part" data-ic-body="The manager's frustration is proportional to the loss in potential earnings, the stakes term (pi_S - pi_F), weighted by how accountable worker i is. Accountability b_i = m10 + (1/2)m11 is the posterior probability that i alone made a mistake plus half the posterior that both did, following Halpern's expected degree of responsibility. Staying silent does not erase blame: a sophisticated manager knows a silent worker may still have erred.">i</button></span>
+      <span class="t-honesty">honesty part <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Honesty part" data-ic-body="Disclosure is rewarded in proportion to the payoff it recovers: delta-pi = pi_B - pi_F when the report lets the manager switch to the backup project, and 0 otherwise. The credit h_i = r_i (1 - r_j / 2) is full for a sole discloser and halved when both disclose.">i</button></span>
+    </div>
+
+    <ul class="proplist">
+      <li><b>Reporting always raises your own blame</b>: <i>b<sub>i</sub></i>(1,<i>r<sub>j</sub></i>) &gt; <i>b<sub>i</sub></i>(0,<i>r<sub>j</sub></i>) for any <i>r<sub>j</sub></i> &ndash; a disclosure is conclusive evidence, silence only a suspicion.</li>
+      <li><b>Your teammate&rsquo;s disclosure protects you</b>: <i>p<sub>i</sub></i>(0,1) &le; <i>p<sub>i</sub></i>(0,0). If the failure is already explained by their mistake, your silence looks innocent &ndash; disclosure has a positive externality on the silent teammate.</li>
+      <li><b>Team punishment does not depend on who owns up</b>: <i>p<sub>i</sub></i>(0,1)&nbsp;+&nbsp;<i>p<sub>j</sub></i>(1,0) = 2&thinsp;<i>p<sub>i</sub></i>(1,1) &ndash; blame and honesty shares each sum to one, so only the split changes.</li>
+      <li><b>Honesty can hurt the individual while helping the team</b>: when <i>w<sub>h</sub></i> is moderate relative to <i>w<sub>b</sub></i>, we get <i>p<sub>i</sub></i>(1,1) &lt; <i>p<sub>i</sub></i>(0,0) &lt; <i>p<sub>i</sub></i>(1,0) &ndash; exactly the pattern in the data.</li>
+    </ul>
+
+    <p class="card-note" style="margin-top:12px">The expected rise in punishment from disclosing rather than hiding, given the co-worker discloses with probability <i>r</i>, is the <b>honesty penalty</b>:</p>
+    <div class="eq small-eq">
+      HP(<i>r</i>) &nbsp;=&nbsp; (1&minus;<i>mr</i>)&thinsp;[<i>p<sub>i</sub></i>(1,0)&minus;<i>p<sub>i</sub></i>(0,0)] &nbsp;+&nbsp; <i>mr</i>&thinsp;[<i>p<sub>i</sub></i>(1,1)&minus;<i>p<sub>i</sub></i>(0,1)]
+    </div>
+  </section>
+
+  <!-- MODEL BLOCK 3: equilibrium -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag theory">Equilibrium</span>
+      <span class="block-headline">When is disclosure influential &ndash; and how much survives?</span>
+    </div>
+    <p class="card-note">The manager selects the backup the moment anyone discloses. After silence, she trusts the ambitious project only if she believes workers disclose often enough &ndash; the report&rsquo;s absence must be good news:</p>
+    <div class="eq small-eq">
+      choose A after silence &nbsp;&hArr;&nbsp; <i>r</i> &nbsp;&ge;&nbsp; <i>r&#770;</i> &nbsp;=&nbsp; <span style="white-space:nowrap">(1/<i>m</i>)&thinsp;[&thinsp;1 &minus; (1&minus;<i>m</i>)&thinsp;&radic;<span style="border-top:1px solid currentColor;padding:0 3px"><i>q</i>&thinsp;(&pi;<sup>S</sup>&minus;&pi;<sup>F</sup>)&thinsp;/&thinsp;(&pi;<sup>B</sup>&minus;&pi;<sup>F</sup>)</span>&thinsp;]</span>
+    </div>
+    <p class="card-note">A worker with a mistake weighs the honesty penalty against being pivotal. If the co-worker discloses (probability <i>mr</i>), her own report changes only her punishment; otherwise it also flips the project to the backup, worth <span class="t-payoff">&pi;<sup>B</sup>&minus;&pi;<sup>F</sup></span> to her. Disclosing is worth it when:</p>
+    <div class="eq small-eq">
+      &Delta;U<sub>i</sub>(<i>r</i>) &nbsp;=&nbsp; (1&minus;<i>mr</i>)&thinsp;<span class="t-payoff">(&pi;<sup>B</sup>&minus;&pi;<sup>F</sup>)</span> &minus; HP(<i>r</i>) &nbsp;&gt;&nbsp; 0
+    </div>
+
+    <div class="propbox">
+      <span class="pb-tag">Equilibrium characterisation</span>
+      &Delta;U<sub>i</sub>(<i>r</i>) is strictly decreasing in <i>r</i>, so the symmetric equilibrium disclosure rate <i>r</i><sup>&ast;</sup> is unique whenever it is positive: workers mix at the rate that makes their colleagues indifferent. A never-disclose equilibrium (with the manager defaulting to the backup) can coexist whenever <i>r&#770;</i>&nbsp;&ge;&nbsp;0.
+    </div>
+    <div class="propbox">
+      <span class="pb-tag">Proposition 1 &ndash; the stakes prediction</span>
+      In any equilibrium with influential communication, the disclosure rate <i>r</i><sup>&ast;</sup> is (weakly) <b>decreasing in the success payoff &pi;<sup>S</sup></b>. Bigger stakes mean bigger blame, a bigger honesty penalty, and less disclosure &ndash; precisely when disclosure is most valuable.
+    </div>
+
+    <div class="hypgrid">
+      <div class="hypcard"><span class="hc-id">Hypothesis 1</span><div class="hc-t">Workers are punished more for reporting a mistake when the stakes are higher.</div><span class="hc-verdict supported">Vignette: supported</span> <span class="hc-verdict null">Lab: no effect</span></div>
+      <div class="hypcard"><span class="hc-id">Hypothesis 2</span><div class="hc-t">Conditional on a mistake, workers disclose less when the stakes are higher.</div><span class="hc-verdict null">Lab: no effect</span></div>
+      <div class="hypcard"><span class="hc-id">Hypothesis 3</span><div class="hc-t">Managers punish mistakes less in ongoing relationships (PARTNERS) than one-shot ones.</div><span class="hc-verdict null">Lab: no effect</span></div>
+      <div class="hypcard"><span class="hc-id">Hypothesis 4</span><div class="hc-t">Workers disclose more often in ongoing relationships than one-shot ones.</div><span class="hc-verdict null">Lab: no effect</span></div>
+    </div>
+  </section>
+
+  <!-- MODEL BLOCK 4: interactive explorer -->
+  <section class="panelcard">
+    <div class="card-head-row">
+      <h2 class="card-title">Explore the equilibrium</h2>
+      <div class="segmented" id="preset-seg">
+        <button data-preset="e1low" class="on">Exp 1 &middot; LOW</button>
+        <button data-preset="e1high">Exp 1 &middot; HIGH</button>
+        <button data-preset="e2low">Exp 2 &middot; LOW</button>
+        <button data-preset="e2high">Exp 2 &middot; HIGH</button>
+      </div>
+    </div>
+    <p class="card-note">The exact model above, solved live: the four punishments follow in closed form from Bayesian updating given <i>r</i>, and the equilibrium <i>r</i><sup>&ast;</sup> solves &Delta;U<sub>i</sub>(<i>r</i>)&nbsp;=&nbsp;0 (bisection on a strictly decreasing function). Presets load each experiment&rsquo;s payoff calibration; the emotion weights <i>w<sub>b</sub></i>, <i>w<sub>h</sub></i> are free parameters &ndash; the defaults are chosen so the model&rsquo;s four punishments roughly match the bars observed in Experiment&nbsp;1 (they are an illustration, not an estimate). Everything updates as you drag.</p>
+
+    <div class="exp-warn" id="exp-warn"></div>
+
+    <div class="exp-grid">
+      <div class="slider-field"><label>Success payoff &pi;<sup>S</sup> <span class="slideval" id="v-S">10.0</span></label>
+        <input type="range" id="in-S" min="2" max="50" step="0.5" value="10"></div>
+      <div class="slider-field"><label>Failure payoff &pi;<sup>F</sup> <span class="slideval" id="v-F">2.0</span></label>
+        <input type="range" id="in-F" min="0" max="5" step="0.5" value="2"></div>
+      <div class="slider-field"><label>Backup payoff &pi;<sup>B</sup> <span class="slideval" id="v-B">4.0</span></label>
+        <input type="range" id="in-B" min="0.5" max="10" step="0.5" value="4"></div>
+      <div class="slider-field"><label>Success chance <i>q</i> <span class="slideval" id="v-q">0.80</span></label>
+        <input type="range" id="in-q" min="0.05" max="1" step="0.05" value="0.8"></div>
+      <div class="slider-field"><label>Mistake rate <i>m</i> <span class="slideval" id="v-m">0.50</span></label>
+        <input type="range" id="in-m" min="0.05" max="0.95" step="0.05" value="0.5"></div>
+      <div class="slider-field"><label>Blame weight <i>w<sub>b</sub></i> <span class="slideval" id="v-wb">0.09</span></label>
+        <input type="range" id="in-wb" min="0" max="1" step="0.01" value="0.09"></div>
+      <div class="slider-field"><label>Honesty weight <i>w<sub>h</sub></i> <span class="slideval" id="v-wh">0.04</span></label>
+        <input type="range" id="in-wh" min="0" max="0.5" step="0.01" value="0.04"></div>
+      <div class="slider-field"><span class="hint" style="margin-top:22px">Try raising <i>w<sub>b</sub></i>: once blame is strong enough, <i>r</i><sup>&ast;</sup> drops below 1 and the stakes gradient of Proposition&nbsp;1 appears.</span></div>
+    </div>
+
+    <div class="kpis" id="model-kpis" style="margin-top:16px"></div>
+
+    <div class="modelcharts">
+      <div class="minichart">
+        <div class="mc-title">Model punishments at equilibrium <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Model punishments" data-ic-body="The four closed-form punishments p(own report, other's report) evaluated at the equilibrium disclosure rate r*. With an Experiment 1 or 2 preset active, the grey dashes overlay the corresponding punishments actually observed in that experiment (group-collapsed means from the cleaned data), so you can compare the model's split of blame with the real one.">i</button></div>
+        <div class="mc-hyp" id="mc-punish-sub">p(r<sub>i</sub>, r<sub>j</sub>) at r&#42;</div>
+        <div id="chart-model-punish"></div>
+        <div class="mc-note" id="mc-punish-note"></div>
+      </div>
+      <div class="minichart">
+        <div class="mc-title">Proposition 1: r&#42; falls as the stakes rise <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Comparative static" data-ic-body="The maximal equilibrium disclosure rate r* as a function of the success payoff pi_S, holding every other parameter at its slider value. The dot marks the current pi_S. Where the curve sits at 1, the honesty penalty is too small to deter anyone; once blame bites, disclosure declines in the stakes - the pre-registered prediction.">i</button></div>
+        <div class="mc-hyp">disclosure rate r&#42; against &pi;<sup>S</sup></div>
+        <div id="chart-model-cs"></div>
+        <div class="mc-note">Curve traced over &pi;<sup>S</sup> with all other sliders fixed; dot = current &pi;<sup>S</sup>.</div>
+      </div>
+    </div>
+    <p class="eqm-note" id="eqm-note"></p>
+  </section>
+
+  <!-- MODEL BLOCK 5: model vs data -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag theory">Model &times; data</span>
+      <span class="block-headline">What the model gets right &ndash; and what it cannot explain.</span>
+    </div>
+    <ul class="proplist">
+      <li><b>The punishment structure is right.</b> With weights matching the observed Experiment 1 bars (<i>w<sub>b</sub></i>&nbsp;&asymp;&nbsp;0.09, <i>w<sub>h</sub></i>&nbsp;&asymp;&nbsp;0.04), the model reproduces the honesty-penalty ordering seen in the data: <i>p</i>(0,1)&nbsp;&lt;&nbsp;<i>p</i>(0,0)&nbsp;&lt;&nbsp;<i>p</i>(1,1)&nbsp;&lt;&nbsp;<i>p</i>(1,0) &ndash; individually costly, collectively rewarded honesty.</li>
+      <li><b>But those punishments are far too small to explain the hiding.</b> At the observed magnitudes the pivotal benefit of disclosure (&pi;<sup>B</sup>&minus;&pi;<sup>F</sup>&nbsp;=&nbsp;&euro;2) dwarfs the &asymp;&euro;0.14 penalty, and the model predicts (nearly) full disclosure &ndash; try the Exp&nbsp;1 presets above. Yet workers hide 34&ndash;43% of mistakes. Free-riding would require believing <i>mr</i>&nbsp;&ge;&nbsp;0.93, far beyond reported beliefs; the residual concealment points to non-monetary image concerns.</li>
+      <li><b>And the stakes channel never fires.</b> The model&rsquo;s comparative static needs punishment to scale with &pi;<sup>S</sup>&minus;&pi;<sup>F</sup> (as it did in the hypothetical vignette). Real managers did not scale it &ndash; consistent with punishing genuine, unintentional mistakes by intention rather than by outcome.</li>
+    </ul>
+  </section>
+
+</section>
+
+</main>
+
+<script>
+"use strict";
+/* chart + format helpers shared with the results page */
+var LOWCOL = '#64748b', HIGHCOL = '#d1971b';
+var SILENTCOL = '#1f78b4', DISCLCOL = '#b4342d';
+var STRCOL = '#3f8e7f', PARCOL = '#6a3d9a';
+
+/* chart primitive: grouped bars + ±1 SE whiskers (no connecting lines) */
+function seChart(o){
+  var W = o.W || 280, H = o.H || 224, padL = 46, padR = 12, padT = 18, padB = 54;
+  var pw = W-padL-padR, ph = H-padT-padB, ymin = o.ymin||0, ymax = o.ymax;
+  function Y(v){ return padT + ph*(ymax - v)/(ymax - ymin); }
+  var s = ['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit" role="img" aria-label="'+(o.aria||o.axis)+'">'];
+  for(var k=0;k<=4;k++){
+    var v = ymin + (ymax-ymin)*k/4, yy = Y(v);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#999">'+o.fmt(v)+'</text>');
+  }
+  if(ymin < 0){
+    s.push('<line x1="'+padL+'" y1="'+Y(0)+'" x2="'+(W-padR)+'" y2="'+Y(0)+'" stroke="#c9cedb"/>');
+  }
+  if(o.ref != null){ /* dashed reference line (e.g. the vignette's $1,000 anchor) */
+    s.push('<line x1="'+padL+'" y1="'+Y(o.ref)+'" x2="'+(W-padR)+'" y2="'+Y(o.ref)+'" stroke="#8a93a6" stroke-width="1.3" stroke-dasharray="5 4"/>');
+  }
+  var slot = pw/o.bars.length, bw = slot*(o.barw||0.40), fmtBar = o.fmtBar || o.fmt;
+  o.bars.forEach(function(b, i){
+    var cx = padL + slot*(i+0.5), x = cx - bw/2;
+    var y0 = Y(Math.max(0, ymin)), yv = Y(b.m);
+    s.push('<rect x="'+x+'" y="'+Math.min(yv,y0)+'" width="'+bw+'" height="'+Math.abs(y0-yv)+'" rx="2" fill="'+b.col+'" stroke="#0002"/>');
+    var yhi = Y(b.m + b.se), ylo = Y(b.m - b.se), cw = bw*0.34;
+    s.push('<line x1="'+cx+'" y1="'+yhi+'" x2="'+cx+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    s.push('<line x1="'+(cx-cw)+'" y1="'+yhi+'" x2="'+(cx+cw)+'" y2="'+yhi+'" stroke="#33384a" stroke-width="1.4"/>');
+    s.push('<line x1="'+(cx-cw)+'" y1="'+ylo+'" x2="'+(cx+cw)+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    if(b.obs != null){ /* observed-data overlay dash (model view) */
+      var yo = Y(b.obs);
+      s.push('<line x1="'+(cx-bw*0.62)+'" y1="'+yo+'" x2="'+(cx+bw*0.62)+'" y2="'+yo+'" stroke="#555" stroke-width="2" stroke-dasharray="4 3"/>');
+    }
+    s.push('<text x="'+cx+'" y="'+(yhi-6)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#333">'+fmtBar(b.m)+'</text>');
+    var labs = String(b.lab).split('\n');
+    labs.forEach(function(L, li){
+      s.push('<text x="'+cx+'" y="'+(padT+ph+15+li*11)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#555">'+L+'</text>');
+    });
+  });
+  s.push('<text x="'+(padL+pw/2)+'" y="'+(padT+ph+40)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#888">'+(o.xlab||'')+'</text>');
+  s.push('<text transform="translate(12,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="10" fill="#888">'+o.axis+'</text>');
+  s.push('</svg>');
+  return s.join('');
+}
+
+var PCT = function(v){ return Math.round(v*100)+'%'; };
+var EUR2 = function(v){ return '€'+v.toFixed(2); };
+var EUR1 = function(v){ return '€'+v.toFixed(1); };
+var USD = function(v){ return '$'+Math.round(v).toLocaleString('en-US'); };
+
+/* =====================================================================
+   MODEL – faithful implementation of the paper's theoretical framework
+   (main.tex Section 2 + Proofs). Closed-form punishments given the
+   co-worker disclosure rate r (case y = A of the proof):
+     a(r)   = m^2(1-r)^2 + 2m(1-m)(1-r) + (1-m)^2(1-q)
+     mT(r)  = 1 - (1-m)^2(1-q)/a(r)            posterior of a team mistake
+     frac   = m(1-r) / (2(1-mr))               half the posterior on the teammate
+     p00 = wb * (1/2) mT (S-F)
+     p10 = wb * (1-frac)(S-F) - wh (B-F)
+     p01 = wb * frac (S-F)
+     p11 = wb * (1/2)(S-F) - wh (1/2)(B-F)
+   Worker's net gain from disclosing (manager plays A after silence):
+     dU(r) = mr [p01 - p11] + (1-mr) [(B-F) + p00 - p10]
+   dU is strictly decreasing in r (Lemma 1), so the positive-equilibrium
+   rate solves dU(r*) = 0 by bisection; r* = 1 if dU(1) >= 0, no positive
+   equilibrium if dU(0) <= 0. Manager threshold (eq. M):
+     rhat = (1/m) [1 - (1-m) sqrt(q (S-F)/(B-F))]
+   Verified against an independent R implementation of the same
+   formulas (see the page build notes).
+   ===================================================================== */
+function modelPunishments(r, o){
+  var dS = o.S - o.F, dB = o.B - o.F, m = o.m;
+  var a  = m*m*(1-r)*(1-r) + 2*m*(1-m)*(1-r) + (1-m)*(1-m)*(1-o.q);
+  var mT = 1 - (1-m)*(1-m)*(1-o.q)/a;
+  var fr = m*(1-r)/(2*(1-m*r));
+  return {
+    p00: o.wb*0.5*mT*dS,
+    p10: o.wb*(1-fr)*dS - o.wh*dB,
+    p01: o.wb*fr*dS,
+    p11: o.wb*0.5*dS - o.wh*0.5*dB
+  };
+}
+function modelDU(r, o){
+  var p = modelPunishments(r, o), mr = o.m*r;
+  return mr*(p.p01 - p.p11) + (1-mr)*((o.B - o.F) + p.p00 - p.p10);
+}
+function modelRhat(o){
+  return (1/o.m)*(1 - (1-o.m)*Math.sqrt(o.q*(o.S-o.F)/(o.B-o.F)));
+}
+function modelSolve(o){
+  var d0 = modelDU(0, o), d1 = modelDU(1, o), rstar;
+  if(d1 >= 0){ rstar = 1; }
+  else if(d0 <= 0){ rstar = 0; }
+  else {
+    var lo = 0, hi = 1;
+    for(var i=0;i<200;i++){
+      var mid = 0.5*(lo+hi);
+      if(modelDU(mid, o) > 0) lo = mid; else hi = mid;
+      if(hi-lo < 1e-13) break;
+    }
+    rstar = 0.5*(lo+hi);
+  }
+  var rh = modelRhat(o);
+  /* equilibrium set per the characterisation lemma */
+  var positiveExists = (d0 > 0) && (rstar >= rh);   /* r~(A) > 0 and >= rhat */
+  var neverExists = (rh >= 0);
+  return { rstar: positiveExists ? rstar : 0, rtilde: rstar, rhat: rh,
+           positiveExists: positiveExists, neverExists: neverExists,
+           d0: d0, d1: d1 };
+}
+function honestyPenalty(r, o){
+  var p = modelPunishments(r, o), mr = o.m*r;
+  return (1-mr)*(p.p10 - p.p00) + mr*(p.p11 - p.p01);
+}
+
+/* observed group-collapsed punishments, for the preset overlay (from the
+   cleaned data, both_results_punishment_graph.R definitions) */
+var OBSERVED_PUNISH = {
+  e1: { p00:0.375260, p10:0.541910, p01:0.087126, p11:0.322622 },
+  e2: { p00:0.822854, p10:1.988129, p01:0.408888, p11:1.122573 }
+};
+var PRESETS = {
+  e1low:  { S:10, F:2, B:4, q:0.8, m:0.5, obs:'e1' },
+  e1high: { S:20, F:2, B:4, q:0.8, m:0.5, obs:'e1' },
+  e2low:  { S:8,  F:0, B:2, q:0.8, m:0.5, obs:'e2' },
+  e2high: { S:40, F:0, B:2, q:0.8, m:0.5, obs:'e2' }
+};
+var activePreset = 'e1low';
+
+function num(id){ return parseFloat(document.getElementById(id).value); }
+function setVal(id, v){ document.getElementById(id).value = v; }
+function readParams(){
+  return { S:num('in-S'), F:num('in-F'), B:num('in-B'),
+           q:num('in-q'), m:num('in-m'), wb:num('in-wb'), wh:num('in-wh') };
+}
+function fmt3(x){ return (Math.round(x*1000)/1000).toFixed(3); }
+function pctf(x){ return (Math.round(x*1000)/10).toFixed(1)+'%'; }
+function kpi(v, k){ return '<div class="kpi"><div class="v">'+v+'</div><div class="k">'+k+'</div></div>'; }
+
+/* the comparative-static curve: max equilibrium r* as a function of S */
+function csChart(o, sol){
+  var W = 340, H = 232, padL = 42, padR = 14, padT = 14, padB = 40;
+  var pw = W-padL-padR, ph = H-padT-padB;
+  var Smin = Math.max(o.F + 0.5, 2), Smax = 50;
+  function X(s){ return padL + pw*(s - Smin)/(Smax - Smin); }
+  function Y(r){ return padT + ph*(1 - r); }
+  var s = ['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit" role="img" aria-label="Equilibrium disclosure rate as a function of the success payoff">'];
+  for(var k=0;k<=4;k++){
+    var v = k/4, yy = Y(v);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#999">'+v.toFixed(2)+'</text>');
+  }
+  var pts = [];
+  for(var i=0;i<=140;i++){
+    var S = Smin + (Smax-Smin)*i/140;
+    var oo = {S:S, F:o.F, B:o.B, q:o.q, m:o.m, wb:o.wb, wh:o.wh};
+    var r = modelSolve(oo).rstar;
+    pts.push([X(S), Y(r)]);
+  }
+  s.push('<path d="M'+pts.map(function(p){ return p[0].toFixed(1)+' '+p[1].toFixed(1); }).join(' L')+'" fill="none" stroke="#4f46e5" stroke-width="2"/>');
+  /* current point */
+  s.push('<circle cx="'+X(Math.min(Math.max(o.S,Smin),Smax))+'" cy="'+Y(sol.rstar)+'" r="4.5" fill="#4f46e5" stroke="#fff" stroke-width="1.5"/>');
+  for(var t=0; t<=4; t++){
+    var Sv = Smin + (Smax-Smin)*t/4;
+    s.push('<text x="'+X(Sv)+'" y="'+(padT+ph+16)+'" text-anchor="middle" font-size="10" fill="#999">'+Sv.toFixed(0)+'</text>');
+  }
+  s.push('<text x="'+(padL+pw/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#888">success payoff &pi;<tspan baseline-shift="super" font-size="7">S</tspan></text>');
+  s.push('<text transform="translate(12,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="10" fill="#888">equilibrium disclosure r*</text>');
+  s.push('</svg>');
+  return s.join('');
+}
+
+function renderModel(){
+  ['S','F','B','q','m','wb','wh'].forEach(function(k){
+    var v = num('in-'+k);
+    document.getElementById('v-'+k).textContent =
+      (k==='q'||k==='m'||k==='wb'||k==='wh') ? v.toFixed(2) : v.toFixed(1);
+  });
+  var o = readParams();
+
+  /* model assumptions */
+  var warn = [];
+  if(!(o.B > o.F)) warn.push('needs &pi;<sup>B</sup> &gt; &pi;<sup>F</sup> (backup must beat failure)');
+  if(!(o.q*o.S + (1-o.q)*o.F > o.B)) warn.push('needs q&pi;<sup>S</sup>+(1&minus;q)&pi;<sup>F</sup> &gt; &pi;<sup>B</sup> (ambitious project worth the risk without mistakes)');
+  var warnEl = document.getElementById('exp-warn');
+  warnEl.innerHTML = warn.length ? 'Outside the model’s assumed parameter region: ' + warn.join('; ') + '. Results below are mechanical extrapolation.' : '';
+  warnEl.classList.toggle('on', warn.length > 0);
+  if(!(o.B > o.F)){
+    ['model-kpis','chart-model-punish','chart-model-cs','eqm-note'].forEach(function(id){
+      document.getElementById(id).innerHTML = '';
+    });
+    return;
+  }
+
+  var sol = modelSolve(o);
+  var rEval = sol.positiveExists ? sol.rstar : Math.min(Math.max(sol.rtilde,0),1);
+  var p = modelPunishments(rEval, o);
+  var hp = honestyPenalty(rEval, o);
+
+  var eqDesc;
+  if(sol.positiveExists && sol.neverExists) eqDesc = 'positive + never-disclose coexist';
+  else if(sol.positiveExists) eqDesc = 'unique, influential';
+  else eqDesc = 'never-disclose only';
+
+  document.getElementById('model-kpis').innerHTML =
+    kpi(pctf(sol.rstar), '<b>r*</b> – equilibrium disclosure rate (max)') +
+    kpi(fmt3(sol.rhat), '<b>r&#770;</b> – manager’s trust threshold for project A') +
+    kpi('€'+fmt3(hp), '<b>HP(r*)</b> – honesty penalty at equilibrium') +
+    kpi('€'+fmt3(2*(1-o.m*rEval)*(p.p00-p.p11)), 'expected team punishment saved by a disclosure') +
+    kpi(eqDesc, 'equilibrium set');
+
+  /* punishments chart with optional observed overlay */
+  var obs = PRESETS[activePreset] && paramsMatchPreset(o) ? OBSERVED_PUNISH[PRESETS[activePreset].obs] : null;
+  var ymax = Math.max(p.p00, p.p10, p.p01, p.p11, 0.1,
+                      obs ? Math.max(obs.p00, obs.p10, obs.p01, obs.p11) : 0) * 1.35;
+  document.getElementById('chart-model-punish').innerHTML = seChart({
+    W:340, axis:'punishment (€)', xlab:'Who disclosed the mistake',
+    ymin:Math.min(0, p.p10, p.p11)*1.2, ymax:ymax, fmt:EUR2, fmtBar:EUR2, barw:0.5,
+    aria:'Model punishments by disclosure scenario at equilibrium',
+    bars:[{lab:'nobody\np(0,0)', col:SILENTCOL, m:p.p00, se:0, obs:obs?obs.p00:null},
+          {lab:'only you\np(1,0)', col:DISCLCOL, m:p.p10, se:0, obs:obs?obs.p10:null},
+          {lab:'only teammate\np(0,1)', col:SILENTCOL, m:p.p01, se:0, obs:obs?obs.p01:null},
+          {lab:'both\np(1,1)', col:DISCLCOL, m:p.p11, se:0, obs:obs?obs.p11:null}]
+  });
+  document.getElementById('mc-punish-sub').innerHTML =
+    'p(r<sub>i</sub>, r<sub>j</sub>) at r&#42; = ' + pctf(rEval);
+  document.getElementById('mc-punish-note').innerHTML = obs
+    ? 'dashes = observed group-collapsed means, Experiment '+(PRESETS[activePreset].obs==='e1'?'1':'2')
+    : 'model values (payoffs differ from both experiments, no overlay)';
+
+  document.getElementById('chart-model-cs').innerHTML = csChart(o, sol);
+
+  var note;
+  if(sol.rstar >= 0.999){
+    note = 'At these weights the honesty penalty (€'+fmt3(hp)+') is far below the pivotal benefit of disclosure (&pi;<sup>B</sup>&minus;&pi;<sup>F</sup> = €'+fmt3(o.B-o.F)+'), so <b>the model predicts full disclosure</b> – the paper’s point that observed punishments are too small to explain 34–43% hiding.';
+  } else if(sol.positiveExists){
+    note = 'Workers mix: at r* = '+pctf(sol.rstar)+' the honesty penalty exactly offsets the expected pivotal benefit. Drag &pi;<sup>S</sup> right and watch r* fall – Proposition 1 in action.';
+  } else {
+    note = 'No influential equilibrium survives: blame is so strong (or trust so low) that nobody discloses'+(sol.rhat>0?' and the manager defaults to the backup project after silence':'')+'.';
+  }
+  document.getElementById('eqm-note').innerHTML = note;
+}
+
+function paramsMatchPreset(o){
+  var pr = PRESETS[activePreset];
+  return pr && Math.abs(o.S-pr.S)<1e-9 && Math.abs(o.F-pr.F)<1e-9 &&
+         Math.abs(o.B-pr.B)<1e-9 && Math.abs(o.q-pr.q)<1e-9 && Math.abs(o.m-pr.m)<1e-9;
+}
+function setPreset(name){
+  var pr = PRESETS[name]; if(!pr) return;
+  activePreset = name;
+  setVal('in-S', pr.S); setVal('in-F', pr.F); setVal('in-B', pr.B);
+  setVal('in-q', pr.q); setVal('in-m', pr.m);
+  Array.prototype.forEach.call(document.getElementById('preset-seg').children, function(btn){
+    btn.classList.toggle('on', btn.getAttribute('data-preset') === name);
+  });
+  renderModel();
+}
+(function wireModel(){
+  Array.prototype.forEach.call(document.getElementById('preset-seg').children, function(btn){
+    btn.addEventListener('click', function(){ setPreset(btn.getAttribute('data-preset')); });
+  });
+  ['S','F','B','q','m','wb','wh'].forEach(function(k){
+    document.getElementById('in-'+k).addEventListener('input', function(){
+      Array.prototype.forEach.call(document.getElementById('preset-seg').children, function(btn){
+        btn.classList.toggle('on', btn.getAttribute('data-preset') === activePreset && paramsMatchPreset(readParams()));
+      });
+      renderModel();
+    });
+  });
+  renderModel();
+})();
+
+/* sticky header collapse: reveal compact title once the hero scrolls past */
+(function(){
+  var sentinel = document.getElementById('hdr-sentinel');
+  var topbar = document.getElementById('topbar');
+  if(sentinel && topbar && 'IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, {threshold:0}).observe(sentinel);
+  }
+})();
+</script>
+
 </body>
 </html>

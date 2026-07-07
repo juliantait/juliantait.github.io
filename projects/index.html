@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/projects/shared/shell.css?v=12">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
 <style>
   /* ==========================================================================
      PROJECTS INDEX (unlisted) — page-specific styles on top of shell.css.
@@ -69,17 +69,8 @@
     display:block; font-size:.64rem; font-weight:700; letter-spacing:.13em;
     text-transform:uppercase; color:var(--accent); margin-bottom:3px;
   }
-  /* --- pill buttons into the project's views --- */
+  /* pill buttons: shared .pill-btn style from shell.css; card layout only */
   .pcard-actions { margin-top:auto; padding-top:16px; display:flex; flex-wrap:wrap; gap:9px; }
-  .pill-btn {
-    display:inline-flex; align-items:center; text-decoration:none;
-    font-size:.82rem; font-weight:700; color:var(--accent);
-    border:1px solid var(--accent); border-radius:999px; padding:7px 16px;
-    transition:background .15s, color .15s, box-shadow .15s;
-  }
-  .pill-btn:hover, .pill-btn:focus-visible {
-    background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.30);
-  }
 
   /* ==========================================================================
      SKETCH ANIMATIONS — one subtle move per card, on card hover.
@@ -137,9 +128,6 @@
 <div class="topbar" id="topbar">
   <div class="topbar-inner">
     <a class="topbar-brand" href="/">Julian Tait</a>
-    <nav class="topbar-mainnav" aria-label="Site">
-      <a href="/">Home</a>
-    </nav>
     <span class="topbar-title">Projects</span>
     <nav></nav>
   </div>
@@ -185,8 +173,8 @@
         <p class="pcard-sub">How identity inference silences mainstream opinions</p>
         <p class="pcard-q"><span class="q-label">Research question</span>When voicing an opinion lets listeners infer which group you belong to, can that inference silence even mainstream, majority-held views?</p>
         <div class="pcard-actions">
-          <a class="pill-btn" href="/projects/correlated-beliefs/#stimuli">Explore the experiment</a>
-          <a class="pill-btn" href="/projects/correlated-beliefs/#model">Explore the model</a>
+          <a class="pill-btn" href="/projects/correlated-beliefs/stimuli.html">Explore the experiment</a>
+          <a class="pill-btn" href="/projects/correlated-beliefs/model.html">Explore the model</a>
         </div>
       </div>
     </div>
@@ -240,6 +228,7 @@
         <p class="pcard-q"><span class="q-label">Research question</span>Does paying an advisor a higher fee push them to distort their advice to signal value?</p>
         <div class="pcard-actions">
           <a class="pill-btn" href="/projects/perceived/">Explore the experiment</a>
+          <a class="pill-btn" href="/projects/perceived/play.html">Play the task</a>
         </div>
       </div>
     </div>
@@ -284,8 +273,8 @@
         <p class="pcard-sub">Error rates and confidence in expert vs novice judgement</p>
         <p class="pcard-q"><span class="q-label">Research question</span>When one member of a group has far more data than the rest, how do their mistakes and confidence diverge &mdash; and does the group weight its hidden expert enough?</p>
         <div class="pcard-actions">
-          <a class="pill-btn" href="/projects/experts/">Explore the simulation</a>
-          <a class="pill-btn" href="/projects/experts/#game">Play the game</a>
+          <a class="pill-btn" href="/projects/experts/simulator.html">Explore the simulation</a>
+          <a class="pill-btn" href="/projects/experts/simulator.html#game">Play the game</a>
         </div>
       </div>
     </div>

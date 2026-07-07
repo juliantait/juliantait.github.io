@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- WORKING TITLE (easy to change): mirrored in the hero <h1>, the topbar
+     compact title, and the JS `TITLE` constant near the router below. -->
+<title>Experts and Dispersed Information &mdash; Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
+<link rel="stylesheet" href="simulation.css?v=10">
+<link rel="stylesheet" href="game.css?v=9">
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL (persistent) ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">EXPERIMENT</span>
+    <!-- WORKING TITLE -->
+    <h1 class="hero-title">Experts and Dispersed Information</h1>
+    <p class="hero-sub">Error rates and confidence in expert versus novice judgement</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="/">Julian Tait</a>
+    <nav class="topbar-mainnav" aria-label="Site">
+      <a href="/projects/">All projects</a>
+    </nav>
+    <!-- WORKING TITLE -->
+    <span class="topbar-title">Experts and Dispersed Information</span>
+    <nav>
+      <a href="./">Overview</a>
+      <a href="#" data-view="view-groups" class="active">Simulated Groups</a>
+      <a href="#" data-view="view-game">Game</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== VIEW 1: SIMULATED GROUPS (all existing content, unchanged) ===================== -->
+  <div id="view-groups" class="view">
+
+  <!-- ===================== SIMULATION (explorer) ===================== -->
+  <section id="sec-simulation" class="exp">
+      <!-- ============ SECTION 1: Simulation ============ -->
+        <section class="page-section">
+          <h2 class="section-title">Individual-level simulation</h2>
+          <p class="sim-lead"><b>Top half — individuals.</b> Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=80 vs <b>NOVICE</b> <i class="mvar">n</i>=4). Tune the parameters below; the <b>group dynamics</b> at the bottom show how individual estimates aggregate into a group decision.</p>
+
+        <!-- 1. Control panel -->
+        <div class="card">
+          <div class="form-row">
+
+            <!-- Group: candidate states + their priors -->
+            <div class="control-group">
+              <div class="cg-title">Candidate states</div>
+              <div class="cg-body">
+                <div class="input-group">
+                  <label># states</label>
+                  <div class="seg" id="seg-count">
+                    <button class="active" data-k="2">2</button>
+                    <button data-k="3">3</button>
+                  </div>
+                </div>
+                <div class="beta-grid">
+                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>1</sub></label><input id="b1" type="text" value="0"></div>
+                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.2"></div>
+                  <div class="input-group" id="b3-group"><label><i class="mvar">&beta;</i><sub>3</sub></label><input id="b3" type="text" value="-0.2"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.6"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.4"></div>
+                  <div class="input-group" id="p3-group"><label>prior <i class="mvar">&pi;</i><sub>3</sub></label><input id="p3" type="text" value="0"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cg-divider"></div>
+
+            <!-- Group: model / sample sizes -->
+            <div class="control-group">
+              <div class="cg-title">Model</div>
+              <div class="cg-body">
+                <div class="input-group"><label>residual SD <i class="mvar">&sigma;</i></label><input id="sigma" type="text" value="1.5"></div>
+                <div class="input-group"><label>n NOVICE</label><input id="nNov" type="text" value="4"></div>
+                <div class="input-group"><label>n EXPERT</label><input id="nExp" type="text" value="80"></div>
+              </div>
+            </div>
+
+            <div class="cg-divider"></div>
+
+            <!-- Group: x design (info icon sits next to the label) -->
+            <div class="control-group">
+              <div class="cg-title">
+                <span>x design</span>
+                <button type="button" class="info-btn" id="xmode-info-btn"
+                        aria-label="About the x-design switch" aria-expanded="false">i</button>
+              </div>
+              <div class="cg-body xdesign-group">
+                <div class="seg xmode" id="seg-xmode">
+                  <button class="active" data-xmode="fixed">Fixed x</button>
+                  <button data-xmode="random">Random x</button>
+                </div>
+                <div class="info-popover" id="xmode-popover" hidden>
+                  <p><b>Fixed x:</b> x = linspace(0, 10, n) — every member shares the same
+                     design, so the standard error SE = &sigma;/&radic;SS<sub>x</sub> is identical at a given n.</p>
+                  <p><b>Randomly drawn x:</b> x<sub>i</sub> ~ iid Uniform(0, 10) per member, so SS<sub>x</sub>
+                     (and therefore SE) varies card to card. Headline error rates and the sampling
+                     PDFs of &beta;&#770; are then <i>expected</i> quantities, Monte-Carlo-averaged over x designs.</p>
+                  <p class="xmode-current" id="xmode-note">x = linspace(0, 10, n); every member shares the same design.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Primary action -->
+            <div class="control-group go-group">
+              <div class="cg-title"><span class="sim-timer" id="sim-timer">press Go</span></div>
+              <div class="cg-body">
+                <div class="input-group go-input"><label aria-hidden="true">&nbsp;</label><button class="go-btn" id="go">Go</button></div>
+              </div>
+            </div>
+
+          </div>
+          <div class="error-msg" id="err"></div>
+        </div>
+
+        <!-- 2. Headline (two rules per role: nearest vs Bayes-optimal MAP) -->
+        <div class="headline">
+          <div class="head-cell novice">
+            <div class="head-role">NOVICE &middot; avg error</div>
+            <div class="head-metrics">
+              <div class="head-metric">
+                <div class="head-num" id="head-nov">--</div>
+                <div class="head-sub pop-host">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button>
+                  <div class="info-popover pick-pop" hidden><b>nearest</b>: average error rate if a member classifies their estimate to the closest candidate. Prior-free, it ignores the base rate (the prior over the states), so it reflects base-rate neglect.</div>
+                </div>
+              </div>
+              <div class="head-metric">
+                <div class="head-num" id="head-nov-map">--</div>
+                <div class="head-sub pop-host">Bayes-optimal<button type="button" class="info-btn mini-info" aria-label="What does Bayes-optimal mean?" aria-expanded="false">i</button>
+                  <div class="info-popover pick-pop" hidden><b>Bayes-optimal</b>: average error under the posterior-mode (MAP) rule, which uses the prior. This is the lowest achievable error. The gap between nearest and Bayes-optimal is the cost of base-rate neglect.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="head-cell expert">
+            <div class="head-role">EXPERT &middot; avg error</div>
+            <div class="head-metrics">
+              <div class="head-metric">
+                <div class="head-num" id="head-exp">--</div>
+                <div class="head-sub pop-host">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button>
+                  <div class="info-popover pick-pop" hidden><b>nearest</b>: average error rate if a member classifies their estimate to the closest candidate. Prior-free, it ignores the base rate (the prior over the states), so it reflects base-rate neglect.</div>
+                </div>
+              </div>
+              <div class="head-metric">
+                <div class="head-num" id="head-exp-map">--</div>
+                <div class="head-sub pop-host">Bayes-optimal<button type="button" class="info-btn mini-info" aria-label="What does Bayes-optimal mean?" aria-expanded="false">i</button>
+                  <div class="info-popover pick-pop" hidden><b>Bayes-optimal</b>: average error under the posterior-mode (MAP) rule, which uses the prior. This is the lowest achievable error. The gap between nearest and Bayes-optimal is the cost of base-rate neglect.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 + 4. Graph and breakdown table, stacked and constrained to ~2/3 width -->
+        <div class="viz-block">
+
+        <!-- Graph -->
+        <div class="card viz-graph-card" style="padding-top:14px">
+          <div class="canvas-wrap"><canvas id="plot"></canvas></div>
+        </div>
+
+        <!-- Breakdown table -->
+        <div class="card">
+          <div class="bd-legend">
+            <span class="pop-host">Each cell: <span class="tag">err</span> (top) / <span class="tag">conf</span> (bottom)<button type="button" class="info-btn mini-info" aria-label="What do the table cells show?" aria-expanded="false">i</button>
+              <div class="info-popover pick-pop" hidden>Each cell stacks two different quantities, being right vs feeling right. <b>err</b> (top) = mistake rate, how often the member is wrong. <b>conf</b> (bottom) = average confidence in the correct state, how sure the member is. The two rows are <span class="role-novice">NOVICE</span> and <span class="role-expert">EXPERT</span>. The table and its <b>AVERAGE</b> column use the nearest-candidate rule, so the AVERAGE matches the headline <b>nearest</b> value.</div>
+            </span>
+          </div>
+          <table class="bd" id="tbl">
+            <thead><tr id="tbl-head"></tr></thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+
+        </div><!-- /viz-block -->
+
+        </section>
+  </section>
+
+  <!-- ===================== GROUP DYNAMICS (example stimuli — all one page) ===================== -->
+  <section id="sec-stimuli" class="exp">
+      <!-- ============ SECTION 2: Simulated group dynamics ============ -->
+        <section class="page-section">
+          <h2 class="section-title">Simulated group dynamics</h2>
+          <p class="sim-lead"><b>Bottom half — groups.</b> The same simulation, played out for a handful of true slopes. Each panel draws one fresh group — <b>1 EXPERT</b> (<i class="mvar">n</i>=80) plus <b>NOVICES</b> (<i class="mvar">n</i>=4), group size set below — and shows the <b>group decision</b> that results from pooling their estimates. Press <b>Go</b> above for a new realisation.</p>
+
+        <!-- Examples (group rows, fully dynamic) -->
+        <div class="card">
+          <div class="example-legend">
+            <span>scatter, β̂, SE, picks all regenerate on Go from a fresh base seed per (row, member)</span>
+            <span style="margin-left:auto">each Go press = new MC realisation</span>
+          </div>
+
+          <!-- Behavioural-weighting knob ρ. Governs the "behavioural" tile in the
+               averaged group-decision panel; updates live without resampling. -->
+          <div class="agg-controls">
+            <div class="ac-top">
+              <span class="ac-title">Group aggregation</span>
+              <span class="ac-host pop-host">
+                <button type="button" class="info-btn mini-info" id="rho-info-btn" aria-label="More on the weighting schemes" aria-expanded="false">i</button>
+                <div class="info-popover" id="rho-popover" hidden>
+                  <p>A group pools its members' slope estimates into one estimate <i class="mvar">β̄</i> = Σ<i class="mvar">w</i><sub>i</sub><i class="mvar">β̂</i><sub>i</sub> / Σ<i class="mvar">w</i><sub>i</sub>, then takes the nearest candidate. The averaged panel reports the <b>expected error rate</b> of that decision.</p>
+                  <p><b>Optimal = precision.</b> For Gaussian estimates the optimal pooled estimate <i>is</i> the inverse-variance mean, <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub> = 1/SE<sub>i</sub>² — so "optimal" and "precision weighting" coincide here.</p>
+                  <p><b>Behavioural <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup>.</b> <b>ρ=1</b> is optimal; <b>ρ=0</b> is equal weighting (⅓ each — ignores precision); <b>ρ&lt;0</b> goes <i>counter</i> to precision, over-trusting the noisy, strong-looking members and actively under-weighting the EXPERT.</p>
+                  <p class="xmode-current"><b>Provisional</b> form — to be finalised. The per-draw panels (right of each group) instead compare three fixed anchors: optimal, equal, and a raw-strength weighting.</p>
+                </div>
+              </span>
+            </div>
+            <p class="ac-desc">A group — <b>1 EXPERT + NOVICES</b> (size set below) — pools its members' slope estimates into one group decision. The <b>behavioural</b> tile below weights each member by <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup> (<i class="mvar">τ</i> = precision = 1/SE²). Drag <i class="mvar">ρ</i> to set how much the group trusts precision.</p>
+            <div class="ac-slider-row">
+              <span class="ac-end">
+                <b>counter-precision</b><span class="ac-end-rho">ρ = −1</span>
+                <span class="ac-end-sub">over-trusts noisy members</span>
+              </span>
+              <input type="range" id="rho" min="-1" max="1" step="0.05" value="0">
+              <span class="ac-end ac-end-r">
+                <b>optimal · precision</b><span class="ac-end-rho">ρ = 1</span>
+                <span class="ac-end-sub">inverse-variance weighting</span>
+              </span>
+            </div>
+            <div class="ac-readout">
+              <span class="ac-val" id="rho-val">ρ = 0.00</span>
+              <span class="ac-regime" id="rho-regime">equal weighting (⅓ each)</span>
+            </div>
+          </div>
+
+          <div class="size-control">
+            <span class="size-title">Group size</span>
+            <div class="seg" id="seg-size">
+              <button class="active" data-size="3">3</button>
+              <button data-size="4">4</button>
+              <button data-size="5">5</button>
+            </div>
+            <span class="size-note">always 1 EXPERT + <b id="size-nov">2</b> NOVICES per group</span>
+          </div>
+
+          <div id="example-groups"></div>
+        </div>
+
+        </section>
+  </section>
+
+  </div><!-- /view-groups -->
+
+  <!-- ===================== VIEW 2: GAME (single-player betting / prediction task) ===================== -->
+  <!-- ===================== GAME OVERLAY (full-screen experiment over Simulated Groups) ===================== -->
+  <div id="game-overlay" hidden role="dialog" aria-modal="true" aria-label="Betting game">
+    <section id="sec-game" class="exp">
+
+      
+
+      <!-- SCREEN 0: intro -->
+      <div class="game-intro" id="game-intro">
+        <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
+        <div class="game-eyebrow">Single-player experiment</div>
+        <h2>The betting game</h2>
+        <div class="intro-block">
+          <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
+          <p class="intro-sub">The true slope <i class="mvar">β</i> is <b>−0.2</b>, <b>0</b>, or <b>+0.2</b> — genuinely 0 half the time, a quarter chance each negative or positive.</p>
+          <ul>
+            <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
+          </ul>
+        </div>
+        <div class="intro-block">
+          <p class="intro-h"><b>We measure three things:</b></p>
+          <ul>
+            <li>your <b>beliefs</b> over the three slopes;</li>
+            <li>your <b>one-euro bet</b> across them <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>;</li>
+            <li>your <b>estimate of <i class="mvar">β</i></b>.</li>
+          </ul>
+        </div>
+        <div class="game-intro-foot">
+          <button type="button" class="game-play" id="game-play">Play</button>
+          <span class="game-intro-hint">or press <b>Enter</b> &middot; <b>Esc</b> / <b>✕</b> leaves the game</span>
+        </div>
+      </div>
+
+      <!-- SCREEN 1 (bet) → SCREEN 2 (reveal): same layout, the experiment panel -->
+      <div class="game-panel" id="game-panel" hidden>
+        <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
+
+        <!-- header -->
+        <div class="game-go-row">
+          <span class="game-title">Here is €1 — how do you bet it?</span>
+          <span class="game-role expert" id="game-role">EXPERT · n=80</span>
+        </div>
+
+        <!-- TOP panel: scatter (LEFT, 2/3) + β-estimate slider (RIGHT, 1/3) -->
+        <div class="game-top">
+          <div class="game-scatter-wrap"><canvas id="game-scatter"></canvas></div>
+          <div class="beta-col">
+            <div class="beta-coltitle">Your estimate of <i class="mvar">β</i></div>
+            <div class="beta-wrap">
+              <div class="beta-axis"><span>+0.5</span><span>0</span><span>−0.5</span></div>
+              <div class="beta-track" id="beta-track">
+                <div class="beta-hat" id="beta-hat"><span></span></div>
+                <div class="beta-thumb" id="beta-thumb"></div>
+              </div>
+            </div>
+            <div class="beta-readout">you <span id="beta-val">+0.00</span><span class="beta-hat-readout" id="beta-hat-val"></span></div>
+          </div>
+        </div>
+
+        <!-- BOTTOM panel: beliefs (LEFT) + euro bet (RIGHT), 50/50 -->
+        <div class="game-bottom">
+          <!-- beliefs -->
+          <div class="belief-area">
+            <div class="ctl-title">Your beliefs <span class="q">— how likely is each slope? (0–100 each)</span></div>
+            <div class="belief-body">
+              <div class="belief-bars" id="belief-bars">
+                <div class="bbar" data-i="0">
+                  <div class="bbar-val">25</div>
+                  <div class="bbar-track"><div class="bbar-fill s0"></div><div class="bbar-opt"><span></span></div></div>
+                  <div class="bbar-lab">−0.2</div>
+                </div>
+                <div class="bbar" data-i="1">
+                  <div class="bbar-val">50</div>
+                  <div class="bbar-track"><div class="bbar-fill s1"></div><div class="bbar-opt"><span></span></div></div>
+                  <div class="bbar-lab">0</div>
+                </div>
+                <div class="bbar" data-i="2">
+                  <div class="bbar-val">25</div>
+                  <div class="bbar-track"><div class="bbar-fill s2"></div><div class="bbar-opt"><span></span></div></div>
+                  <div class="bbar-lab">+0.2</div>
+                </div>
+              </div>
+            </div>
+            <div class="belief-note">bars = your beliefs, rescaled to 100 &nbsp;·&nbsp; <span class="swatch"></span> optimal posterior given the data</div>
+          </div>
+
+          <!-- euro bet -->
+          <div class="bet-area">
+            <div class="ctl-title">Bet your euro <span class="q">— split €1.00 (this is scored)</span></div>
+            <div class="bet-body">
+              <div class="bet-barline">
+                <span class="bet-rowlab">you</span>
+                <div class="alloc-bar" id="alloc-bar">
+                  <div class="alloc-track">
+                    <div class="alloc-seg s0" id="seg-a"></div>
+                    <div class="alloc-seg s1" id="seg-b"></div>
+                    <div class="alloc-seg s2" id="seg-c"></div>
+                  </div>
+                  <div class="alloc-handle" id="ah1"></div>
+                  <div class="alloc-handle" id="ah2"></div>
+                </div>
+              </div>
+              <div class="bet-barline opt-only">
+                <span class="bet-rowlab">optimal</span>
+                <div class="alloc-optbar" id="alloc-optbar">
+                  <div class="alloc-seg s0" id="oseg-a"></div>
+                  <div class="alloc-seg s1" id="oseg-b"></div>
+                  <div class="alloc-seg s2" id="oseg-c"></div>
+                </div>
+              </div>
+              <div class="alloc-labels"><span>β=−0.2</span><span>β=0</span><span>β=+0.2</span></div>
+            </div>
+            <div class="bet-earn" id="bet-earn"></div>
+          </div>
+        </div>
+
+        <!-- footer: "Submit" turns into "Next round" in place on reveal; "See results"
+             appears beside it on the results screen -->
+        <div class="game-foot">
+          <button type="button" class="game-submit" id="game-submit">Submit</button>
+          <button type="button" class="game-results-btn" id="game-results-btn">See results</button>
+        </div>
+
+      </div>
+
+      <!-- SESSION SUMMARY screen (in-memory accumulators; reset on page reload) -->
+      <div class="game-summary" id="game-summary" hidden>
+        <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
+        <div class="game-eyebrow">Session results</div>
+        <h2>This session</h2>
+        <div class="summary-grid">
+          <div class="sum-stat won"><span class="v" id="sum-won">€0.00</span><span class="k">total money won</span></div>
+          <div class="sum-stat"><span class="v" id="sum-rounds">0</span><span class="k">rounds played</span></div>
+          <div class="sum-stat acc wide"><span class="v" id="sum-bethit">0 of 0 (0%)</span><span class="k">bet hit-rate <span class="sk">largest stake on the true slope</span></span></div>
+        </div>
+        <div class="summary-foot">
+          <button type="button" class="game-play" id="game-keepplaying">Keep playing</button>
+          <button type="button" class="game-secondary" id="game-exit">Exit</button>
+        </div>
+      </div>
+
+    </section>
+  </div><!-- /game-overlay -->
+
+</main>
+
+<script src="simulation.js?v=10"></script>
+
+<script src="game.js?v=11"></script>
+
+</body>
+</html>

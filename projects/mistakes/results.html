@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Honesty Penalty &ndash; Results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
+<link rel="stylesheet" href="/projects/shared/infocard.css?v=2">
+<link rel="stylesheet" href="mistakes.css?v=5">
+<script src="/projects/shared/infocard.js?v=2"></script>
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL (persistent) ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="eyebrows">
+      <span class="eyebrow">EXPERIMENT</span>
+      <span class="eyebrow">THEORY</span>
+    </div>
+    <h1 class="hero-title">The Honesty Penalty</h1>
+    <p class="hero-sub">Hiding mistakes in teams &ndash; why does silence pay?</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="/">Julian Tait</a>
+    <nav class="topbar-mainnav" aria-label="Site">
+      <a href="/projects/">All projects</a>
+    </nav>
+    <span class="topbar-title">The Honesty Penalty</span>
+    <nav>
+      <a href="./">Overview</a>
+      <a href="results.html" class="active">Results</a>
+      <a href="model.html">Model</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ===================== RESULTS VIEW ===================== -->
+<section id="view-results" class="view">
+
+  <!-- BLOCK 0b: the verdicts, up front -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag results">Main results</span>
+      <span class="block-headline">Only hypothetical stakes ever mattered.</span>
+    </div>
+    <p class="card-note">The answer before the details: in a hypothetical vignette, bigger stakes did mean harsher punishment for owning up. In the lab, with real money and real teammates &ndash; twice, at very different intensities &ndash; <b>the stakes moved nothing</b>.</p>
+    <div class="hypgrid">
+      <div class="hypcard"><span class="hc-id">Hypothesis 1 &middot; punishment</span><div class="hc-t">Punished more for disclosing when the stakes are higher?</div><span class="hc-verdict supported">Vignette: supported</span> <span class="hc-verdict null">Lab: no effect</span></div>
+      <div class="hypcard"><span class="hc-id">Hypothesis 2 &middot; hiding</span><div class="hc-t">More mistakes hidden when the stakes are higher?</div><span class="hc-verdict null">Lab: no effect</span></div>
+    </div>
+  </section>
+
+  <!-- MAIN TAKEAWAY -->
+  <div class="takeaway">
+    <b>Mistakes stay hidden, and the stakes do not matter.</b> Workers conceal roughly a third of their mistakes even though disclosure raises everyone&rsquo;s pay, and raising the cost of a mistake changes neither hiding nor punishment. What sustains the silence is the <b>structure</b> of punishment: the one worker who owns up bears almost the entire team sanction, while a teammate who stays quiet next to them gets off nearly free.
+  </div>
+
+  <!-- BLOCK 1: the setting -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag both">The setting</span>
+      <span class="block-headline">A team, a risky project, and a private mistake.</span>
+    </div>
+    <p class="card-note">One hidden slip sinks the ambitious project for the whole team &ndash; and only the worker who slipped knows. Owning up lets the manager switch to the safe backup: <b>when mistakes come to light, the team makes better decisions</b>.</p>
+
+    <div class="timeline">
+      <div class="tl-step"><span class="tl-n">1</span><div class="tl-t">Work <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Step 1 &middot; Work" data-ic-body="Teams of one manager and two workers play repeated rounds for real money. Each worker completes a short attention task (a Stroop screen and simple maths) and privately learns whether they made a mistake. Nobody else sees it.">i</button></div></div>
+      <div class="tl-step"><span class="tl-n">2</span><div class="tl-t">Disclose or hide <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Step 2 &middot; Disclose or hide" data-ic-body="A worker who made a mistake chooses whether to tell the manager. Only genuine mistakes can be disclosed – there are no false confessions.">i</button></div></div>
+      <div class="tl-step"><span class="tl-n">3</span><div class="tl-t">Project choice <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Step 3 &middot; Project choice" data-ic-body="The manager, knowing only what was disclosed, picks the ambitious project or the safe backup. After any mistake the backup pays more for everyone – but the ambitious project can also fail by pure chance (20%), so a failure never proves that someone stayed silent.">i</button></div></div>
+      <div class="tl-step"><span class="tl-n">4</span><div class="tl-t">Punish <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Step 4 &middot; Punish" data-ic-body="Payoffs are revealed and the manager may deduct money from either worker – up to €2 per round in total in Experiment 1, €12 in Experiment 2. These deductions are the punishment measured throughout.">i</button></div></div>
+    </div>
+
+    <p class="ic-links">Exact payoffs, treatments and sample sizes <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Payoffs &amp; design" data-ic-content="ic-params">i</button></p>
+    <div id="ic-params" hidden>
+      <table>
+        <tr><th>&euro; per member</th><th>Exp 1</th><th>Exp 2</th></tr>
+        <tr><td>Success (<span class="lo">LOW</span> / <span class="hi">HIGH</span>)</td><td><span class="lo">10</span> / <span class="hi">20</span></td><td><span class="lo">8</span> / <span class="hi">40</span></td></tr>
+        <tr><td>Failure</td><td>2</td><td>0</td></tr>
+        <tr><td>Backup (always)</td><td>4</td><td>2</td></tr>
+        <tr><td>Chance failure, no mistake</td><td>20%</td><td>20%</td></tr>
+        <tr><td>Max team punishment</td><td>2.00</td><td>12.00</td></tr>
+        <tr><td>Participants (groups)</td><td>264 (24)</td><td>144 (12)</td></tr>
+      </table>
+      <p>Both experiments vary the success payoff within participants (one block LOW, one block HIGH, order balanced). Experiment 1 additionally varies between participants whether teams stay together (PARTNERS) or are re-formed every round (STRANGERS); Experiment 2 uses strangers only.</p>
+    </div>
+  </section>
+
+  <!-- BLOCK 2: vignette -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag vignette">Vignette study</span>
+      <span class="block-headline">When it is hypothetical, blame does scale with the stakes.</span>
+    </div>
+    <p class="card-note">Hypothetical judges do what the theory predicts: the same disclosed mistake draws <b>more blame and a $248 deeper bonus cut</b> when more money was at stake <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="Vignette design" data-ic-body="244 Prolific participants judged a mechanic whose maintenance mistake could be disclosed in time (allowing corrective action) or surface later as a breakdown. Daily profits at stake: $600 (LOW) or $10,000 (HIGH). Participants set the mechanic's bonus between $0 and $2,000, anchored on $1,000 as the firm's average – anything below $1,000 reads as a punishment. Values are quoted from the paper (the vignette raw data are not part of this repository), so the bars carry no error whiskers.">i</button>. Even here, though, hiding is judged worst of all &ndash; the honesty penalty appears only in the lab, below.</p>
+
+    <div class="chartgrid cols3" id="chart-vignette"></div>
+    <div class="chart-legend">
+      <span><span class="sw" style="background:#64748b"></span>Low stakes ($600)</span>
+      <span><span class="sw" style="background:#d1971b"></span>High stakes ($10,000)</span>
+      <span>dashed line = $1,000 anchor; below it reads as punishment</span>
+    </div>
+  </section>
+
+  <!-- BLOCK 3: experiment 1 treatment effects -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag exp1">Experiment 1</span>
+      <span class="block-headline">With real incentives, the stakes move nothing.</span>
+    </div>
+    <p class="card-note">The pre-registered tests. Workers hide about a third of their mistakes whether the successful project pays &euro;10 or &euro;20, and the extra punishment for disclosing (rather than hiding) a mistake does not rise with the stakes &ndash; if anything it falls. Keeping teams together does not help either. All estimates are matching-group means computed from the cleaned data.</p>
+
+    <div class="chartgrid" id="chart-exp1-stakes"></div>
+    <div class="chart-legend">
+      <span><span class="sw" style="background:#64748b"></span>Low stakes</span>
+      <span><span class="sw" style="background:#d1971b"></span>High stakes</span>
+      <span>whiskers = &plusmn;1 SE</span>
+    </div>
+
+    <div class="chartgrid" id="chart-exp1-matching" style="margin-top:18px"></div>
+    <div class="chart-legend">
+      <span><span class="sw" style="background:#3f8e7f"></span>Strangers (new team each round)</span>
+      <span><span class="sw" style="background:#6a3d9a"></span>Partners (same team all block)</span>
+      <span>whiskers = &plusmn;1 SE</span>
+    </div>
+  </section>
+
+  <!-- SECTION HEADER: experiment 2 enters -->
+  <div class="section-head">
+    <span class="sec-eyebrow">Experiment 2</span>
+    <h2 class="sec-headline">Six times the stick, five times the spread &ndash; still nothing.</h2>
+    <p class="section-note">A tougher rerun: the punishment cap rises from &euro;2 to &euro;12 and HIGH stakes pay five times LOW. The blocks below draw on both experiments.</p>
+  </div>
+
+  <!-- BLOCK 4: the honesty penalty -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag both">Both experiments</span>
+      <span class="block-headline">The honesty penalty: the discloser pays, the silent teammate walks.</span>
+    </div>
+    <p class="card-note">Punishment received by a worker in rounds where the team made a mistake, split by who disclosed. Disclosure helps the team &ndash; total punishment is lower and the manager can switch to the backup project &ndash; but the worker who discloses <b>alone</b> absorbs almost all of it, while a teammate who stays silent next to a discloser is punished least of all. The structure invites free-riding on a colleague&rsquo;s honesty.</p>
+
+    <div class="statcards red">
+      <div class="statcard">
+        <div class="sc-v">&euro;0.14 / &euro;0.12 <span class="ic-slot" data-ic="penalty"></span></div>
+        <div class="sc-k">The expected <b>extra punishment for disclosing</b> a mistake instead of hiding it (Experiments 1 and 2). Small &ndash; but reliably positive.</div>
+      </div>
+      <div class="statcard">
+        <div class="sc-v">6&times; / 5&times; <span class="ic-slot" data-ic="sole"></span></div>
+        <div class="sc-k">A <b>sole discloser</b> is punished about six times (Exp.&nbsp;1: &euro;0.54 vs &euro;0.09) and five times (Exp.&nbsp;2: &euro;1.99 vs &euro;0.41) <b>more than the silent teammate</b> beside them.</div>
+      </div>
+      <div class="statcard">
+        <div class="sc-v">&minus;44% <span class="ic-slot" data-ic="teampay"></span></div>
+        <div class="sc-k">Hiding is <b>collectively costly</b>: in Experiment 1, teams that concealed a mistake earned &euro;2.17 each versus &euro;3.88 when someone disclosed.</div>
+      </div>
+    </div>
+
+    <div class="chartgrid" id="chart-punish"></div>
+    <div class="chart-legend">
+      <span><span class="sw" style="background:#1f78b4"></span>Worker stayed silent</span>
+      <span><span class="sw" style="background:#b4342d"></span>Worker disclosed</span>
+      <span>whiskers = &plusmn;1 SE</span>
+    </div>
+  </section>
+
+  <!-- BLOCK 5: experiment 2 -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag exp2">Experiment 2</span>
+      <span class="block-headline">The nulls survive: stakes still move nothing.</span>
+    </div>
+    <p class="card-note">To rule out ceiling effects, Experiment 2 raises the punishment cap from &euro;2 to &euro;12 and widens the stakes spread from &euro;10&ndash;20 to &euro;8&ndash;40. Hiding rises overall (to 43% of mistakes), but the treatment effects stay null: neither hiding nor the disclosure penalty responds to the stakes. Managers barely use the larger cap &ndash; only 7% of disclosed-mistake rounds saw maximal punishment.</p>
+
+    <div class="chartgrid" id="chart-exp2-stakes"></div>
+    <div class="chart-legend">
+      <span><span class="sw" style="background:#64748b"></span>Low stakes</span>
+      <span><span class="sw" style="background:#d1971b"></span>High stakes</span>
+      <span>whiskers = &plusmn;1 SE</span>
+    </div>
+  </section>
+
+  <!-- BLOCK 6: learning (exploratory) -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag both">Exploratory</span>
+      <span class="block-headline">The problem gets worse, not better.</span>
+    </div>
+    <p class="card-note">Hiding, conditional on having made a mistake, drifts upwards over the rounds in both experiments &ndash; from roughly 30% at the start to around 45% by the last round &ndash; while the disclosure penalty stays flat. Experience does not teach teams to own up; it teaches them to keep quiet. Consistent with disclosure being a strategic complement, workers who believe others hide more are themselves more likely to hide.</p>
+    <div class="figwrap">
+      <img src="assets/learning_exp_both.png" alt="Two panels: the share of mistakes hidden rises over the ten rounds in both experiments, while the disclosure penalty shows no time trend." loading="lazy">
+    </div>
+    <p class="fig-note">Figure from the paper (means by round, conditional on a mistake; unit of observation is individual mistakes, pooled over blocks; error bars &plusmn;1 SE).</p>
+  </section>
+
+</section>
+
+</main>
+
+<script>
+"use strict";
+/* =====================================================================
+   RESULTS CHARTS – grouped bars with ±1 SE whisker caps (inline SVG,
+   same chart primitive as the perceived page; no line ever connects
+   discrete groups). All values are the exact estimates computed from
+   the cleaned data (data_Exp1_cleaned.csv / data_Exp2_cleaned.csv),
+   mirroring the paper's results scripts:
+   – hiding rate and disclosure penalty: worker rows with a mistake,
+     averaged per matching group (and stakes level / treatment), then
+     mean and SE = SD/sqrt(n groups) across groups, paired groups only
+     (exp1_results_hypotheses.R / exp2_results_hypotheses.R);
+   – punishment by disclosure scenario: manager rows with a team
+     mistake, collapsed to group means first
+     (both_results_punishment_graph.R).
+   ===================================================================== */
+var LOWCOL = '#64748b', HIGHCOL = '#d1971b';
+var SILENTCOL = '#1f78b4', DISCLCOL = '#b4342d';
+var STRCOL = '#3f8e7f', PARCOL = '#6a3d9a';
+
+var OUTCOME_INFO = {
+  hiding: ['Hiding rate',
+    'The share of mistakes a worker does not disclose to the manager. Computed per matching group (the independent unit, 9 to 12 participants who only ever meet each other) and stakes level, then averaged across groups; whiskers are plus or minus one SE over group means. Only groups observed under both stakes levels enter (paired design).'],
+  penalty: ['Disclosure penalty',
+    'Within each matching group and stakes level: the mean punishment of workers who made and disclosed a mistake minus the mean punishment of workers who made and hid one, in euro. Positive values mean owning up costs money. Averaged across matching groups; whiskers plus or minus one SE.'],
+  matching: ['Team formation',
+    'In STRANGERS, teams are randomly re-formed every round; in PARTNERS the same team stays together for a whole 10-round block. The comparison is between matching groups (12 in each arm), so it is an unpaired test.'],
+  scenario: ['Punishment by disclosure scenario',
+    'Rounds in which the team made a mistake, from the manager’s records. Each bar is the punishment of the worker in that role: p(own report, other’s report). Values are collapsed to matching-group means first, then averaged across groups; whiskers plus or minus one SE over group means.'],
+  penalty2: ['Expected extra punishment for disclosing',
+    'The pooled individual-level estimate: among workers who made a mistake, the mean punishment of those who disclosed minus those who hid, across all rounds and treatments. Exp. 1: €0.14; Exp. 2: €0.12.'],
+  sole2: ['Sole discloser vs silent teammate',
+    'In one-report rounds the discloser and the silent teammate sit in the same team, same round, same failure. Exp. 1: €0.54 vs €0.09 (group-collapsed means); Exp. 2: €1.99 vs €0.41. The silent worker beside a discloser is punished least of all scenarios: the teammate’s confession absolves them.'],
+  teampay: ['Cost of concealment',
+    'Experiment 1, rounds with a team mistake: mean payoff per team member is €2.17 when nobody disclosed versus €3.88 when at least one worker did (before punishments). Managers switch to the backup project after a report about 94% of the time, recovering most of the loss.'],
+  vignette: ['Vignette design',
+    '244 Prolific participants judged a mechanic whose maintenance mistake could be disclosed in time (allowing corrective action) or surface later as a breakdown. Daily profits at stake: $600 (LOW) or $10,000 (HIGH). Participants set the mechanic’s bonus between $0 and $2,000, anchored on $1,000 as the firm’s average – anything below $1,000 reads as a punishment. Values are quoted from the paper (the vignette raw data are not part of this repository), so the bars carry no error whiskers.'],
+  vigpenalty: ['The stakes gradient',
+    'Relative to the no-mistake benchmark, the bonus cut for a disclosed mistake grows from $311 (LOW) to $559 (HIGH) – a difference-in-differences of $248, p < .001. Blame ratings for the same disclosed mistake rise from 4.6 to 5.2 on a 9-point scale (rank-sum p = .028). This is Hypothesis 1, supported – but only in the hypothetical.']
+};
+
+/* chart primitive: grouped bars + ±1 SE whiskers (no connecting lines) */
+function seChart(o){
+  var W = o.W || 280, H = o.H || 224, padL = 46, padR = 12, padT = 18, padB = 54;
+  var pw = W-padL-padR, ph = H-padT-padB, ymin = o.ymin||0, ymax = o.ymax;
+  function Y(v){ return padT + ph*(ymax - v)/(ymax - ymin); }
+  var s = ['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit" role="img" aria-label="'+(o.aria||o.axis)+'">'];
+  for(var k=0;k<=4;k++){
+    var v = ymin + (ymax-ymin)*k/4, yy = Y(v);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#999">'+o.fmt(v)+'</text>');
+  }
+  if(ymin < 0){
+    s.push('<line x1="'+padL+'" y1="'+Y(0)+'" x2="'+(W-padR)+'" y2="'+Y(0)+'" stroke="#c9cedb"/>');
+  }
+  if(o.ref != null){ /* dashed reference line (e.g. the vignette's $1,000 anchor) */
+    s.push('<line x1="'+padL+'" y1="'+Y(o.ref)+'" x2="'+(W-padR)+'" y2="'+Y(o.ref)+'" stroke="#8a93a6" stroke-width="1.3" stroke-dasharray="5 4"/>');
+  }
+  var slot = pw/o.bars.length, bw = slot*(o.barw||0.40), fmtBar = o.fmtBar || o.fmt;
+  o.bars.forEach(function(b, i){
+    var cx = padL + slot*(i+0.5), x = cx - bw/2;
+    var y0 = Y(Math.max(0, ymin)), yv = Y(b.m);
+    s.push('<rect x="'+x+'" y="'+Math.min(yv,y0)+'" width="'+bw+'" height="'+Math.abs(y0-yv)+'" rx="2" fill="'+b.col+'" stroke="#0002"/>');
+    var yhi = Y(b.m + b.se), ylo = Y(b.m - b.se), cw = bw*0.34;
+    s.push('<line x1="'+cx+'" y1="'+yhi+'" x2="'+cx+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    s.push('<line x1="'+(cx-cw)+'" y1="'+yhi+'" x2="'+(cx+cw)+'" y2="'+yhi+'" stroke="#33384a" stroke-width="1.4"/>');
+    s.push('<line x1="'+(cx-cw)+'" y1="'+ylo+'" x2="'+(cx+cw)+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    if(b.obs != null){ /* observed-data overlay dash (model view) */
+      var yo = Y(b.obs);
+      s.push('<line x1="'+(cx-bw*0.62)+'" y1="'+yo+'" x2="'+(cx+bw*0.62)+'" y2="'+yo+'" stroke="#555" stroke-width="2" stroke-dasharray="4 3"/>');
+    }
+    s.push('<text x="'+cx+'" y="'+(yhi-6)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#333">'+fmtBar(b.m)+'</text>');
+    var labs = String(b.lab).split('\n');
+    labs.forEach(function(L, li){
+      s.push('<text x="'+cx+'" y="'+(padT+ph+15+li*11)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#555">'+L+'</text>');
+    });
+  });
+  s.push('<text x="'+(padL+pw/2)+'" y="'+(padT+ph+40)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#888">'+(o.xlab||'')+'</text>');
+  s.push('<text transform="translate(12,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="10" fill="#888">'+o.axis+'</text>');
+  s.push('</svg>');
+  return s.join('');
+}
+
+var PCT = function(v){ return Math.round(v*100)+'%'; };
+var EUR2 = function(v){ return '€'+v.toFixed(2); };
+var EUR1 = function(v){ return '€'+v.toFixed(1); };
+var USD = function(v){ return '$'+Math.round(v).toLocaleString('en-US'); };
+
+/* ---- Vignette: mean bonus by scenario and stakes (values quoted from the
+   paper's vignette section – raw vignette data are not in this repository,
+   so bars carry no SE whiskers) ---- */
+var CHARTS_VIGNETTE = [
+  { title:'No mistake', info:'vignette', hyp:'benchmark',
+    axis:'mean bonus awarded ($)', xlab:'Stakes', ymax:1400, fmt:USD, fmtBar:USD, ref:1000,
+    bars:[{lab:'Low ($600)', col:LOWCOL, m:1185, se:0},
+          {lab:'High ($10k)', col:HIGHCOL, m:1233, se:0}],
+    note:'no breakdown: a bonus above the anchor' },
+  { title:'Mistake disclosed, corrected', info:'vigpenalty', hyp:'H1 &middot; supported',
+    axis:'mean bonus awarded ($)', xlab:'Stakes', ymax:1400, fmt:USD, fmtBar:USD, ref:1000,
+    bars:[{lab:'Low ($600)', col:LOWCOL, m:874, se:0},
+          {lab:'High ($10k)', col:HIGHCOL, m:674, se:0}],
+    note:'the cut deepens by $248 under high stakes (p &lt; .001)' },
+  { title:'Mistake hidden', info:'vignette', hyp:'breakdown',
+    axis:'mean bonus awarded ($)', xlab:'Stakes', ymax:1400, fmt:USD, fmtBar:USD, ref:1000,
+    bars:[{lab:'Low ($600)', col:LOWCOL, m:408, se:0},
+          {lab:'High ($10k)', col:HIGHCOL, m:377, se:0}],
+    note:'nothing disclosed: judged worst of all' }
+];
+
+/* ---- Experiment 1: stakes (H1, H2), matching-group level, 24 paired groups ---- */
+var CHARTS_EXP1_STAKES = [
+  { title:'Share of mistakes hidden', info:'hiding', hyp:'H2 · pre-registered',
+    axis:'share of mistakes hidden', xlab:'Stakes', ymax:0.6, fmt:PCT,
+    bars:[{lab:'Low (€10)', col:LOWCOL, m:0.334264, se:0.034189},
+          {lab:'High (€20)', col:HIGHCOL, m:0.350022, se:0.028887}],
+    note:'n = 24 matching groups per bar (paired); Wilcoxon p = .34' },
+  { title:'Disclosure penalty', info:'penalty', hyp:'H1 · pre-registered',
+    axis:'extra punishment for disclosing (€)', xlab:'Stakes', ymin:0, ymax:0.4, fmt:EUR2, fmtBar:EUR2,
+    bars:[{lab:'Low (€10)', col:LOWCOL, m:0.221527, se:0.065012},
+          {lab:'High (€20)', col:HIGHCOL, m:0.133356, se:0.063285}],
+    note:'n = 24 matching groups per bar (paired); sign test p = .42' }
+];
+
+/* ---- Experiment 1: team formation (H3, H4), 12 groups per arm ---- */
+var CHARTS_EXP1_MATCHING = [
+  { title:'Share of mistakes hidden', info:'matching', hyp:'H4 · pre-registered',
+    axis:'share of mistakes hidden', xlab:'Team formation', ymax:0.6, fmt:PCT,
+    bars:[{lab:'Strangers', col:STRCOL, m:0.324250, se:0.041284},
+          {lab:'Partners', col:PARCOL, m:0.355671, se:0.037523}],
+    note:'n = 12 matching groups per bar; Wilcoxon p = .71' },
+  { title:'Disclosure penalty', info:'penalty', hyp:'H3 · pre-registered',
+    axis:'extra punishment for disclosing (€)', xlab:'Team formation', ymin:0, ymax:0.4, fmt:EUR2, fmtBar:EUR2,
+    bars:[{lab:'Strangers', col:STRCOL, m:0.151606, se:0.075068},
+          {lab:'Partners', col:PARCOL, m:0.172262, se:0.058388}],
+    note:'n = 12 matching groups per bar; Wilcoxon p = .51' }
+];
+
+/* ---- Punishment by disclosure scenario, both experiments ---- */
+var CHARTS_PUNISH = [
+  { title:'Experiment 1 (cap €2)', info:'scenario', hyp:'rounds with a team mistake', W:340,
+    axis:'punishment received (€)', xlab:'Who disclosed the mistake', ymax:0.8, fmt:EUR2, fmtBar:EUR2, barw:0.5,
+    bars:[{lab:'nobody\np(0,0)', col:SILENTCOL, m:0.375260, se:0.089753},
+          {lab:'only you\np(1,0)', col:DISCLCOL, m:0.541910, se:0.054603},
+          {lab:'only teammate\np(0,1)', col:SILENTCOL, m:0.087126, se:0.027087},
+          {lab:'both\np(1,1)', col:DISCLCOL, m:0.322622, se:0.040382}],
+    note:'group-collapsed means; n = 16 / 24 / 24 / 24 matching groups' },
+  { title:'Experiment 2 (cap €12)', info:'scenario', hyp:'rounds with a team mistake', W:340,
+    axis:'punishment received (€)', xlab:'Who disclosed the mistake', ymax:2.6, fmt:EUR1, fmtBar:EUR2, barw:0.5,
+    bars:[{lab:'nobody\np(0,0)', col:SILENTCOL, m:0.822854, se:0.435584},
+          {lab:'only you\np(1,0)', col:DISCLCOL, m:1.988129, se:0.448407},
+          {lab:'only teammate\np(0,1)', col:SILENTCOL, m:0.408888, se:0.157546},
+          {lab:'both\np(1,1)', col:DISCLCOL, m:1.122573, se:0.343917}],
+    note:'group-collapsed means; n = 11 / 12 / 12 / 12 matching groups' }
+];
+
+/* ---- Experiment 2: stakes (H1, H2), 12 paired groups ---- */
+var CHARTS_EXP2_STAKES = [
+  { title:'Share of mistakes hidden', info:'hiding', hyp:'pre-registered',
+    axis:'share of mistakes hidden', xlab:'Stakes', ymax:0.6, fmt:PCT,
+    bars:[{lab:'Low (€8)', col:LOWCOL, m:0.423594, se:0.054240},
+          {lab:'High (€40)', col:HIGHCOL, m:0.438444, se:0.054854}],
+    note:'n = 12 matching groups per bar (paired); Wilcoxon p = .40' },
+  { title:'Disclosure penalty', info:'penalty', hyp:'pre-registered',
+    axis:'extra punishment for disclosing (€)', xlab:'Stakes', ymin:-0.8, ymax:1.0, fmt:EUR1, fmtBar:EUR2,
+    bars:[{lab:'Low (€8)', col:LOWCOL, m:0.267408, se:0.341709},
+          {lab:'High (€40)', col:HIGHCOL, m:0.079703, se:0.822853}],
+    note:'n = 12 matching groups per bar (paired); sign test p = .39' }
+];
+
+(function renderResultCharts(){
+  function render(hostId, charts){
+    document.getElementById(hostId).innerHTML = charts.map(function(c){
+      var inf = OUTCOME_INFO[c.info];
+      return '<div class="minichart">'+
+        '<div class="mc-title">'+c.title+' '+InfoCard.buttonHTML(inf[0], inf[1])+'</div>'+
+        '<div class="mc-hyp">'+c.hyp+'</div>'+
+        seChart(c)+
+        '<div class="mc-note">'+c.note+'</div>'+
+      '</div>';
+    }).join('');
+  }
+  render('chart-vignette', CHARTS_VIGNETTE);
+  render('chart-exp1-stakes', CHARTS_EXP1_STAKES);
+  render('chart-exp1-matching', CHARTS_EXP1_MATCHING);
+  render('chart-punish', CHARTS_PUNISH);
+  render('chart-exp2-stakes', CHARTS_EXP2_STAKES);
+  /* (i) buttons on the stat cards */
+  var CARD_IC = { penalty:'penalty2', sole:'sole2', teampay:'teampay' };
+  Array.prototype.forEach.call(document.querySelectorAll('.ic-slot'), function(slot){
+    var inf = OUTCOME_INFO[CARD_IC[slot.getAttribute('data-ic')] || slot.getAttribute('data-ic')];
+    if(inf) slot.innerHTML = InfoCard.buttonHTML(inf[0], inf[1]);
+  });
+})();
+
+/* sticky header collapse: reveal compact title once the hero scrolls past */
+(function(){
+  var sentinel = document.getElementById('hdr-sentinel');
+  var topbar = document.getElementById('topbar');
+  if(sentinel && topbar && 'IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, {threshold:0}).observe(sentinel);
+  }
+})();
+</script>
+
+</body>
+</html>

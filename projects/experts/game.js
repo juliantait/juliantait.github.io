@@ -446,8 +446,12 @@
   }
   window.__gameOpen = openOverlay;
   window.__gameClose = closeOverlay;
-  // honour a deep link straight into the game (e.g. /projects/experts/#game)
+  // honour a deep link straight into the game (e.g. simulator.html#game),
+  // both on load and when the hash changes within the page
   if (location.hash === '#game') openOverlay();
+  window.addEventListener('hashchange', function(){
+    if (location.hash === '#game') openOverlay();
+  });
   // read-only snapshot for E2E tests (in-memory only; no behaviour/persistence change)
   window.__gameState = function(){
     return {
