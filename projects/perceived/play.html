@@ -160,7 +160,9 @@ function newLayout(){
   return { trueRed:trueRed, dots:dots };
 }
 function drawGrid(canvas, layout){
-  var dpr = window.devicePixelRatio || 1;
+  // cap the backing-store scale at 2 (dpr 3 devices): charts don't need more,
+  // and WebKit reclaims discarded canvas memory lazily
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
   var css = canvas.clientWidth || 260;
   canvas.width = Math.round(css*dpr);
   canvas.height = Math.round(css*dpr);

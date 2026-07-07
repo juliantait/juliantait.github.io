@@ -475,9 +475,22 @@ function renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN
 
 // ============ Plot ============
 
+// Canvas backing stores cost css-w × css-h × scale² × 4 bytes and WebKit
+// reclaims them lazily; at devicePixelRatio 3 a large plot is a multi-MB GPU
+// buffer per (re)draw. Cap the scale at 2 (visually indistinguishable for
+// charts) and hard-cap total backing pixels so no canvas can balloon.
+const MAX_BACKING_SCALE = 2;
+const MAX_BACKING_PIXELS = 8_000_000; // ≈32MB RGBA, far above any sane chart
+function backingScale(w, h) {
+  let s = Math.min(window.devicePixelRatio || 1, MAX_BACKING_SCALE);
+  if (w * h * s * s > MAX_BACKING_PIXELS) {
+    s = Math.max(1, Math.sqrt(MAX_BACKING_PIXELS / (w * h)));
+  }
+  return s;
+}
+
 function getCtx(id, aspect, fill) {
   const c = document.getElementById(id);
-  const dpr = window.devicePixelRatio || 1;
   const container = c.parentElement;
   const w = Math.floor(container.clientWidth);
   let h = Math.floor(w / (aspect || 2.6));
@@ -488,6 +501,7 @@ function getCtx(id, aspect, fill) {
     const avail = Math.floor(container.clientHeight);
     if (avail > h) h = avail;
   }
+  const dpr = backingScale(w, h);
   c.width = w * dpr;
   c.height = h * dpr;
   c.style.width = w + 'px';
@@ -1141,9 +1155,9 @@ function drawExampleCanvases({ groups, sortedBetas, sigma, priors }) {
 function drawScatter(canvasId, x, y, role, trueBeta, sigma) {
   const c = document.getElementById(canvasId);
   if (!c) return;
-  const dpr = window.devicePixelRatio || 1;
   const w = c.clientWidth || c.parentElement.clientWidth || 180;
   const h = 130;
+  const dpr = backingScale(w, h);
   c.width = w * dpr; c.height = h * dpr;
   c.style.width = w + 'px'; c.style.height = h + 'px';
   const ctx = c.getContext('2d');
@@ -1187,9 +1201,9 @@ function drawScatter(canvasId, x, y, role, trueBeta, sigma) {
 function drawMiniPosterior(canvasId, betaHat, se, sortedBetas, pickedValue, priors) {
   const c = document.getElementById(canvasId);
   if (!c) return;
-  const dpr = window.devicePixelRatio || 1;
   const w = c.clientWidth || c.parentElement.clientWidth || 240;
   const h = 90;
+  const dpr = backingScale(w, h);
   c.width = w * dpr; c.height = h * dpr;
   c.style.width = w + 'px'; c.style.height = h + 'px';
   const ctx = c.getContext('2d');
@@ -1248,10 +1262,22 @@ function redrawAll() {
   if (lastExamples) drawExampleCanvases(lastExamples);
 }
 
-let resizeT;
+// Resize must NOT run recompute(): that re-runs the full Monte-Carlo pass
+// (100k sims per candidate row) and rebuilds every group card and canvas from
+// scratch. iOS Safari fires resize continuously while scrolling (URL-bar
+// collapse) and macOS fires it throughout a window drag, so recompute-on-resize
+// churned tens of MB of canvas backing stores per second — WebKit reclaims
+// those lazily, which ballooned the WebContent process until the OS killed it.
+// Instead: redraw the cached results at the new width, reusing the existing
+// canvas elements, and skip height-only resizes (canvas layout is width-driven).
+let resizeT, lastLayoutW = window.innerWidth;
 window.addEventListener('resize', () => {
   clearTimeout(resizeT);
-  resizeT = setTimeout(() => recompute(true), 80);
+  resizeT = setTimeout(() => {
+    if (window.innerWidth === lastLayoutW) return;
+    lastLayoutW = window.innerWidth;
+    redrawAll();
+  }, 150);
 });
 
 // ρ (scheme-c calibration) slider: rescore the group-decision boxes from the

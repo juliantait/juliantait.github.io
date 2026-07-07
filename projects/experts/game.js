@@ -126,7 +126,9 @@
   function drawGameScatter(){
     var c = gid('game-scatter');
     if (!c || !round) return;
-    var dpr = window.devicePixelRatio || 1;
+    // cap the backing-store scale at 2: dpr 3 triples the buffer's pixel count
+    // squared, and WebKit reclaims discarded canvas memory lazily
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     // Layout size is owned by CSS (width:100% + fixed height); here we ONLY (re)size
     // the drawing buffer. We must NOT write c.style.width/height: writing the measured
     // clientWidth back onto the canvas (with the 1px border under border-box) made the
