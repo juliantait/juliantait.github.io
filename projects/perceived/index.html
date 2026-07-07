@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/projects/shared/shell.css?v=11">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=12">
 <link rel="stylesheet" href="/projects/shared/infocard.css?v=2">
 <link rel="stylesheet" href="perceived.css?v=3">
 <script src="/projects/shared/infocard.js?v=2"></script>
@@ -27,7 +27,12 @@
 
 <div class="topbar" id="topbar">
   <div class="topbar-inner">
-    <a class="topbar-home" href="/"><span class="hh-arrow" aria-hidden="true">&larr;</span> Home</a>
+    <a class="topbar-brand" href="/">Julian Tait</a>
+    <nav class="topbar-mainnav" aria-label="Site">
+      <a href="/">Home</a>
+      <a href="/research.html">Research</a>
+      <a href="/projects/">Projects</a>
+    </nav>
     <span class="topbar-title">Perceived Value for Money</span>
     <nav>
       <button class="playbtn" id="open-play" aria-haspopup="dialog"><span class="tri">&#9654;</span> Play the task</button>
@@ -47,31 +52,17 @@
     <p class="card-note">The three pre-registered advisor outcomes, each measured under the low fee (&pound;0.35) and the high fee (&pound;1.75), computed from the experiment data (Round 1). The estimates are statistically indistinguishable across the two fee levels: paying the advisor five times as much shifts nothing.</p>
 
     <div class="chartgrid" id="chartgrid"></div>
-
-    <div class="fee-legend">
-      <span><span class="sw" style="background:#64748b"></span>Low fee &pound;0.35</span>
-      <span><span class="sw" style="background:#d1971b"></span>High fee &pound;1.75</span>
-      <span>whiskers = &plusmn;1 SE</span>
-    </div>
   </section>
 
   <!-- BLOCK 2: client side, the effects that DO appear -->
   <section class="panelcard">
     <div class="block-head">
       <span class="block-tag client">Client side</span>
-      <span class="block-headline">The fee does move the client (exploratory).</span>
+      <span class="block-headline">Clients reward frequency and punish boldness.</span>
     </div>
-    <p class="card-note">Away from the pre-registered advisor tests, the fee leaves clear traces on the client&rsquo;s behaviour. These effects are exploratory, computed from the experiment data (Round 1); the retention comparisons use the REP treatment, in which clients could fire their advisor.</p>
+    <p class="card-note">Beyond the pre-registered advisor tests, we can further explore the clients&rsquo; behaviour and preferences.</p>
 
     <div class="chartgrid" id="chartgrid2"></div>
-
-    <div class="fee-legend">
-      <span><span class="sw" style="background:#64748b"></span>Low fee &pound;0.35</span>
-      <span><span class="sw" style="background:#d1971b"></span>High fee &pound;1.75</span>
-      <span><span class="sw" style="background:#1f78b4"></span>Advisor kept</span>
-      <span><span class="sw" style="background:#b4342d"></span>Advisor fired</span>
-      <span>whiskers = &plusmn;1 SE</span>
-    </div>
   </section>
 
 </main>
@@ -241,7 +232,7 @@ function kpi(v, k){ return '<div class="kpi"><div class="v">'+v+'</div><div clas
 
 /* =====================================================================
    ROLE A – the client (decision-maker)
-   Score: +£0.50 if exactly right, else −£0.10 per dot of error, min £0.
+   Score (the experiment's rule): £0.50 minus £0.10 per dot of error, min £0.
    The action button under the grid morphs (start → counting → new grid)
    and every panel region stays mounted, so the layout never reflows.
    ===================================================================== */
@@ -280,7 +271,8 @@ function aSubmit(){
   g = Math.max(0, Math.min(100, g));
   var truth = A.layout.trueRed;
   var err = Math.abs(g - truth);
-  var pay = err === 0 ? 0.50 : Math.max(0, -0.10*err);
+  // the experiment's rule: £0.50 minus £0.10 per dot of error, never below £0
+  var pay = Math.max(0, 0.50 - 0.10*err);
   A.total += pay; A.rounds += 1;
   var cls = err === 0 ? 'good' : (pay > 0 ? 'flat' : 'bad');
   var verdict = err === 0
@@ -497,17 +489,17 @@ var CHARTS = [
     xlab:'Fees', ymax:1, fmt:PCT,
     bars:[{lab:'Low', col:LOWCOL, m:0.5689, se:0.0216},
           {lab:'High', col:HIGHCOL, m:0.5904, se:0.0216}],
-    note:'n = 167 (low fee), 146 (high fee)' },
-  { title:'Advice shift', info:'shift', hyp:'H1b', axis:'mean shift from client’s guess (dots)',
+    note:'whiskers &plusmn;1 SE; n = 167 (low fee), 146 (high fee)' },
+  { title:'Advice boldness', info:'shift', hyp:'H1b', axis:'mean shift from client’s guess (dots)',
     xlab:'Fees', ymax:12, fmt:INT, fmtBar:DEC1,
     bars:[{lab:'Low', col:LOWCOL, m:11.2192, se:0.5442},
           {lab:'High', col:HIGHCOL, m:10.8791, se:0.6587}],
-    note:'n = 167 (low fee), 146 (high fee)' },
+    note:'whiskers &plusmn;1 SE; n = 167 (low fee), 146 (high fee)' },
   { title:'Advice quality', info:'quality', hyp:'H2', axis:'reduction in client error (dots)',
     xlab:'Fees', ymin:-1, ymax:3, fmt:INT, fmtBar:DEC1,
     bars:[{lab:'Low', col:LOWCOL, m:1.1373, se:0.6011},
           {lab:'High', col:HIGHCOL, m:0.3793, se:0.8032}],
-    note:'n = 167 (low fee), 146 (high fee)' }
+    note:'whiskers &plusmn;1 SE; n = 167 (low fee), 146 (high fee)' }
 ];
 
 /* the exploratory client-side outcomes; each card carries its own
@@ -518,19 +510,19 @@ var CHARTS2 = [
     xlab:'Fees', ymax:0.6, fmt:PCT,
     bars:[{lab:'Low', col:LOWCOL, m:0.4051, se:0.0284},
           {lab:'High', col:HIGHCOL, m:0.4621, se:0.0289}],
-    note:'n = 167 (low fee), 146 (high fee)' },
+    note:'whiskers &plusmn;1 SE; n = 167 (low fee), 146 (high fee)' },
   { title:'Advice frequency by retention', info:'retention', hyp:'Exploratory', axis:'share of grids advised',
     take:'<b>Reward activity.</b> Clients keep advisors who advise more often: retained advisors advised on 60% of grids, fired ones on 50%.',
     xlab:'Client’s decision', ymax:1, fmt:PCT,
     bars:[{lab:'Kept', col:KEPTCOL, m:0.5959, se:0.0253},
           {lab:'Fired', col:FIREDCOL, m:0.5000, se:0.0358}],
-    note:'n = 98 (kept), 52 (fired); REP treatment' },
+    note:'whiskers &plusmn;1 SE; n = 98 (kept), 52 (fired); REP treatment' },
   { title:'Advice shift by retention', info:'sanction', hyp:'Exploratory', axis:'mean shift from client’s guess (dots)',
     take:'<b>Punish big moves.</b> Clients fire advisors who suggest bold shifts from their first guess: 14.7 dots for fired vs 9.3 for retained advisors.',
     xlab:'Client’s decision', ymax:20, fmt:INT, fmtBar:DEC1,
     bars:[{lab:'Kept', col:KEPTCOL, m:9.2540, se:0.5311},
           {lab:'Fired', col:FIREDCOL, m:14.6687, se:1.5402}],
-    note:'n = 98 (kept), 52 (fired); REP treatment' }
+    note:'whiskers &plusmn;1 SE; n = 98 (kept), 52 (fired); REP treatment' }
 ];
 
 (function renderCharts(){

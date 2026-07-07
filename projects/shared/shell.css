@@ -102,18 +102,41 @@
     flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
   }
   .topbar.is-stuck .topbar-title { opacity:1; transform:none; }
-  /* left-aligned "back to homepage" link. Always visible once the bar sticks;
-     mirrors the nav-link treatment in BOTH states (merged-with-hero + stuck). */
-  .topbar-home {
-    font-size:.86rem; font-weight:600; text-decoration:none; white-space:nowrap;
-    color:rgba(255,255,255,0.86); padding:8px 14px; border-radius:9px;
-    display:inline-flex; align-items:center; gap:6px;
-    transition:background .15s, color .15s, box-shadow .15s;
+  /* left corner: the site identity, exactly as the main navbar carries it —
+     "JULIAN TAIT" wordmark linking home, plus a small set of main-site links.
+     Both take the light treatment while merged with the hero and return to
+     ink once the bar sticks. */
+  .topbar-brand {
+    font-size:.82rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    text-decoration:none; white-space:nowrap; color:rgba(255,255,255,0.92);
+    transition:color .15s;
   }
-  .topbar-home .hh-arrow { font-size:1em; line-height:1; }
-  .topbar:not(.is-stuck) .topbar-home { background:rgba(255,255,255,0.12); box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18); }
-  .topbar.is-stuck .topbar-home { color:var(--ink-soft); }
-  .topbar-home:hover { background:#fff; color:var(--ink); box-shadow:var(--shadow-sm); }
+  .topbar.is-stuck .topbar-brand { color:var(--ink); }
+  .topbar-brand:hover { color:var(--accent-2); }
+  .topbar.is-stuck .topbar-brand:hover { color:var(--accent); }
+
+  /* NB: selectors carry the extra .topbar class (and explicit background /
+     box-shadow resets) so they outrank the generic ".topbar nav (a)" pill
+     rules below, which also match this nav */
+  .topbar .topbar-mainnav { display:flex; align-items:center; gap:16px; margin-left:10px; }
+  .topbar .topbar-mainnav a, .topbar:not(.is-stuck) .topbar-mainnav a {
+    position:relative; font-size:.76rem; font-weight:500; letter-spacing:.02em;
+    text-transform:uppercase; text-decoration:none; white-space:nowrap;
+    color:rgba(255,255,255,0.72); padding:8px 0; border-radius:0;
+    background:none; box-shadow:none; transition:color .15s;
+  }
+  .topbar.is-stuck .topbar-mainnav a { color:var(--ink-soft); background:none; box-shadow:none; }
+  .topbar .topbar-mainnav a:hover { color:#fff; background:none; box-shadow:none; }
+  .topbar.is-stuck .topbar-mainnav a:hover { color:var(--accent); background:none; box-shadow:none; }
+  .topbar .topbar-mainnav a.active,
+  .topbar:not(.is-stuck) .topbar-mainnav a.active { font-weight:600; background:none; box-shadow:none; color:rgba(255,255,255,0.92); }
+  .topbar.is-stuck .topbar-mainnav a.active { color:var(--ink); }
+  /* the main site's active marker: a short centred accent bar */
+  .topbar .topbar-mainnav a.active::after {
+    content:""; position:absolute; left:50%; bottom:2px; width:20px; height:2px;
+    transform:translateX(-50%); border-radius:999px; background:rgba(255,255,255,0.85);
+  }
+  .topbar.is-stuck .topbar-mainnav a.active::after { background:var(--accent); }
   .topbar nav { margin-left:auto; display:flex; gap:6px; }
   .topbar nav a {
     font-size:.86rem; font-weight:600; text-decoration:none; color:rgba(255,255,255,0.86);
@@ -129,11 +152,13 @@
   .topbar.is-stuck nav a { color:var(--ink-soft); }
   .topbar nav a:hover { background:#fff; color:var(--ink); box-shadow:var(--shadow-sm); }
   .topbar nav a.active { background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.30); }
-  /* phone widths: compact the bar's fixed members so they fit beside the
-     (truncating) title */
+  /* narrow widths: drop the main-site links (the wordmark still links home)
+     and compact the remaining members so they fit beside the truncating title */
+  @media (max-width:700px) {
+    .topbar .topbar-mainnav { display:none; }
+  }
   @media (max-width:560px) {
     .topbar-inner { padding:10px 14px; gap:10px; }
-    .topbar-home { padding:8px 10px; font-size:.8rem; }
     .topbar nav a { padding:8px 10px; font-size:.8rem; }
   }
 

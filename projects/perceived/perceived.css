@@ -63,8 +63,6 @@
     font-weight:700; color:var(--B); line-height:1.15; margin-bottom:3px;
   }
 
-  .fee-legend { font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center; }
-  .fee-legend span { display:inline-block; margin:0 9px; }
 
   /* ===================== PLAY OVERLAY (full-screen pop-up) ===================== */
   /* pattern mirrors experts/#game-overlay: fixed takeover, dim backdrop, card

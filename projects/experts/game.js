@@ -446,6 +446,8 @@
   }
   window.__gameOpen = openOverlay;
   window.__gameClose = closeOverlay;
+  // honour a deep link straight into the game (e.g. /projects/experts/#game)
+  if (location.hash === '#game') openOverlay();
   // read-only snapshot for E2E tests (in-memory only; no behaviour/persistence change)
   window.__gameState = function(){
     return {

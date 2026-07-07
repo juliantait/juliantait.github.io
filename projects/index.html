@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/projects/shared/shell.css?v=11">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=12">
 <style>
   /* ==========================================================================
      PROJECTS INDEX (unlisted) — page-specific styles on top of shell.css.
@@ -16,9 +16,6 @@
      plus the two colours the project pages already use for "warning/red"
      (#b4453f, cf. correlated-beliefs) and "fee gold" (#d1971b, cf. perceived).
      ========================================================================== */
-
-  .index-lead { max-width:70ch; font-size:.95rem; color:var(--ink-soft); margin:6px 0 4px; }
-  .index-lead b { color:var(--ink); }
 
   .pgrid { display:grid; grid-template-columns:repeat(2, 1fr); gap:24px; margin-top:20px; }
 
@@ -66,20 +63,16 @@
     display:block; font-size:.64rem; font-weight:700; letter-spacing:.13em;
     text-transform:uppercase; color:var(--accent); margin-bottom:3px;
   }
-  .pcard-go {
-    margin-top:auto; padding-top:15px;
-    display:inline-flex; align-items:center; gap:7px;
-    font-size:.86rem; font-weight:700; color:var(--accent);
+  /* --- pill buttons into the project's views --- */
+  .pcard-actions { margin-top:auto; padding-top:16px; display:flex; flex-wrap:wrap; gap:9px; }
+  .pill-btn {
+    display:inline-flex; align-items:center; text-decoration:none;
+    font-size:.82rem; font-weight:700; color:var(--accent);
+    border:1px solid var(--accent); border-radius:999px; padding:7px 16px;
+    transition:background .15s, color .15s, box-shadow .15s;
   }
-  .pcard-go .arr { transition:transform .2s ease; }
-  .pcard:hover .pcard-go .arr { transform:translateX(5px); }
-
-  /* --- under-construction ribbon (mistakes) --- */
-  .wip-badge {
-    position:absolute; top:14px; right:14px; z-index:2;
-    font-size:.64rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-    color:#8a6410; background:#fdf4dd; border:1px dashed #e3c26a; border-radius:999px;
-    padding:4px 11px;
+  .pill-btn:hover, .pill-btn:focus-visible {
+    background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.30);
   }
 
   /* ==========================================================================
@@ -130,35 +123,30 @@
 <!-- ===================== SHARED SHELL ===================== -->
 <header class="hero" id="hero">
   <div class="hero-inner">
-    <div class="eyebrows">
-      <span class="eyebrow">JULIAN TAIT</span>
-      <span class="eyebrow">INTERACTIVE COMPANIONS</span>
-    </div>
     <h1 class="hero-title">Projects</h1>
-    <p class="hero-sub">Research you can play with</p>
-    <p class="hero-context">Each paper gets an interactive companion page &mdash; models you can solve, experiments you can run on yourself, simulations you can break.</p>
   </div>
 </header>
 <div id="hdr-sentinel" aria-hidden="true"></div>
 
 <div class="topbar" id="topbar">
   <div class="topbar-inner">
-    <a class="topbar-home" href="/"><span class="hh-arrow" aria-hidden="true">&larr;</span> Home</a>
-    <span class="topbar-title">Projects</span>
-    <nav>
-      <a href="/research.html">The papers behind them</a>
+    <a class="topbar-brand" href="/">Julian Tait</a>
+    <nav class="topbar-mainnav" aria-label="Site">
+      <a href="/">Home</a>
+      <a href="/research.html">Research</a>
+      <a href="/projects/" class="active">Projects</a>
     </nav>
+    <span class="topbar-title">Projects</span>
+    <nav></nav>
   </div>
 </div>
 
 <main class="wrap">
 
-  <p class="index-lead">Four situations from the research: <b>a speaker</b> whose opinion gives them away, <b>an advisor</b> whose fee may colour their advice, <b>a group</b> that must find its one true expert, and <b>a team member</b> deciding whether to own up to a slip. Hover a card &mdash; each sketch acts out its situation.</p>
-
   <div class="pgrid">
 
     <!-- ============ 1. CORRELATED BELIEFS — The Unprotected Majority ============ -->
-    <a class="pcard" href="/projects/correlated-beliefs/">
+    <div class="pcard">
       <div class="pcard-sketch">
         <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: a person says 'I believe X'; an observer pictures the same person coloured red in a thought bubble — inferring their identity from the opinion.">
           <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -192,12 +180,15 @@
         <h2 class="pcard-title">The Unprotected Majority</h2>
         <p class="pcard-sub">How identity inference silences mainstream opinions</p>
         <p class="pcard-q"><span class="q-label">Research question</span>When voicing an opinion lets listeners infer which group you belong to, can that inference silence even mainstream, majority-held views?</p>
-        <span class="pcard-go">Explore the model &amp; stimuli <span class="arr">&rarr;</span></span>
+        <div class="pcard-actions">
+          <a class="pill-btn" href="/projects/correlated-beliefs/#stimuli">Explore the experiment</a>
+          <a class="pill-btn" href="/projects/correlated-beliefs/#model">Explore the model</a>
+        </div>
       </div>
-    </a>
+    </div>
 
     <!-- ============ 2. PERCEIVED — Perceived Value for Money ============ -->
-    <a class="pcard" href="/projects/perceived/">
+    <div class="pcard">
       <div class="pcard-sketch">
         <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: an advisor gives advice in a speech bubble while a fee coin travels from the client, who weighs the advice on a small balance scale.">
           <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -243,12 +234,14 @@
         <h2 class="pcard-title">Perceived Value for Money</h2>
         <p class="pcard-sub">An experiment on advice-giving</p>
         <p class="pcard-q"><span class="q-label">Research question</span>Does paying an advisor a higher fee push them to distort their advice to signal value &mdash; or does the fee only change how the client responds to it?</p>
-        <span class="pcard-go">Explore the results &amp; play the task <span class="arr">&rarr;</span></span>
+        <div class="pcard-actions">
+          <a class="pill-btn" href="/projects/perceived/">Explore the experiment</a>
+        </div>
       </div>
-    </a>
+    </div>
 
     <!-- ============ 3. EXPERTS — Experts and Dispersed Information ============ -->
-    <a class="pcard" href="/projects/experts/">
+    <div class="pcard">
       <div class="pcard-sketch">
         <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: a row of five identical-looking people with question marks above them; one of them is the hidden true expert, revealed by a lit bulb.">
           <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -286,13 +279,15 @@
         <h2 class="pcard-title">Experts and Dispersed Information</h2>
         <p class="pcard-sub">Error rates and confidence in expert vs novice judgement</p>
         <p class="pcard-q"><span class="q-label">Research question</span>When one member of a group has far more data than the rest, how do their mistakes and confidence diverge &mdash; and does the group weight its hidden expert enough?</p>
-        <span class="pcard-go">Explore the simulator <span class="arr">&rarr;</span></span>
+        <div class="pcard-actions">
+          <a class="pill-btn" href="/projects/experts/">Explore the simulation</a>
+          <a class="pill-btn" href="/projects/experts/#game">Play the game</a>
+        </div>
       </div>
-    </a>
+    </div>
 
-    <!-- ============ 4. MISTAKES — Admit or Omit (under construction) ============ -->
-    <a class="pcard" href="/projects/mistakes/">
-      <span class="wip-badge">Page under construction</span>
+    <!-- ============ 4. MISTAKES — Admit or Omit ============ -->
+    <div class="pcard">
       <div class="pcard-sketch">
         <svg class="sk" viewBox="0 0 300 150" role="img" aria-label="Sketch: a team member holding a flawed document chooses between a speech bubble admitting it to the team and a faded hidden bubble concealing it.">
           <g fill="none" stroke="#1d2433" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -334,10 +329,13 @@
         <div class="pcard-tags"><span>Experiment</span><span>with R. Sloof &amp; J. van de Ven</span></div>
         <h2 class="pcard-title">Admit or Omit</h2>
         <p class="pcard-sub">Hiding mistakes in teams</p>
-        <p class="pcard-q"><span class="q-label">Research question</span>When a team member slips up, what determines whether they admit the mistake or quietly omit it &mdash; and what does concealment cost the team?</p>
-        <span class="pcard-go">Interactive page coming shortly <span class="arr">&rarr;</span></span>
+        <p class="pcard-q"><span class="q-label">Research question</span>How the size of a mistake features in the decision whether to admit to it and the resulting punishment in team settings.</p>
+        <div class="pcard-actions">
+          <a class="pill-btn" href="/projects/mistakes/">Explore the experiment</a>
+          <a class="pill-btn" href="/projects/mistakes/model.html">Explore the model</a>
+        </div>
       </div>
-    </a>
+    </div>
 
   </div>
 </main>
