@@ -172,7 +172,13 @@ function mixturePdf(z, mu, n, sigma) {
 // ============ State / DOM ============
 
 const $ = (id) => document.getElementById(id);
-let candCount = 3;
+// Initial #states comes from the segmented control's .active button so the JS
+// state always matches the HTML default (which ships as the 2-state design);
+// a hardcoded value here silently diverges when the HTML default changes.
+let candCount = (() => {
+  const act = document.querySelector('#seg-count button.active');
+  return act ? parseInt(act.dataset.k, 10) : 3;
+})();
 // Caches so switching nav views can redraw canvases at the now-visible
 // width without resampling (Monte-Carlo data only changes on a Go press).
 let lastRender = null, lastExamples = null;
@@ -189,6 +195,10 @@ function timedRecompute(silent) {
   $('sim-timer').textContent = formatDuration(t1 - t0);
   return result;
 }
+
+// apply the initial #states to the β₃/π₃ inputs (hidden in the 2-state design)
+$('b3-group').classList.toggle('hidden', candCount !== 3);
+$('p3-group').classList.toggle('hidden', candCount !== 3);
 
 document.querySelectorAll('#seg-count button').forEach(b => {
   b.addEventListener('click', () => {
