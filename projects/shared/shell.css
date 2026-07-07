@@ -178,6 +178,9 @@
   }
   .hyp-text { font-size:.88rem; line-height:1.6; color:var(--muted); }
   .hyp-text b { color:var(--ink-soft); }
+  /* bullet variant: telegraphic, skimmable */
+  ul.hyp-text { margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px; }
+  ul.hyp-text li::marker { color:var(--accent); }
   /* the results-summary card mirrors the hypothesis card with a muted tag */
   .hyp-tag.results { background:var(--ink-soft); }
 

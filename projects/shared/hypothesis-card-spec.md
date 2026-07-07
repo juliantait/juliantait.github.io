@@ -16,8 +16,12 @@ not restyle locally.
   </div>
   <p class="hyp-text">A few plain sentences stating what was expected and why,
   sourced from the paper or design docs. Highlight the key phrases with
-  <b>bold</b> (3&ndash;6 highlights; the styling recolours them slightly darker).
-  No em dashes.</p>
+  <b>bold</b> (3&ndash;6 highlights; the styling recolours them slightly darker).</p>
+  <!-- OR, the skimmable variant: telegraphic bullets, same class on a <ul> -->
+  <ul class="hyp-text">
+    <li>Essentials only, one clause per bullet, <b>bold key phrases</b>.</li>
+    <li>Keep H labels where they exist: e.g. <b>advise more often</b> (H1a).</li>
+  </ul>
 </section>
 
 <!-- RESULTS SUMMARY (same shape, muted tag) -->

@@ -50,16 +50,46 @@
       <span class="hyp-tag">Hypothesis</span>
       <span class="hyp-headline">The costlier the mistake, the more it should be hidden.</span>
     </div>
-    <p class="hyp-text">The expectation, following theories of blame in which anger scales with the earnings an action destroys: the bigger the payoff a mistake wipes out, the more the manager <b>blames</b> the worker, and the harder the worker is <b>punished for owning up</b>. A worker who has slipped up faces a trade-off. <b>Hiding</b> the mistake forfeits the recovery the manager could make by switching to the backup project, a cost spread over the whole team; <b>admitting</b> it invites blame, a cost borne alone. Only the blame side grows with the stakes, so <b>raising the payoff of success should tip the trade-off towards silence</b>: harsher punishment of reporters, and fewer mistakes disclosed (Proposition&nbsp;1 on the model page). The uncomfortable implication the experiments were built to test is that <b>concealment should be most common precisely when disclosure is most valuable</b>.</p>
+    <p class="hyp-text">
+      Everyone slips up. Owning up lets the damage be fixed; the whole team gains.<br>
+      But the one who confesses <b>takes the blame alone</b>.<br>
+      The more money a mistake burns, the angrier the manager: <b>bigger stakes, harsher punishment</b> for owning up.<br>
+      Workers see that coming: <b>the higher the stakes, the more they should hide</b>.<br>
+      The twist being tested: <b>silence should peak exactly when honesty is worth most</b>.
+    </p>
   </section>
 
-  <!-- RESULTS SUMMARY -->
+  <!-- RESULTS AT A GLANCE -->
   <section class="panelcard hyp-card">
     <div class="hyp-head">
       <span class="hyp-tag results">Results</span>
       <span class="hyp-headline">Only hypothetical stakes ever mattered.</span>
     </div>
-    <p class="hyp-text">In a hypothetical vignette the prediction held: the same disclosed mistake drew <b>more blame and a $248 deeper bonus cut</b> when more money was at stake. In the lab, with real money and real teammates &ndash; twice, at very different intensities &ndash; <b>the stakes moved nothing</b>: workers hid <b>a third of their mistakes</b> in Experiment&nbsp;1 and <b>43%</b> in Experiment&nbsp;2 whether success paid little or a lot, and punishment did not scale either. What the lab did expose is an <b>honesty penalty</b>: owning up costs a worker about <b>&euro;0.14 extra punishment</b>, and a sole discloser is punished roughly <b>six times more than the silent teammate</b> beside them (&euro;0.54 vs &euro;0.09; &euro;1.99 vs &euro;0.41 with the higher cap), even though disclosure raises everyone&rsquo;s pay. Silence free-rides on a colleague&rsquo;s honesty, and hiding worsens over the rounds. The results page holds the full figures; the model page holds the theory and an interactive equilibrium explorer.</p>
+    <p class="hyp-text">
+      Workers hid <b>a third of their mistakes</b>; with a bigger punishment stick, <b>43%</b>.<br>
+      <b>Raising the stakes changed nothing</b>: not the hiding, not the punishment. Tested twice, real money.<br>
+      Only the hypothetical version behaved: on paper, judges <b>cut the confessor&rsquo;s bonus harder</b> when more was at stake.<br>
+      The catch in the lab: whoever <b>owns up alone eats nearly all the punishment</b>; the quiet teammate walks away.<br>
+      And practice makes it worse: <b>hiding rises round after round</b>.
+    </p>
+    <div class="chartgrid cols3" id="glance-charts"></div>
+    <p class="chart-legend">
+      <span><span class="sw" style="background:#64748b"></span>Low stakes</span>
+      <span><span class="sw" style="background:#d1971b"></span>High stakes</span>
+      <span><span class="sw" style="background:#b4342d"></span>Owned up</span>
+      <span><span class="sw" style="background:#1f78b4"></span>Stayed quiet</span>
+      <span>whiskers = &plusmn;1 SE where shown</span>
+    </p>
+  </section>
+
+  <!-- GO DEEPER -->
+  <section class="panelcard">
+    <div class="block-head">
+      <span class="block-tag results">Go deeper</span>
+      <span class="block-headline">The full story, on two pages.</span>
+    </div>
+    <p class="card-note"><b>Results</b> &ndash; every figure with its tests: the hypothetical study, both lab experiments, who gets punished when, and hiding over time.<br>
+    <b>Model</b> &ndash; the theory behind the prediction, plus an interactive explorer: set the stakes and the manager&rsquo;s temper, watch honesty respond.</p>
     <div class="pill-row">
       <a class="pill-btn" href="results.html">Explore the results</a>
       <a class="pill-btn" href="model.html">Explore the model</a>
@@ -68,6 +98,93 @@
 
 </main>
 <script>
+"use strict";
+/* =====================================================================
+   RESULTS AT A GLANCE – three small figures (same chart primitive as
+   results.html). Values are the exact estimates computed from the
+   cleaned data (hiding and punishment: matching-group means, mirroring
+   the paper's results scripts); the vignette bonuses are quoted from
+   the paper (no raw vignette data in this repository, so no whiskers).
+   ===================================================================== */
+var LOWCOL = '#64748b', HIGHCOL = '#d1971b';
+var SILENTCOL = '#1f78b4', DISCLCOL = '#b4342d';
+
+function seChart(o){
+  var W = o.W || 280, H = o.H || 224, padL = 46, padR = 12, padT = 18, padB = 54;
+  var pw = W-padL-padR, ph = H-padT-padB, ymin = o.ymin||0, ymax = o.ymax;
+  function Y(v){ return padT + ph*(ymax - v)/(ymax - ymin); }
+  var s = ['<svg viewBox="0 0 '+W+' '+H+'" font-family="inherit" role="img" aria-label="'+(o.aria||o.axis)+'">'];
+  for(var k=0;k<=4;k++){
+    var v = ymin + (ymax-ymin)*k/4, yy = Y(v);
+    s.push('<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#eee"/>');
+    s.push('<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#999">'+o.fmt(v)+'</text>');
+  }
+  if(o.ref != null){
+    s.push('<line x1="'+padL+'" y1="'+Y(o.ref)+'" x2="'+(W-padR)+'" y2="'+Y(o.ref)+'" stroke="#8a93a6" stroke-width="1.3" stroke-dasharray="5 4"/>');
+  }
+  var slot = pw/o.bars.length, bw = slot*(o.barw||0.40), fmtBar = o.fmtBar || o.fmt;
+  o.bars.forEach(function(b, i){
+    var cx = padL + slot*(i+0.5), x = cx - bw/2;
+    var y0 = Y(Math.max(0, ymin)), yv = Y(b.m);
+    s.push('<rect x="'+x+'" y="'+Math.min(yv,y0)+'" width="'+bw+'" height="'+Math.abs(y0-yv)+'" rx="2" fill="'+b.col+'" stroke="#0002"/>');
+    if(b.se){
+      var yhi = Y(b.m + b.se), ylo = Y(b.m - b.se), cw = bw*0.34;
+      s.push('<line x1="'+cx+'" y1="'+yhi+'" x2="'+cx+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+      s.push('<line x1="'+(cx-cw)+'" y1="'+yhi+'" x2="'+(cx+cw)+'" y2="'+yhi+'" stroke="#33384a" stroke-width="1.4"/>');
+      s.push('<line x1="'+(cx-cw)+'" y1="'+ylo+'" x2="'+(cx+cw)+'" y2="'+ylo+'" stroke="#33384a" stroke-width="1.4"/>');
+    }
+    var ytxt = Y(b.m + (b.se||0)) - 6;
+    s.push('<text x="'+cx+'" y="'+ytxt+'" text-anchor="middle" font-size="11" font-weight="700" fill="#333">'+fmtBar(b.m)+'</text>');
+    String(b.lab).split('\n').forEach(function(L, li){
+      s.push('<text x="'+cx+'" y="'+(padT+ph+15+li*11)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#555">'+L+'</text>');
+    });
+  });
+  s.push('<text x="'+(padL+pw/2)+'" y="'+(padT+ph+40)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#888">'+(o.xlab||'')+'</text>');
+  s.push('<text transform="translate(12,'+(padT+ph/2)+') rotate(-90)" text-anchor="middle" font-size="10" fill="#888">'+o.axis+'</text>');
+  s.push('</svg>');
+  return s.join('');
+}
+var PCT = function(v){ return Math.round(v*100)+'%'; };
+var EUR2 = function(v){ return '€'+v.toFixed(2); };
+var USD = function(v){ return '$'+Math.round(v).toLocaleString('en-US'); };
+
+var GLANCE = [
+  { title:'Mistakes hidden', verdict:'stakes: no effect',
+    info:['Mistakes hidden', 'The share of mistakes workers kept from the manager, under low and high stakes. Averages over 24 (Experiment 1) and 12 (Experiment 2) independent groups of participants; whiskers are plus or minus one standard error. Neither difference is statistically distinguishable from zero. Full tests on the results page.'],
+    axis:'share of mistakes hidden', xlab:'', ymax:0.6, fmt:PCT,
+    aria:'Share of mistakes hidden under low and high stakes in both experiments',
+    bars:[{lab:'Low\nExp 1', col:LOWCOL,  m:0.334264, se:0.034189},
+          {lab:'High\nExp 1', col:HIGHCOL, m:0.350022, se:0.028887},
+          {lab:'Low\nExp 2', col:LOWCOL,  m:0.423594, se:0.054240},
+          {lab:'High\nExp 2', col:HIGHCOL, m:0.438444, se:0.054854}],
+    note:'24 groups (Exp 1), 12 groups (Exp 2) per bar' },
+  { title:'The price of owning up', verdict:'the honesty penalty',
+    info:['The price of owning up', 'Experiment 1, rounds where the team made a mistake and exactly one worker owned up: the punishment of the worker who confessed versus the teammate who stayed quiet beside them. Group-collapsed averages over 24 groups; whiskers plus or minus one standard error. With the higher punishment cap of Experiment 2 the gap is €1.99 versus €0.41.'],
+    axis:'punishment received (€)', xlab:'when one worker owns up (Exp 1)', ymax:0.8, fmt:EUR2, fmtBar:EUR2, barw:0.5,
+    aria:'Punishment of the worker who owned up versus the quiet teammate',
+    bars:[{lab:'owned up', col:DISCLCOL, m:0.541910, se:0.054603},
+          {lab:'stayed quiet', col:SILENTCOL, m:0.087126, se:0.027087}],
+    note:'24 groups per bar; Exp 2: €1.99 vs €0.41' },
+  { title:'Only on paper did stakes bite', verdict:'hypothetical study',
+    info:['Hypothetical study', 'A separate online study: 244 participants judged a described mechanic who owned up to a mistake, and set a bonus anchored on $1,000 as the average. The cut for the same confessed mistake deepens when the money at stake rises from $600 to $10,000. Values are quoted from the paper; the raw data for this study are not in this repository, so no whiskers are shown.'],
+    axis:'bonus for a confessed mistake ($)', xlab:'money at stake', ymax:1400, fmt:USD, fmtBar:USD, ref:1000, barw:0.5,
+    aria:'Hypothetical bonus after a confessed mistake, by stakes',
+    bars:[{lab:'$600', col:LOWCOL, m:874, se:0},
+          {lab:'$10,000', col:HIGHCOL, m:674, se:0}],
+    note:'244 participants; dashed line = $1,000 anchor' }
+];
+
+(function renderGlance(){
+  document.getElementById('glance-charts').innerHTML = GLANCE.map(function(c){
+    return '<div class="minichart">'+
+      '<div class="mc-title">'+c.title+' '+InfoCard.buttonHTML(c.info[0], c.info[1])+'</div>'+
+      '<div class="mc-hyp">'+c.verdict+'</div>'+
+      seChart(c)+
+      '<div class="mc-note">'+c.note+'</div>'+
+    '</div>';
+  }).join('');
+})();
+
 /* legacy deep links: the old single-page views lived at #results / #model */
 (function(){
   var h = (location.hash || '').replace(/^#/, '');
