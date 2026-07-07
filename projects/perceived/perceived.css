@@ -203,3 +203,8 @@
     #play-overlay .pg-side .kpis { flex-direction:row; }
     #play-overlay .pg-mid .reveal { min-height:0; }
   }
+
+/* ---- hypothesis card (index page): the pre-registered bullets read larger
+   than the shared .hyp-text base in shell.css — same colours, markers and
+   spacing rhythm, just more presence ---- */
+.hyp-text.hyp-text-lg { font-size:1.02rem; line-height:1.6; gap:7px; }
