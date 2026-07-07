@@ -75,6 +75,12 @@
   /* ===== primitive distributions — base parameters inside the utility card ===== */
   .dist-block { margin-top:16px; padding-top:14px; border-top:1px solid var(--line-soft); }
   .dist-head { display:flex; align-items:center; gap:9px; }
+  /* collapsible primitives: plain <details>, custom caret, no native marker */
+  details.dist-block > summary.dist-head { cursor:pointer; list-style:none; }
+  details.dist-block > summary.dist-head::-webkit-details-marker { display:none; }
+  .dist-caret { color:var(--muted); font-size:.8rem; transition:transform .18s ease; }
+  details.dist-block[open] .dist-caret { transform:rotate(90deg); }
+  details.dist-block > summary.dist-head:hover .sub-title { color:var(--accent); }
   .dist-note { font-size:.8rem; color:var(--muted); margin:5px 0 12px; line-height:1.6; }
   .dist-cols { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px 26px; }
 

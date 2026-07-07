@@ -53,6 +53,12 @@
     font-family:'Source Serif 4', Georgia, serif; font-size:1.4rem; font-weight:700;
     letter-spacing:-0.015em; line-height:1.15; color:var(--ink);
   }
+  /* stretched link: the title's anchor covers the whole card, so anywhere on
+     the card opens the project's main view; the pills sit ABOVE the overlay
+     (z-index) as real links, so a pill click never also fires the card link */
+  .pcard-link { color:inherit; text-decoration:none; }
+  .pcard-link::after { content:""; position:absolute; inset:0; }
+  .pcard-actions { position:relative; z-index:2; }
   .pcard-sub { font-size:.88rem; color:var(--muted); margin-top:3px; }
   .pcard-q {
     margin-top:13px; padding:10px 14px 11px;
@@ -133,8 +139,6 @@
     <a class="topbar-brand" href="/">Julian Tait</a>
     <nav class="topbar-mainnav" aria-label="Site">
       <a href="/">Home</a>
-      <a href="/research.html">Research</a>
-      <a href="/projects/" class="active">Projects</a>
     </nav>
     <span class="topbar-title">Projects</span>
     <nav></nav>
@@ -177,7 +181,7 @@
       </div>
       <div class="pcard-body">
         <div class="pcard-tags"><span>Experiment</span><span>Theory</span></div>
-        <h2 class="pcard-title">The Unprotected Majority</h2>
+        <h2 class="pcard-title"><a class="pcard-link" href="/projects/correlated-beliefs/">The Unprotected Majority</a></h2>
         <p class="pcard-sub">How identity inference silences mainstream opinions</p>
         <p class="pcard-q"><span class="q-label">Research question</span>When voicing an opinion lets listeners infer which group you belong to, can that inference silence even mainstream, majority-held views?</p>
         <div class="pcard-actions">
@@ -231,9 +235,9 @@
       </div>
       <div class="pcard-body">
         <div class="pcard-tags"><span>Experiment</span><span>with R. Sloof &amp; J. van de Ven</span></div>
-        <h2 class="pcard-title">Perceived Value for Money</h2>
+        <h2 class="pcard-title"><a class="pcard-link" href="/projects/perceived/">Perceived Value for Money</a></h2>
         <p class="pcard-sub">An experiment on advice-giving</p>
-        <p class="pcard-q"><span class="q-label">Research question</span>Does paying an advisor a higher fee push them to distort their advice to signal value &mdash; or does the fee only change how the client responds to it?</p>
+        <p class="pcard-q"><span class="q-label">Research question</span>Does paying an advisor a higher fee push them to distort their advice to signal value?</p>
         <div class="pcard-actions">
           <a class="pill-btn" href="/projects/perceived/">Explore the experiment</a>
         </div>
@@ -276,7 +280,7 @@
       </div>
       <div class="pcard-body">
         <div class="pcard-tags"><span>Experiment</span><span>Simulation &amp; game</span></div>
-        <h2 class="pcard-title">Experts and Dispersed Information</h2>
+        <h2 class="pcard-title"><a class="pcard-link" href="/projects/experts/">Experts and Dispersed Information</a></h2>
         <p class="pcard-sub">Error rates and confidence in expert vs novice judgement</p>
         <p class="pcard-q"><span class="q-label">Research question</span>When one member of a group has far more data than the rest, how do their mistakes and confidence diverge &mdash; and does the group weight its hidden expert enough?</p>
         <div class="pcard-actions">
@@ -327,9 +331,9 @@
       </div>
       <div class="pcard-body">
         <div class="pcard-tags"><span>Experiment</span><span>with R. Sloof &amp; J. van de Ven</span></div>
-        <h2 class="pcard-title">Admit or Omit</h2>
+        <h2 class="pcard-title"><a class="pcard-link" href="/projects/mistakes/">Admit or Omit</a></h2>
         <p class="pcard-sub">Hiding mistakes in teams</p>
-        <p class="pcard-q"><span class="q-label">Research question</span>How the size of a mistake features in the decision whether to admit to it and the resulting punishment in team settings.</p>
+        <p class="pcard-q"><span class="q-label">Research question</span>How does the size of a mistake feature in the decision whether to admit to it, and in the resulting punishment, in team settings?</p>
         <div class="pcard-actions">
           <a class="pill-btn" href="/projects/mistakes/">Explore the experiment</a>
           <a class="pill-btn" href="/projects/mistakes/model.html">Explore the model</a>

@@ -32,9 +32,8 @@
   <div class="topbar-inner">
     <a class="topbar-brand" href="/">Julian Tait</a>
     <nav class="topbar-mainnav" aria-label="Site">
-      <a href="/">Home</a>
-      <a href="/research.html">Research</a>
       <a href="/projects/">Projects</a>
+      <a href="/">Home</a>
     </nav>
     <span class="topbar-title">The Unprotected Majority</span>
     <nav>
@@ -204,15 +203,18 @@
 
     <p class="util-foot" id="utility-foot"></p>
 
-    <!-- Primitive distributions — the base parameters, folded into this block -->
-    <div class="dist-block">
-      <div class="dist-head">
+    <button class="go" onclick="run()">Solve &amp; render &#9654;</button>
+
+    <!-- Primitive distributions — collapsed by default at the bottom of the card -->
+    <details class="dist-block">
+      <summary class="dist-head">
         <h3 class="sub-title">Primitive distributions</h3>
         <span class="ic-host">
           <button type="button" class="ic-btn" aria-expanded="false" aria-label="About the canonical model" data-ic-content="pop-canon">i</button>
           <span id="pop-canon" hidden><strong>Canonical model.</strong> Heterogeneity in both primitives &mdash; expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code> and inference sensitivity <code>c<sub>i</sub>&sim;Exp(1)</code> (Bayesian observer); solves the Perfect Bayesian Equilibrium silence rule <code>m=t &hArr; v<sub>i</sub> &gt; c<sub>i</sub>&Delta;L<sub>g,t</sub></code> numerically.</span>
         </span>
-      </div>
+        <span class="dist-caret" aria-hidden="true">&#9656;</span>
+      </summary>
       <p class="dist-note">The population primitives behind every solve: expressive value <code>v<sub>i</sub>&sim;N(&mu;<sub>v</sub>,&sigma;<sub>v</sub><sup>2</sup>)</code>, inference sensitivity <code>c<sub>i</sub>&sim;Exp</code> (scale on the identity-inference slider above), encounter disutility <code>e<sub>i</sub>&sim;Exp</code> (interaction-cost slider), and the group prior <code>&mu; = Pr(A)</code>.</p>
       <div class="dist-cols">
         <div class="slider-field">
@@ -228,9 +230,7 @@
           <input type="range" id="in-mu" min="0.05" max="0.95" step="0.01" value="0.5" oninput="syncSliders()">
         </div>
       </div>
-    </div>
-
-    <button class="go" onclick="run()">Solve &amp; render &#9654;</button>
+    </details>
   </section>
 
   <!-- ===================== RESULTS ===================== -->
