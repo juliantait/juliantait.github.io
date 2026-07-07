@@ -5,7 +5,7 @@
      Everything that is NOT part of the shared shell (shell.css): the model
      view's data-viz controls (trait-distribution bars, mechanism toggles,
      silence-count chips, chart sizing) and the entire Stimuli view layout
-     (section tags, table-card pattern, design cards, stimulus grid).
+     (section tags, design cards, stimulus grid).
      Loaded AFTER shell.css so these can lean on the shared tokens + components.
      ============================================================================ */
 
@@ -134,19 +134,6 @@
   #view-stimuli .section-note { font-size:0.9rem; color:var(--muted); margin-bottom:22px; }
   #view-stimuli .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
   #view-stimuli .card.pad { padding:22px 26px; }
-  #view-stimuli .table-card { margin-bottom:26px; overflow:hidden; }
-  #view-stimuli .table-card .table-head { padding:16px 26px; border-bottom:1px solid var(--line-soft); }
-  #view-stimuli .table-card .table-head h3 { font-size:0.95rem; font-weight:700; color:var(--ink); }
-  #view-stimuli .table-card .table-head p { font-size:0.82rem; color:var(--muted); margin-top:2px; }
-  #view-stimuli table { width:100%; border-collapse:collapse; }
-  #view-stimuli th, #view-stimuli td { padding:12px 26px; text-align:right; }
-  #view-stimuli th:first-child, #view-stimuli td:first-child { text-align:left; }
-  #view-stimuli thead th { font-size:0.7rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); }
-  #view-stimuli tbody td { font-size:0.92rem; font-variant-numeric:tabular-nums; border-bottom:1px solid var(--line-soft); color:var(--ink-soft); }
-  #view-stimuli tbody tr:last-child td { border-bottom:none; }
-  #view-stimuli tbody tr:hover td { background:#fafbff; }
-  #view-stimuli td.treat { font-weight:700; color:var(--ink); text-align:left; }
-  #view-stimuli td.treat .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:9px; vertical-align:middle; }
   #view-stimuli .dot.neutral { background:#94a3b8; }
   #view-stimuli .dot.majority { background:var(--accent); }
   #view-stimuli .dot.minority { background:var(--accent-2); }
@@ -169,7 +156,6 @@
   /* ---- interactive stimulus figures: each setting is its own coloured card ---- */
   #view-stimuli .stim-intro { margin-bottom:22px; }
   #view-stimuli .section-tag.s3 { background:#b4453f; }
-  #view-stimuli .table-card { margin-bottom:24px; }
 
   /* each SETTING wrapped in a coloured card container */
   #view-stimuli .domain-section {
@@ -217,6 +203,4 @@
   @media (max-width:720px) {
     #view-stimuli .stim-row { grid-template-columns:1fr; }
     #view-stimuli .design, #view-stimuli .card.pad { padding:18px; }
-    #view-stimuli th, #view-stimuli td { padding:11px 18px; }
-    #view-stimuli .table-card .table-head { padding:14px 18px; }
   }
