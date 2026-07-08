@@ -2,85 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- WORKING TITLE (easy to change): mirrored in the hero <h1>, the topbar
-     compact title, and the JS `TITLE` constant near the router below. -->
 <title>Experts and Dispersed Information</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
-<link rel="stylesheet" href="simulation.css?v=10">
-<link rel="stylesheet" href="game.css?v=9">
+<!-- TEMP: the overview page is out of circulation while coauthors use the
+     simulator; this file is a bare redirect. The full overview page is
+     recoverable from git history. -->
+<link rel="canonical" href="simulator.html">
+<meta http-equiv="refresh" content="0; url=simulator.html">
+<script>location.replace('simulator.html' + location.hash);</script>
 </head>
 <body>
-
-<!-- ===================== SHARED SHELL (persistent) ===================== -->
-<header class="hero" id="hero">
-  <div class="hero-inner">
-    <span class="eyebrow">EXPERIMENT</span>
-    <h1 class="hero-title">Experts and Dispersed Information</h1>
-    <p class="hero-sub">Error rates and confidence in expert versus novice judgement</p>
-  </div>
-</header>
-<div id="hdr-sentinel" aria-hidden="true"></div>
-
-<div class="topbar" id="topbar">
-  <div class="topbar-inner">
-    <!-- TEMP navigation island: site-wide links (brand home link + "All projects")
-         removed so coauthors stay within /projects/experts/. Restore from git
-         history when the page goes public again. -->
-    <span class="topbar-title">Experts and Dispersed Information</span>
-    <nav>
-      <a href="simulator.html">Simulator</a>
-      <a href="simulator.html#game">Game</a>
-    </nav>
-  </div>
-</div>
-
-<main class="wrap">
-
-  <!-- HYPOTHESIS -->
-  <section class="panelcard hyp-card">
-    <div class="hyp-head">
-      <span class="hyp-tag">Hypothesis</span>
-      <span class="hyp-headline">Confidence and accuracy should come apart.</span>
-    </div>
-    <ul class="hyp-text">
-      <li>Same task for everyone: judge whether a scatter plot slopes up or down &mdash; the <b>expert sees 80 points</b>, each <b>novice only 4</b>.</li>
-      <li>People judge by how <b>striking</b> a pattern looks, not by how much <b>data</b> sits behind it (Griffin &amp; Tversky).</li>
-      <li>Four dots often look like a clear trend &mdash; novices expected to be <b>confidently wrong</b> (misreading roughly 4 in 10).</li>
-      <li>The expert&rsquo;s trend hides in a cloud of 80 points &mdash; <b>right ~95% of the time, yet underconfident</b>.</li>
-      <li>Groups pooling these judgements expected to <b>under-weight their hidden expert</b>.</li>
-    </ul>
-  </section>
-
-  <!-- RESULTS SUMMARY -->
-  <section class="panelcard hyp-card">
-    <div class="hyp-head">
-      <span class="hyp-tag results">Results</span>
-      <span class="hyp-headline">The simulator makes the divergence visible, dot by dot.</span>
-    </div>
-    <p class="hyp-text">With the canonical two-state design (a slope of 0 or +0.2), the simulation puts the novice&rsquo;s error rate around <b>31%</b> against the expert&rsquo;s few percent, and the sampling distributions show why: the novice&rsquo;s estimate is diffuse where the expert&rsquo;s is sharp. The group panels then compare <b>precision weighting</b> (the optimal rule) with equal and behavioural weighting, making visible how much accuracy a group loses when it fails to find its expert. The simulator lets you rerun every panel under your own design; the game lets you <b>feel the novice&rsquo;s overconfidence</b> yourself.</p>
-    <div class="pill-row">
-      <a class="pill-btn" href="simulator.html">Explore the simulation</a>
-      <a class="pill-btn" href="simulator.html#game">Play the game</a>
-    </div>
-  </section>
-
-</main>
-<script>
-/* sticky header collapse: reveal compact title once the hero scrolls past */
-(function(){
-  var sentinel = document.getElementById('hdr-sentinel');
-  var topbar = document.getElementById('topbar');
-  if(sentinel && topbar && 'IntersectionObserver' in window){
-    new IntersectionObserver(function(entries){
-      topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
-    }, {threshold:0}).observe(sentinel);
-  }
-})();
-</script>
-
+<p>Redirecting to the <a href="simulator.html">simulator</a>&hellip;</p>
 </body>
 </html>
