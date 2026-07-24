@@ -119,7 +119,7 @@
   }
 
   .cv-embed {
-    height: 600px;
+    height: min(600px, 70vh);
   }
 }
 

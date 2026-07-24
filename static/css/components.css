@@ -12,10 +12,12 @@
   color: var(--accent-hover);
 }
 
-/* CV embed */
+/* CV embed - the PDF opens at page-width zoom (#view=FitH), so an A4 page is
+   taller than the frame either way; cap at 900px but let short viewports keep
+   the surrounding page usable instead of running off-screen. */
 .cv-embed {
   width: 100%;
-  height: 900px;
+  height: min(900px, 85vh);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   margin-top: var(--space-3);
