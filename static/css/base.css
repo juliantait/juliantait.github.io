@@ -34,6 +34,9 @@
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: 0.15s var(--transition-smooth);
   --transition-medium: 0.25s var(--transition-smooth);
+  /* Expand/collapse: ease-out, so the abstract panel - and the page scroll that
+     is stepped along the same curve - decelerates into its final position. */
+  --transition-expand: 0.34s cubic-bezier(0.215, 0.61, 0.355, 1);
 
   /* Nav background (used in nav-footer.css, needs to be a variable for dark mode) */
   --nav-bg: rgba(247, 248, 250, 0.95);

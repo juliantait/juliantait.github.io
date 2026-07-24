@@ -33,7 +33,6 @@
             <div class="publication-meta">
               <div class="publication-tags">
                 <span class="publication-tag">Experiment</span>
-                <span class="publication-tag">Theory</span>
               </div>
               <button class="abstract-toggle" type="button" tabindex="-1" aria-hidden="true">
                 Abstract
@@ -156,53 +155,240 @@
   <div data-footer></div>
   <script src="static/js/partials.js"></script>
   <script>
-    // Expandable abstract cards (disclosure pattern).
+    // Expandable abstract cards (accordion disclosure).
     // The whole publication card is the toggle; collapsed by default, we
-    // animate max-height for robust cross-browser expand/collapse.
-    document.querySelectorAll('.publication-item.is-expandable').forEach(function (card) {
-      var panel = card.querySelector('.abstract-panel');
-      if (!panel) return;
+    // animate max-height for robust cross-browser expand/collapse. Only one
+    // abstract is open at a time, and the page is scrolled along the same
+    // curve as the expansion so the card that opens ends up fully in view.
+    (function () {
+      var GAP = 28;   // breathing room kept around the expanded card
+      var OPEN_SELECTOR = '.publication-item.is-expandable[aria-expanded="true"]';
 
-      function toggle() {
-        var isOpen = card.getAttribute('aria-expanded') === 'true';
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var rootScrollBehavior = document.documentElement.style.scrollBehavior;
+      var activeScroll = null;
 
-        if (isOpen) {
-          // Collapse: from current height (possibly 'none') back to a fixed px, then to 0 so it animates.
-          panel.style.maxHeight = panel.scrollHeight + 'px';
-          panel.getBoundingClientRect(); // force reflow so the next change transitions
-          requestAnimationFrame(function () {
-            panel.style.maxHeight = '0px';
-          });
-          card.setAttribute('aria-expanded', 'false');
-        } else {
-          // Expand: to the measured content height; after the transition, release to 'none'
-          // so later reflow (resize, chip wrap) never clips the content.
-          panel.style.maxHeight = panel.scrollHeight + 'px';
-          card.setAttribute('aria-expanded', 'true');
-          panel.addEventListener('transitionend', function te(e) {
-            if (e.propertyName !== 'max-height') return;
-            if (card.getAttribute('aria-expanded') === 'true') {
-              panel.style.maxHeight = 'none';
-            }
-            panel.removeEventListener('transitionend', te);
-          });
-        }
+      function panelOf(card) {
+        return card.querySelector('.abstract-panel');
       }
 
-      card.addEventListener('click', function (e) {
-        // Let real links (DOI/PDF, etc.) work without toggling the abstract.
-        if (e.target.closest('a')) return;
-        toggle();
-      });
+      // CSS owns the timing; read it back so the scroll runs on the same clock.
+      function expandDuration(panel) {
+        var value = (getComputedStyle(panel).transitionDuration || '0s').split(',')[0].trim();
+        var ms = parseFloat(value) * (value.slice(-2) === 'ms' ? 1 : 1000);
+        return ms > 0 ? ms : 0;
+      }
 
-      // Keyboard support since the card acts as a button.
-      card.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-          e.preventDefault();
-          toggle();
+      // Close enough to the panel's cubic-bezier(0.215, 0.61, 0.355, 1) that the
+      // scroll and the height animation stay visually locked to each other.
+      function easeOut(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      // The sticky navbar covers the top of the viewport, so it is not usable space.
+      function navOffset() {
+        var nav = document.querySelector('.nav-header');
+        if (!nav) return 0;
+        var position = getComputedStyle(nav).position;
+        if (position !== 'sticky' && position !== 'fixed') return 0;
+        return nav.getBoundingClientRect().height;
+      }
+
+      function clampScroll(y, docHeight) {
+        return Math.max(0, Math.min(y, Math.max(0, docHeight - window.innerHeight)));
+      }
+
+      /* Where the page needs to be for the whole card - as it will be once the
+         panel has finished opening - to sit in view. Null if it already does.
+         openDelta/docShrink/aboveShrink describe the layout change that is about
+         to happen, so this can be computed before the animation starts. */
+      function targetFor(card, openDelta, docShrink, aboveShrink) {
+        var rect = card.getBoundingClientRect();
+        var scrollY = window.pageYOffset;
+        var viewport = window.innerHeight;
+        var navH = navOffset();
+
+        var top = rect.top + scrollY - aboveShrink;   // a card collapsing above pulls this up
+        var height = rect.height + openDelta;
+        var bottom = top + height;
+        var target;
+
+        if (height + GAP > viewport - navH) {
+          target = top - navH - GAP;                  // taller than the viewport: pin its top
+        } else if (bottom + GAP > scrollY + viewport) {
+          target = bottom + GAP - viewport;           // bottom, plus breathing room, is off-screen
+        } else if (top < scrollY + navH) {
+          target = top - navH - GAP;                  // top is hidden behind the navbar
+        } else {
+          return null;                                // already fully visible: do not move
         }
+
+        return clampScroll(target, document.documentElement.scrollHeight + openDelta - docShrink);
+      }
+
+      function scrollNow(y) {
+        if (activeScroll) activeScroll.cancelled = true;
+        var root = document.documentElement;
+        root.style.scrollBehavior = 'auto';
+        window.scrollTo(0, y);
+        root.style.scrollBehavior = rootScrollBehavior;
+      }
+
+      /* Steps the scroll ourselves rather than calling scrollIntoView, so it
+         starts with the expansion instead of after it and shares its easing and
+         duration - the two read as one continuous movement. */
+      function scrollWith(targetY, duration) {
+        if (activeScroll) activeScroll.cancelled = true;
+
+        var root = document.documentElement;
+        var startY = window.pageYOffset;
+        var distance = targetY - startY;
+        var run = activeScroll = { cancelled: false };
+        var startTime = null;
+
+        function stop() {
+          run.cancelled = true;
+        }
+
+        function finish() {
+          window.removeEventListener('wheel', stop);
+          window.removeEventListener('touchmove', stop);
+          if (activeScroll !== run) return;   // a newer scroll owns the page now
+          activeScroll = null;
+          root.style.scrollBehavior = rootScrollBehavior;
+        }
+
+        // Hand the page straight back if the reader takes over mid-flight.
+        window.addEventListener('wheel', stop, { passive: true });
+        window.addEventListener('touchmove', stop, { passive: true });
+
+        root.style.scrollBehavior = 'auto';   // our own stepping must not be re-animated by CSS
+
+        requestAnimationFrame(function step(now) {
+          if (run.cancelled) return finish();
+          if (startTime === null) startTime = now;
+
+          var t = Math.min(1, (now - startTime) / duration);
+          window.scrollTo(0, startY + distance * easeOut(t));
+
+          if (t < 1) {
+            requestAnimationFrame(step);
+            return;
+          }
+          // The panel has finished growing, so the page can now actually reach the
+          // target even if it ran out of scrollable height part-way through.
+          window.scrollTo(0, clampScroll(targetY, document.documentElement.scrollHeight));
+          finish();
+        });
+      }
+
+      // At most one settle listener per panel, so a fast open/close/open cannot
+      // leave a stale one behind.
+      function clearSettle(panel) {
+        if (!panel.settleHandler) return;
+        panel.removeEventListener('transitionend', panel.settleHandler);
+        panel.settleHandler = null;
+      }
+
+      function expand(card) {
+        var panel = panelOf(card);
+        card.setAttribute('aria-expanded', 'true');
+        clearSettle(panel);
+
+        if (reduceMotion.matches) {
+          panel.style.maxHeight = 'none';   // no transitionend to wait for
+          return;
+        }
+
+        panel.style.maxHeight = panel.scrollHeight + 'px';
+        // Release to 'none' once open so later reflow (resize, chip wrap) never clips it.
+        panel.settleHandler = function (e) {
+          if (e.target !== panel || e.propertyName !== 'max-height') return;
+          clearSettle(panel);
+          if (card.getAttribute('aria-expanded') === 'true') panel.style.maxHeight = 'none';
+        };
+        panel.addEventListener('transitionend', panel.settleHandler);
+      }
+
+      function collapse(card) {
+        var panel = panelOf(card);
+        card.setAttribute('aria-expanded', 'false');
+        clearSettle(panel);
+
+        if (reduceMotion.matches) {
+          panel.style.maxHeight = '0px';
+          return;
+        }
+
+        // From the rendered height (max-height may be 'none', or mid-expand) back to a
+        // fixed px, then to 0 so it animates. The forced reflow between the two keeps
+        // this on the same frame as the expansion it accompanies.
+        panel.style.maxHeight = panel.getBoundingClientRect().height + 'px';
+        panel.getBoundingClientRect(); // force reflow so the next change transitions
+        panel.style.maxHeight = '0px';
+      }
+
+      function toggle(card) {
+        var panel = panelOf(card);
+        if (!panel) return;
+
+        if (card.getAttribute('aria-expanded') === 'true') {
+          collapse(card);   // toggling the open card shut - nothing to scroll to
+          return;
+        }
+
+        // Accordion: whatever else is open closes with the same animation. Anything
+        // closing above the card being opened drags it up by that much as it goes.
+        var docShrink = 0;
+        var aboveShrink = 0;
+        Array.prototype.forEach.call(document.querySelectorAll(OPEN_SELECTOR), function (other) {
+          if (other === card) return;
+          var otherPanel = panelOf(other);
+          // A hidden (e.g. filtered out) card occupies no layout, so it shifts nothing.
+          var height = otherPanel ? otherPanel.getBoundingClientRect().height : 0;
+          docShrink += height;
+          if (other.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            aboveShrink += height;
+          }
+          collapse(other);
+        });
+
+        if (reduceMotion.matches) {
+          expand(card);
+          // Layout is already final, so measure it as it stands and jump.
+          var jump = targetFor(card, 0, 0, 0);
+          if (jump !== null) scrollNow(jump);
+          return;
+        }
+
+        // Measured before expanding: the panel is closed, so this is its full growth.
+        var openDelta = panel.scrollHeight;
+        var duration = expandDuration(panel);
+        var target = targetFor(card, openDelta, docShrink, aboveShrink);
+
+        expand(card);
+
+        if (target === null) return;
+        if (duration > 0) scrollWith(target, duration);
+        else scrollNow(target);
+      }
+
+      document.querySelectorAll('.publication-item.is-expandable').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+          // Let real links (DOI/PDF, etc.) work without toggling the abstract.
+          if (e.target.closest('a')) return;
+          toggle(card);
+        });
+
+        // Keyboard support since the card acts as a button.
+        card.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            toggle(card);
+          }
+        });
       });
-    });
+    })();
   </script>
 </body>
 </html>

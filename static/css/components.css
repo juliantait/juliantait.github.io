@@ -232,7 +232,7 @@ a[role='button']:hover,
 .abstract-panel {
   max-height: 0;
   overflow: hidden;
-  transition: max-height var(--transition-medium);
+  transition: max-height var(--transition-expand);
 }
 
 /* Invisible padding/separator wrapper (not a box) - gives the collapse
