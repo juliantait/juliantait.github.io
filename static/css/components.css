@@ -220,20 +220,26 @@ a[role='button']:hover,
   border-color: transparent;
 }
 
-/* Bottom-of-column action row: the Abstract cue plus any real links (PDF).
-   Sits where the lone Abstract toggle used to, pinned by the meta column's
-   space-between. */
-.publication-actions {
+/* Title row: the paper title sits beside its download pill, the pill vertically
+   centred against the title and wrapping under it on narrow screens. */
+.publication-title-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 13px;
 }
 
 /* Real download link styled as a filled accent pill - a clear primary
-   affordance next to the ghost Abstract toggle. It's an <a> with [download],
-   so the card's click handler (which ignores clicks inside an <a>) lets it
-   fetch the PDF without toggling the abstract. */
-.paper-link {
+   affordance next to the paper title. It's an <a> with [download], so the
+   card's click handler (which ignores clicks inside an <a>) lets it fetch the
+   PDF without toggling the abstract.
+   The resting colour is pinned across :link/:visited so it beats the global
+   `a:visited { color: var(--accent) }` (base.css) - without this, a visited
+   link's text/icon turn accent-on-accent and vanish until hover. */
+.paper-link,
+a.paper-link,
+a.paper-link:link,
+a.paper-link:visited {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -242,7 +248,7 @@ a[role='button']:hover,
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--bg-surface);
+  color: var(--bg-page);
   background: var(--accent);
   border: 1px solid transparent;
   border-radius: 99px;
@@ -251,9 +257,11 @@ a[role='button']:hover,
   transition: background var(--transition-fast), transform var(--transition-fast);
 }
 
-.paper-link:hover {
+.paper-link:hover,
+a.paper-link:hover,
+a.paper-link:visited:hover {
   background: var(--accent-hover);
-  color: var(--bg-surface);
+  color: var(--bg-page);
 }
 
 .paper-link-icon {
