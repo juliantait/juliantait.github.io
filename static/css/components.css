@@ -220,6 +220,46 @@ a[role='button']:hover,
   border-color: transparent;
 }
 
+/* Bottom-of-column action row: the Abstract cue plus any real links (PDF).
+   Sits where the lone Abstract toggle used to, pinned by the meta column's
+   space-between. */
+.publication-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Real download link styled as a filled accent pill - a clear primary
+   affordance next to the ghost Abstract toggle. It's an <a> with [download],
+   so the card's click handler (which ignores clicks inside an <a>) lets it
+   fetch the PDF without toggling the abstract. */
+.paper-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--bg-surface);
+  background: var(--accent);
+  border: 1px solid transparent;
+  border-radius: 99px;
+  padding: 3px 10px;
+  text-decoration: none;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.paper-link:hover {
+  background: var(--accent-hover);
+  color: var(--bg-surface);
+}
+
+.paper-link-icon {
+  flex-shrink: 0;
+}
+
 .abstract-toggle-chevron {
   transition: transform var(--transition-medium);
 }
