@@ -13,12 +13,17 @@ const navMarkup = `
       <a href="index.html">Julian Tait</a>
     </div>
     <nav>
-      <a class="nav-link" href="index.html">Home</a>
-      <a class="nav-link" href="research.html">Research</a>
-      <a class="nav-link" href="teaching.html">Teaching</a>
-      <a class="nav-link" href="cv.html">CV</a>
-      <a class="nav-link" href="resources.html">Resources</a>
-      <a class="nav-link" href="climbing.html">Climbing</a>
+      <div class="nav-links" id="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="research.html">Research</a>
+        <a class="nav-link" href="teaching.html">Teaching</a>
+        <a class="nav-link" href="cv.html">CV</a>
+        <a class="nav-link" href="resources.html">Resources</a>
+        <a class="nav-link" href="climbing.html">Climbing</a>
+      </div>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation menu" aria-controls="nav-links" aria-expanded="false">
+        <svg class="nav-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
         <svg class="theme-icon theme-icon--sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="theme-icon theme-icon--moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -97,6 +102,44 @@ function updateToggleIcon(btn, theme) {
   }
 }
 
+/* Hamburger nav fold – reveals the vertical dropdown on narrow screens */
+function initNavToggle(container) {
+  const toggle = container.querySelector('.nav-toggle');
+  const panel = container.querySelector('.nav-links');
+  if (!toggle || !panel) return;
+
+  const closePanel = () => {
+    panel.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const openPanel = () => {
+    panel.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+  };
+
+  toggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (panel.classList.contains('open')) {
+      closePanel();
+    } else {
+      openPanel();
+    }
+  });
+
+  /* Tapping any link closes the panel */
+  panel.querySelectorAll('.nav-link').forEach((link) => {
+    link.addEventListener('click', closePanel);
+  });
+
+  /* Tapping outside the panel or toggle closes it */
+  document.addEventListener('click', (event) => {
+    if (!panel.classList.contains('open')) return;
+    if (panel.contains(event.target) || toggle.contains(event.target)) return;
+    closePanel();
+  });
+}
+
 async function loadPartial(targetSelector, partialPath, afterLoad, fallback) {
   const host = document.querySelector(targetSelector);
   if (!host) return;
@@ -123,6 +166,7 @@ async function loadPartial(targetSelector, partialPath, afterLoad, fallback) {
 function afterNavLoad(container) {
   highlightActiveNav(container);
   initThemeToggle(container);
+  initNavToggle(container);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

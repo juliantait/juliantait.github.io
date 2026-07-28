@@ -6,6 +6,9 @@
   /* Colour system - academic journal palette */
   --bg-page: #F7F8FA;
   --bg-surface: #FFFFFF;
+  /* Card tile background. In light mode this matches --bg-page (page slightly
+     grey, surface white) so tiles read correctly against the white container. */
+  --bg-raised: #F7F8FA;
   --text-primary: #111827;
   --text-secondary: #4B5563;
   --border: #E5E7EB;
@@ -45,16 +48,18 @@
 /* Dark theme – system preference fallback (when user has not chosen manually) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg-page: #111318;
-    --bg-surface: #1a1d27;
-    --text-primary: #e2e4eb;
-    --text-secondary: #8b90a0;
-    --border: #2a2d3a;
+    --bg-page: #16181e;
+    --bg-surface: #1f232e;
+    /* Lighter than --bg-surface so card tiles read as raised, not sunken */
+    --bg-raised: #282d3a;
+    --text-primary: #e6e8ef;
+    --text-secondary: #9aa0b0;
+    --border: #333a49;
     --accent: #7c9aff;
     --accent-hover: #a0b8ff;
     --accent-soft: rgba(124, 154, 255, 0.1);
     --shadow-soft: 0 6px 24px rgba(0, 0, 0, 0.3);
-    --nav-bg: rgba(17, 19, 24, 0.92);
+    --nav-bg: rgba(22, 24, 30, 0.92);
   }
 
   :root:not([data-theme]) .publication-item,
@@ -70,16 +75,18 @@
 
 /* Dark theme – explicit user choice via toggle */
 [data-theme="dark"] {
-  --bg-page: #111318;
-  --bg-surface: #1a1d27;
-  --text-primary: #e2e4eb;
-  --text-secondary: #8b90a0;
-  --border: #2a2d3a;
+  --bg-page: #16181e;
+  --bg-surface: #1f232e;
+  /* Lighter than --bg-surface so card tiles read as raised, not sunken */
+  --bg-raised: #282d3a;
+  --text-primary: #e6e8ef;
+  --text-secondary: #9aa0b0;
+  --border: #333a49;
   --accent: #7c9aff;
   --accent-hover: #a0b8ff;
   --accent-soft: rgba(124, 154, 255, 0.1);
   --shadow-soft: 0 6px 24px rgba(0, 0, 0, 0.3);
-  --nav-bg: rgba(17, 19, 24, 0.92);
+  --nav-bg: rgba(22, 24, 30, 0.92);
 }
 
 [data-theme="dark"] .publication-item,

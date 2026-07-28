@@ -29,19 +29,47 @@
 
 /* Mobile landscape / small tablet */
 @media (max-width: 720px) {
-  .nav-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2);
+  /* Navbar folds into a hamburger dropdown. Logo stays left; the hamburger
+     and theme toggle sit on the right. The inline link row is repurposed as
+     an absolutely-positioned dropdown panel that overlays page content. */
+  .nav-toggle {
+    display: flex;
   }
 
   nav {
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-3);
+    gap: var(--space-2);
   }
 
-  .nav-link {
-    font-size: 13px;
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-links .nav-link:last-child {
+    border-bottom: none;
   }
 
   /* Stack home layout */
@@ -170,14 +198,5 @@
 
   .publication-title {
     font-size: 16px;
-  }
-
-  .nav-link {
-    font-size: 12px;
-    letter-spacing: 0.01em;
-  }
-
-  nav {
-    gap: var(--space-1) var(--space-2);
   }
 }
