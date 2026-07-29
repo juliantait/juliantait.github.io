@@ -51,7 +51,7 @@
       <li>Still, we expect higher fees to raise the pressure to be seen as giving <b>value for money</b>.</li>
       <li>Viewing time is fixed, so <b>effort cannot help</b> &mdash; advisors can only signal on the margins they control.</li>
       <li>Signal on <b>frequency</b>: advise more often (H1a).</li>
-      <li>Signal on <b>boldness</b>: recommend bolder shifts (H1b).</li>
+      <li>Signal on <b>magnitude</b>: recommend larger shifts (H1b).</li>
       <li>Quality should be <b>no better</b> under the high fee (H2).</li>
     </ul>
   </section>
@@ -71,7 +71,7 @@
   <section class="panelcard">
     <div class="block-head">
       <span class="block-tag client">Client side</span>
-      <span class="block-headline">Clients reward frequency and punish boldness.</span>
+      <span class="block-headline">Clients reward frequency and punish large shifts.</span>
     </div>
     <p class="card-note">Beyond the pre-registered advisor tests, we can further explore the clients&rsquo; behaviour and preferences.</p>
 
@@ -154,7 +154,7 @@ var CHARTS = [
     bars:[{lab:'Low', col:LOWCOL, m:0.5689, se:0.0216},
           {lab:'High', col:HIGHCOL, m:0.5904, se:0.0216}],
     note:'whiskers &plusmn;1 SE; n = 167 (low fee), 146 (high fee)' },
-  { title:'Advice boldness', info:'shift', hyp:'H1b', axis:'mean shift from client’s guess (dots)',
+  { title:'Advice shift', info:'shift', hyp:'H1b', axis:'mean shift from client’s guess (dots)',
     xlab:'Fees', ymax:12, fmt:INT, fmtBar:DEC1,
     bars:[{lab:'Low', col:LOWCOL, m:11.2192, se:0.5442},
           {lab:'High', col:HIGHCOL, m:10.8791, se:0.6587}],
