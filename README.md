@@ -11,6 +11,15 @@ push from this folder.
 - `images/` — profile photo and institutional logos
 - `Julian_Tait_CV.pdf` — compiled CV, embedded via `<iframe>` in `cv.html`
 
+## Paper downloads (Research tab)
+
+`papers/` is not an archive. Keep exactly one PDF per paper — the most recent
+draft — since the compiled sources are versioned elsewhere. When a new draft is
+ready, overwrite the existing file and delete any superseded version. Do not add
+numeric/version suffixes (`_1`, `_2`, `_v3`, ...) to the filename: use one stable
+name per paper (e.g. `Honesty_Penalty_DRAFT.pdf`) so the download link in
+`research.html` never changes.
+
 ## CV source
 
 The LaTeX source for the CV lives **outside this repo**, in a sibling folder
