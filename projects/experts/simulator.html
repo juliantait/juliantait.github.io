@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=13">
-<link rel="stylesheet" href="simulation.css?v=10">
-<link rel="stylesheet" href="game.css?v=9">
+<link rel="stylesheet" href="simulation.css?v=11">
+<link rel="stylesheet" href="game.css?v=10">
 </head>
 <body>
 
@@ -59,20 +59,33 @@
             <!-- Group: candidate states + their priors -->
             <div class="control-group">
               <div class="cg-title">Candidate states</div>
-              <div class="cg-body">
-                <div class="input-group">
-                  <label># states</label>
-                  <div class="seg" id="seg-count">
-                    <button class="active" data-k="2">2</button>
-                    <button data-k="3">3</button>
+              <div class="cg-body cg-stacked">
+                <div class="cg-row">
+                  <div class="input-group">
+                    <label># states</label>
+                    <div class="seg" id="seg-count">
+                      <button class="active" data-k="2">2</button>
+                      <button data-k="3">3</button>
+                    </div>
+                  </div>
+                  <!-- Growth arm: writes β₂ = (amount gained per 100 years) / 100,
+                       i.e. the per-year slope 0.01 … 0.04. β₂ stays the source of truth. -->
+                  <div class="input-group">
+                    <label>growth &middot; per 100 yrs</label>
+                    <div class="seg" id="seg-growth">
+                      <button data-g="1">1</button>
+                      <button class="active" data-g="2">2</button>
+                      <button data-g="3">3</button>
+                      <button data-g="4">4</button>
+                    </div>
                   </div>
                 </div>
                 <div class="beta-grid">
                   <div class="input-group"><label><i class="mvar">&beta;</i><sub>1</sub></label><input id="b1" type="text" value="0"></div>
-                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.2"></div>
-                  <div class="input-group" id="b3-group"><label><i class="mvar">&beta;</i><sub>3</sub></label><input id="b3" type="text" value="-0.2"></div>
-                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.6"></div>
-                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.4"></div>
+                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.02"></div>
+                  <div class="input-group" id="b3-group"><label><i class="mvar">&beta;</i><sub>3</sub></label><input id="b3" type="text" value="-0.02"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.8"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.2"></div>
                   <div class="input-group" id="p3-group"><label>prior <i class="mvar">&pi;</i><sub>3</sub></label><input id="p3" type="text" value="0"></div>
                 </div>
               </div>
@@ -84,7 +97,7 @@
             <div class="control-group">
               <div class="cg-title">Model</div>
               <div class="cg-body">
-                <div class="input-group"><label>residual SD <i class="mvar">&sigma;</i></label><input id="sigma" type="text" value="1.5"></div>
+                <div class="input-group"><label>residual SD <i class="mvar">&sigma;</i></label><input id="sigma" type="text" value="2.5"></div>
                 <div class="input-group"><label>n NOVICE</label><input id="nNov" type="text" value="4"></div>
                 <div class="input-group"><label>n EXPERT</label><input id="nExp" type="text" value="80"></div>
               </div>
@@ -92,25 +105,40 @@
 
             <div class="cg-divider"></div>
 
-            <!-- Group: x design (info icon sits next to the label) -->
+            <!-- Group: design switches — x design and y rounding (info icon next to the label) -->
             <div class="control-group">
               <div class="cg-title">
-                <span>x design</span>
+                <span>Design</span>
                 <button type="button" class="info-btn" id="xmode-info-btn"
-                        aria-label="About the x-design switch" aria-expanded="false">i</button>
+                        aria-label="About the design switches" aria-expanded="false">i</button>
               </div>
-              <div class="cg-body xdesign-group">
-                <div class="seg xmode" id="seg-xmode">
-                  <button class="active" data-xmode="fixed">Fixed x</button>
-                  <button data-xmode="random">Random x</button>
+              <div class="cg-body xdesign-group cg-stacked">
+                <div class="input-group">
+                  <label>x design</label>
+                  <div class="seg xmode" id="seg-xmode">
+                    <button class="active" data-xmode="fixed">Fixed x</button>
+                    <button data-xmode="random">Random x</button>
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label>y values</label>
+                  <div class="seg" id="seg-intmode">
+                    <button class="active" data-int="1">Integers</button>
+                    <button data-int="0">Continuous</button>
+                  </div>
                 </div>
                 <div class="info-popover" id="xmode-popover" hidden>
-                  <p><b>Fixed x:</b> x = linspace(0, 10, n) — every member shares the same
-                     design, so the standard error SE = &sigma;/&radic;SS<sub>x</sub> is identical at a given n.</p>
-                  <p><b>Randomly drawn x:</b> x<sub>i</sub> ~ iid Uniform(0, 10) per member, so SS<sub>x</sub>
+                  <p><b>Fixed x:</b> x = linspace(0, 100, n) — n evenly spaced observation years
+                     across a 100-year window, so every member shares the same
+                     design and the standard error SE = &sigma;/&radic;SS<sub>x</sub> is identical at a given n.</p>
+                  <p><b>Randomly drawn x:</b> x<sub>i</sub> ~ iid Uniform(0, 100) per member, so SS<sub>x</sub>
                      (and therefore SE) varies card to card. Headline error rates and the sampling
                      PDFs of &beta;&#770; are then <i>expected</i> quantities, Monte-Carlo-averaged over x designs.</p>
-                  <p class="xmode-current" id="xmode-note">x = linspace(0, 10, n); every member shares the same design.</p>
+                  <p><b>y values — Integers</b> (default, as in the experiment): each dot is the continuous
+                     draw <i>rounded to the nearest integer at the simulation step</i>, and every displayed
+                     number — &beta;&#770;, SE, likelihoods, posteriors, picks, error statistics — is computed
+                     from those realised integers. <b>Continuous</b> uses the raw draws instead.</p>
+                  <p class="xmode-current" id="xmode-note">x = linspace(0, 100, n); every member shares the same design.</p>
                 </div>
               </div>
             </div>
@@ -270,7 +298,7 @@
         <h2>The betting game</h2>
         <div class="intro-block">
           <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
-          <p class="intro-sub">The true slope <i class="mvar">β</i> is <b>−0.2</b>, <b>0</b>, or <b>+0.2</b> — genuinely 0 half the time, a quarter chance each negative or positive.</p>
+          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.02</b> (+2 per 100 units of x), flat <b>4 times in 5</b>, with <i class="mvar">σ</i> = 2.5 and <b>integer</b> y values.</p>
           <ul>
             <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
           </ul>
@@ -278,7 +306,7 @@
         <div class="intro-block">
           <p class="intro-h"><b>We measure three things:</b></p>
           <ul>
-            <li>your <b>beliefs</b> over the three slopes;</li>
+            <li>your <b>beliefs</b> over the candidate slopes;</li>
             <li>your <b>one-euro bet</b> across them <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>;</li>
             <li>your <b>estimate of <i class="mvar">β</i></b>.</li>
           </ul>
@@ -305,13 +333,13 @@
           <div class="beta-col">
             <div class="beta-coltitle">Your estimate of <i class="mvar">β</i></div>
             <div class="beta-wrap">
-              <div class="beta-axis"><span>+0.5</span><span>0</span><span>−0.5</span></div>
+              <div class="beta-axis" id="beta-axis"></div>
               <div class="beta-track" id="beta-track">
                 <div class="beta-hat" id="beta-hat"><span></span></div>
                 <div class="beta-thumb" id="beta-thumb"></div>
               </div>
             </div>
-            <div class="beta-readout">you <span id="beta-val">+0.00</span><span class="beta-hat-readout" id="beta-hat-val"></span></div>
+            <div class="beta-readout">you <span id="beta-val">0</span><span class="beta-hat-readout" id="beta-hat-val"></span></div>
           </div>
         </div>
 
@@ -321,23 +349,8 @@
           <div class="belief-area">
             <div class="ctl-title">Your beliefs <span class="q">— how likely is each slope? (0–100 each)</span></div>
             <div class="belief-body">
-              <div class="belief-bars" id="belief-bars">
-                <div class="bbar" data-i="0">
-                  <div class="bbar-val">25</div>
-                  <div class="bbar-track"><div class="bbar-fill s0"></div><div class="bbar-opt"><span></span></div></div>
-                  <div class="bbar-lab">−0.2</div>
-                </div>
-                <div class="bbar" data-i="1">
-                  <div class="bbar-val">50</div>
-                  <div class="bbar-track"><div class="bbar-fill s1"></div><div class="bbar-opt"><span></span></div></div>
-                  <div class="bbar-lab">0</div>
-                </div>
-                <div class="bbar" data-i="2">
-                  <div class="bbar-val">25</div>
-                  <div class="bbar-track"><div class="bbar-fill s2"></div><div class="bbar-opt"><span></span></div></div>
-                  <div class="bbar-lab">+0.2</div>
-                </div>
-              </div>
+              <!-- one bar per candidate slope; built by game.js from the Simulation panel -->
+              <div class="belief-bars" id="belief-bars"></div>
             </div>
             <div class="belief-note">bars = your beliefs, rescaled to 100 &nbsp;·&nbsp; <span class="swatch"></span> optimal posterior given the data</div>
           </div>
@@ -348,25 +361,14 @@
             <div class="bet-body">
               <div class="bet-barline">
                 <span class="bet-rowlab">you</span>
-                <div class="alloc-bar" id="alloc-bar">
-                  <div class="alloc-track">
-                    <div class="alloc-seg s0" id="seg-a"></div>
-                    <div class="alloc-seg s1" id="seg-b"></div>
-                    <div class="alloc-seg s2" id="seg-c"></div>
-                  </div>
-                  <div class="alloc-handle" id="ah1"></div>
-                  <div class="alloc-handle" id="ah2"></div>
-                </div>
+                <!-- track + drag handles are built by game.js (one segment per candidate slope) -->
+                <div class="alloc-bar" id="alloc-bar"></div>
               </div>
               <div class="bet-barline opt-only">
                 <span class="bet-rowlab">optimal</span>
-                <div class="alloc-optbar" id="alloc-optbar">
-                  <div class="alloc-seg s0" id="oseg-a"></div>
-                  <div class="alloc-seg s1" id="oseg-b"></div>
-                  <div class="alloc-seg s2" id="oseg-c"></div>
-                </div>
+                <div class="alloc-optbar" id="alloc-optbar"></div>
               </div>
-              <div class="alloc-labels"><span>β=−0.2</span><span>β=0</span><span>β=+0.2</span></div>
+              <div class="alloc-labels" id="alloc-labels"></div>
             </div>
             <div class="bet-earn" id="bet-earn"></div>
           </div>
@@ -402,9 +404,9 @@
 
 </main>
 
-<script src="simulation.js?v=11"></script>
+<script src="simulation.js?v=12"></script>
 
-<script src="game.js?v=12"></script>
+<script src="game.js?v=13"></script>
 
 </body>
 </html>

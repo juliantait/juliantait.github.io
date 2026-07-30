@@ -80,7 +80,9 @@
         #sec-game .bbar-opt { position:absolute; left:0; right:0; bottom:0; border-top:2px solid #c2410c; box-sizing:border-box; display:none; pointer-events:none; }
         #sec-game.revealed .bbar-opt { display:block; }
         #sec-game .bbar-opt span { position:absolute; right:1px; top:2px; font-family:var(--font-mono); font-size:9px; font-weight:800; color:#c2410c; white-space:nowrap; text-shadow:0 0 2px #fff, 0 0 2px #fff; }
-        #sec-game .bbar-lab { font-family:var(--font-mono); font-size:10px; color:var(--text-muted); }
+        /* candidate label under each bar — β is a 3-decimal per-year slope now, so it
+           must not wrap inside the 38px-wide bar column */
+        #sec-game .bbar-lab { font-family:var(--font-mono); font-size:10px; color:var(--text-muted); white-space:nowrap; }
 
         /* bet — €1 allocation: a draggable "you" bar; on reveal an "optimal" bar appears below */
         #sec-game .bet-area { min-width:0; }

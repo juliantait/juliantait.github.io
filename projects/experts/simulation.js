@@ -1,3 +1,39 @@
+// ============ Design constants (pilot) ============
+// Each card is one series observed over a 100-UNIT x-window: n evenly spaced
+// observation years across the window (the remaining years are missing records),
+// labelled abstractly (yr 0 … yr 100) rather than as calendar years.
+//
+//   y_i = baseline + β · x_i + ε_i,   ε_i ~ N(0, σ²),   x_i ∈ [0, 100]
+//
+// β is therefore a per-year slope: the growth arms are 1…4 per 100 years, i.e.
+// β = 0.01 … 0.04, default 0.02, against a flat state β = 0 (prior 0.8 / 0.2).
+// The baseline is an integer draw ~ Uniform[40, 80] per series so the dots sit at
+// realistic heights; it shifts a series bodily and leaves β̂, SE and every
+// downstream quantity untouched.
+const WINDOW_YEARS = 100;                   // x-window length, in years
+const X_SPAN = WINDOW_YEARS;                // x runs 0 … 100
+const BASELINE_LO = 40, BASELINE_HI = 80;   // integer Uniform baseline level
+
+// Integer y values. ON by default, matching the real experiment. The rounding
+// happens at the DOT SIMULATION step (see observe()), so every downstream number
+// — β̂, SE, likelihoods, posteriors, picks, error statistics — is computed from
+// the realised integer values rather than from the raw continuous draws.
+let intMode = true;
+
+// One realised observation. This is the only place rounding happens.
+function observe(v) { return intMode ? Math.round(v) : v; }
+
+// σ as the ANALYSIS sees it. With integer y the observation an analyst actually
+// has is round(baseline + βx + ε): the rounding error is ~Uniform(−½,½) and, for
+// σ well above 1, near-independent of ε, so a realised value has variance
+// σ² + 1/12. Every analytic quantity on the page (SEs, expected error rates,
+// sampling PDFs, posteriors) uses this inflated σ so it describes the integer
+// dots that are actually plotted rather than the raw draws behind them.
+const ROUNDING_VAR = 1 / 12;
+function analysisSigma(sigma) {
+  return intMode ? Math.sqrt(sigma * sigma + ROUNDING_VAR) : sigma;
+}
+
 // ============ Math ============
 
 function erf(x) {
@@ -17,7 +53,8 @@ function Phi(z) {
 }
 
 function phi(z) { return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI); }
-function ssX(n) { return 100 * n * (n + 1) / (12 * (n - 1)); }
+// SS_x for x = linspace(0, X_SPAN, n): n evenly spaced observation years.
+function ssX(n) { return X_SPAN * X_SPAN * n * (n + 1) / (12 * (n - 1)); }
 function seBeta(sigma, n) { return sigma / Math.sqrt(ssX(n)); }
 function ssOfX(x) {
   // SS_x for an arbitrary realised design (used when x is randomly drawn).
@@ -49,7 +86,7 @@ function avgConfCorrect(a, b, mu, se) {
 
 // ============ Random-x sampling-side averages ============
 // In fixed-x mode SE = σ/√SS_x is a constant and we use the analytic
-// expressions above. In random-x mode x_i ~ iid Uniform(0, 10) so SS_x is
+// expressions above. In random-x mode x_i ~ iid Uniform(0, 100) so SS_x is
 // random; we Monte-Carlo a fresh SE-array per Go press and reuse it for the
 // expected error rate, expected confidence, and the plotted sampling PDFs
 // of β̂. Per-card posterior bars are NOT averaged this way — they always
@@ -65,7 +102,7 @@ function sampleSEs(sigma, n, nDraws, baseSeed) {
   for (let d = 0; d < nDraws; d++) {
     let sum = 0, sumSq = 0;
     for (let i = 0; i < n; i++) {
-      const xi = 10 * rng();
+      const xi = X_SPAN * rng();
       sum += xi;
       sumSq += xi * xi;
     }
@@ -211,6 +248,37 @@ document.querySelectorAll('#seg-count button').forEach(b => {
   });
 });
 
+// Growth-arm selector: the discrete amount gained over the 100-year window,
+// 1–4 (default 2), written into the β₂ box as the per-year slope arm/100. β₂
+// stays the single source of truth — type a value there and the buttons simply
+// fall out of sync until one matches again (syncGrowthSeg, called by recompute).
+document.querySelectorAll('#seg-growth button').forEach(b => {
+  b.addEventListener('click', () => {
+    $('b2').value = String(parseFloat(b.dataset.g) / WINDOW_YEARS);
+    timedRecompute();
+  });
+});
+
+function syncGrowthSeg() {
+  const b2 = parseFloat($('b2').value);
+  document.querySelectorAll('#seg-growth button').forEach(x =>
+    x.classList.toggle('active',
+      Math.abs(parseFloat(x.dataset.g) / WINDOW_YEARS - b2) < 1e-12));
+}
+
+// Integer y-values toggle. ON matches the real experiment; flipping it resimulates
+// so the dots — and everything computed from them — change together.
+document.querySelectorAll('#seg-intmode button').forEach(b => {
+  b.addEventListener('click', () => {
+    const on = b.dataset.int === '1';
+    if (on === intMode) return;
+    intMode = on;
+    document.querySelectorAll('#seg-intmode button').forEach(x =>
+      x.classList.toggle('active', x === b));
+    timedRecompute();
+  });
+});
+
 // Group-size selector for the bottom group-dynamics section: every group is
 // 1 EXPERT + (size−1) NOVICES. Switching re-runs the group simulation.
 document.querySelectorAll('#seg-size button').forEach(b => {
@@ -231,16 +299,17 @@ document.querySelectorAll('#seg-xmode button').forEach(b => {
     document.querySelectorAll('#seg-xmode button').forEach(x =>
       x.classList.toggle('active', x === b));
     $('xmode-note').textContent = xMode === 'random'
-      ? `x_i ~ iid Uniform(0, 10) per member; each card's posterior conditions on its own observed SS_x.`
-      : 'x = linspace(0, 10, n); every member shares the same design.';
+      ? `x_i ~ iid Uniform(0, ${WINDOW_YEARS}) per member; each card's posterior conditions on its own observed SS_x.`
+      : `x = linspace(0, ${WINDOW_YEARS}, n); every member shares the same design.`;
     timedRecompute();
   });
 });
 
-// x-design info popover: click the circled-i to reveal the fixed-vs-random
-// explanation; click the icon again or anywhere outside to dismiss.
-(() => {
-  const btn = $('xmode-info-btn'), pop = $('xmode-popover');
+// Click the circled-i to reveal an explanatory popover; click the icon again or
+// anywhere outside (or press Escape) to dismiss.
+function wireInfoPopover(btnId, popId) {
+  const btn = $(btnId), pop = $(popId);
+  if (!btn || !pop) return;
   const setOpen = (open) => {
     if (open) pop.removeAttribute('hidden'); else pop.setAttribute('hidden', '');
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -253,7 +322,8 @@ document.querySelectorAll('#seg-xmode button').forEach(b => {
     if (!pop.contains(e.target) && e.target !== btn) setOpen(false);
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
-})();
+}
+wireInfoPopover('xmode-info-btn', 'xmode-popover');
 
 // ITEM 1: per-card "nearest" / "most likely" info popovers (dynamically rendered,
 // so handled by event delegation on the document).
@@ -297,9 +367,11 @@ function readNumber(id) {
   return isFinite(v) ? v : NaN;
 }
 
+// Sample size: a whole number of observation years, at least 2 and at most one
+// per year in the 100-year window.
 function readPositiveInt(id) {
   const v = parseFloat($(id).value);
-  if (!isFinite(v) || v < 2 || Math.floor(v) !== v) return NaN;
+  if (!isFinite(v) || v < 2 || v > WINDOW_YEARS || Math.floor(v) !== v) return NaN;
   return v;
 }
 
@@ -338,9 +410,9 @@ function validate() {
   const sigma = readNumber('sigma');
   if (!(sigma > 0)) { errs.push('σ>0'); setInvalid('sigma', true); }
   const nN = readPositiveInt('nNov');
-  if (isNaN(nN)) { errs.push('n_NOVICE≥2'); setInvalid('nNov', true); }
+  if (isNaN(nN)) { errs.push(`n_NOVICE 2–${WINDOW_YEARS}`); setInvalid('nNov', true); }
   const nE = readPositiveInt('nExp');
-  if (isNaN(nE)) { errs.push('n_EXPERT≥2'); setInvalid('nExp', true); }
+  if (isNaN(nE)) { errs.push(`n_EXPERT 2–${WINDOW_YEARS}`); setInvalid('nExp', true); }
 
   return { errs, betas, sigma, nN, nE };
 }
@@ -354,6 +426,7 @@ function recompute(silent) {
     return null;
   }
   $('err').textContent = '';
+  syncGrowthSeg();
 
   // Pair each candidate with its prior before sorting so priors stay aligned
   // to their β after the sort.
@@ -362,21 +435,24 @@ function recompute(silent) {
   order.sort((u, v) => u.b - v.b);
   const sortedBetas = order.map(o => o.b);
   const sortedPriors = order.map(o => o.p);
+  // σ for everything on the analysis side: inflated by the rounding variance
+  // when y is integer-valued, so the analytics describe the dots as drawn.
+  const sigmaAn = analysisSigma(sigma);
   // Rebuild the random-x SE cache (no-op in fixed mode). Fresh MC seed per Go
   // press makes mode-switching/redraws visibly resample the design.
-  rebuildSeCache(sigma, [nN, nE], Math.floor(Math.random() * 1e9));
-  const seN = effectiveSe(sigma, nN);
-  const seE = effectiveSe(sigma, nE);
+  rebuildSeCache(sigmaAn, [nN, nE], Math.floor(Math.random() * 1e9));
+  const seN = effectiveSe(sigmaAn, nN);
+  const seE = effectiveSe(sigmaAn, nE);
   const bs = bins(sortedBetas);
 
   const rows = sortedBetas.map((mu, i) => {
     const [a, b] = bs[i];
     return {
       mu, a, b,
-      errN: errProbX(a, b, mu, nN, sigma),
-      errE: errProbX(a, b, mu, nE, sigma),
-      confN: avgConfX(a, b, mu, nN, sigma),
-      confE: avgConfX(a, b, mu, nE, sigma),
+      errN: errProbX(a, b, mu, nN, sigmaAn),
+      errE: errProbX(a, b, mu, nE, sigmaAn),
+      confN: avgConfX(a, b, mu, nN, sigmaAn),
+      confE: avgConfX(a, b, mu, nE, sigmaAn),
     };
   });
 
@@ -389,8 +465,8 @@ function recompute(silent) {
 
   // Bayes-optimal (MAP / posterior-mode) average error per role. Same prior
   // weighting as the nearest-candidate average; lower because it uses the prior.
-  const avgErrMapN = mapAvgErrorX(sortedBetas, sortedPriors, nN, sigma);
-  const avgErrMapE = mapAvgErrorX(sortedBetas, sortedPriors, nE, sigma);
+  const avgErrMapN = mapAvgErrorX(sortedBetas, sortedPriors, nN, sigmaAn);
+  const avgErrMapE = mapAvgErrorX(sortedBetas, sortedPriors, nE, sigmaAn);
 
   $('head-nov').textContent = pct(avgErrN);
   $('head-exp').textContent = pct(avgErrE);
@@ -398,37 +474,22 @@ function recompute(silent) {
   $('head-exp-map').textContent = pct(avgErrMapE);
 
   renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN, avgConfE);
-  drawPlot('plot', sortedBetas, bs, seN, seE, sigma, nN, nE);
-  lastRender = { sortedBetas, bs, seN, seE, sigma, nN, nE };
-  renderExamples(sortedBetas, sigma, nE, nN, sortedPriors);
+  drawPlot('plot', sortedBetas, bs, seN, seE, sigmaAn, nN, nE);
+  lastRender = { sortedBetas, bs, seN, seE, sigma: sigmaAn, nN, nE };
+  renderExamples(sortedBetas, sigma, sigmaAn, nE, nN, sortedPriors);
 
   if (!silent) {
     console.log('--- Error Rate Explorer ---');
     console.log('candidates (sorted):', sortedBetas);
-    console.log('sigma =', sigma);
+    console.log('priors:', sortedPriors);
+    console.log(`sigma = ${sigma}   y = ${intMode ? 'integers (analysis sigma ' + sigmaAn.toFixed(4) + ')' : 'continuous'}   x = ${xMode}, 0..${WINDOW_YEARS}`);
     console.log(`NOVICE n=${nN}  SE=${seN.toFixed(4)}  avgErr(nearest)=${(avgErrN*100).toFixed(2)}%  avgErr(MAP)=${(avgErrMapN*100).toFixed(2)}%  avgConf=${(avgConfN*100).toFixed(2)}%`);
     console.log(`EXPERT n=${nE}  SE=${seE.toFixed(4)}  avgErr(nearest)=${(avgErrE*100).toFixed(2)}%  avgErr(MAP)=${(avgErrMapE*100).toFixed(2)}%  avgConf=${(avgConfE*100).toFixed(2)}%`);
     rows.forEach(r => {
-      console.log(`  beta=${r.mu.toFixed(3)}  bin=[${fmtBin(r.a)}, ${fmtBin(r.b)}]  errN=${(r.errN*100).toFixed(2)}%  errE=${(r.errE*100).toFixed(2)}%  confN=${(r.confN*100).toFixed(2)}%  confE=${(r.confE*100).toFixed(2)}%`);
+      console.log(`  beta=${r.mu.toFixed(4)}  bin=[${fmtBin(r.a)}, ${fmtBin(r.b)}]  errN=${(r.errN*100).toFixed(2)}%  errE=${(r.errE*100).toFixed(2)}%  confN=${(r.confN*100).toFixed(2)}%  confE=${(r.confE*100).toFixed(2)}%`);
     });
-    const get = (mu) => rows.find(x => Math.abs(x.mu - mu) < 1e-9);
-    const r02p = get(0.2), r02n = get(-0.2), r0 = get(0);
     if (xMode !== 'fixed') {
-      console.log(`--- xMode = ${xMode}: headline error rates / sampling PDFs average over x ~ Uniform(0,10) ---`);
-    } else {
-    console.log('--- Validation against error_rate_beta02.md ---');
-    if (r02p) {
-      console.log(`beta=+0.2  NOVICE err = ${(r02p.errN*100).toFixed(4)}%  (expected ~30.96%)`);
-      console.log(`beta=+0.2  EXPERT err = ${(r02p.errE*100).toFixed(4)}%  (expected ~4.07%)`);
-    }
-    if (r02n) {
-      console.log(`beta=-0.2  NOVICE err = ${(r02n.errN*100).toFixed(4)}%  (symmetry: same as +0.2)`);
-      console.log(`beta=-0.2  EXPERT err = ${(r02n.errE*100).toFixed(4)}%  (symmetry: same as +0.2)`);
-    }
-    if (r0) {
-      console.log(`beta=0     NOVICE err = ${(r0.errN*100).toFixed(4)}%  (two-sided ~ 2x edge value)`);
-      console.log(`beta=0     EXPERT err = ${(r0.errE*100).toFixed(4)}%  (two-sided ~ 2x edge value)`);
-    }
+      console.log(`--- xMode = ${xMode}: headline error rates / sampling PDFs average over x ~ Uniform(0, ${WINDOW_YEARS}) ---`);
     }
   }
 
@@ -446,7 +507,7 @@ function fmtBin(v) {
 function renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN, avgConfE) {
   const head = $('tbl-head');
   head.innerHTML = '<th></th>' +
-    sortedBetas.map(b => `<th><i class="mvar">β</i> = ${b.toFixed(2)}</th>`).join('') +
+    sortedBetas.map(b => `<th><i class="mvar">β</i> = ${fmtSigned(b)}</th>`).join('') +
     '<th>Average</th>';
 
   const ERR_TIP = 'err = mistake rate: how often the member misclassifies the true state (an objective frequency — being right)';
@@ -665,7 +726,7 @@ function drawPlot(canvasId, sortedBetas, bs, seN, seE, sigma, nN, nE) {
   ctx.fillStyle = '#1e293b';
   ctx.font = 'bold 11px ' + getComputedStyle(document.body).fontFamily;
   sortedBetas.forEach(mu => {
-    ctx.fillText('β=' + mu.toFixed(2), tx(mu), pad.top + ph + 32);
+    ctx.fillText('β=' + fmtSigned(mu), tx(mu), pad.top + ph + 32);
   });
 
   // Title
@@ -673,7 +734,7 @@ function drawPlot(canvasId, sortedBetas, bs, seN, seE, sigma, nN, nE) {
   ctx.font = 'bold 12px ' + getComputedStyle(document.body).fontFamily;
   ctx.textAlign = 'left';
   const titleSuffix = xMode === 'random'
-    ? ' (averaged over x ~ U(0,10))'
+    ? ` (averaged over x ~ U(0,${WINDOW_YEARS}))`
     : '';
   ctx.fillText('Sampling PDFs of β̂ — shaded mass = misclassification' + titleSuffix, pad.left, 18);
 }
@@ -691,13 +752,15 @@ function niceStep(rawStep) {
 
 function formatTick(v) {
   if (Math.abs(v) < 1e-10) return '0';
-  return v.toFixed(2);
+  // β is a per-year slope (candidates 0.01–0.04), so ticks need 3 decimals.
+  return v.toFixed(3);
 }
 
 // ============ Examples ============
 // Fully dynamic: one row per user-typed candidate β. Each row = 1 EXPERT
-// (n = nExpert input) + 2 NOVICES (n = nNovice input). Data is sampled fresh
-// from y = trueBeta * x + N(0, sigma^2) using a per-(row,member) seed.
+// (n = nExpert input) + NOVICES (n = nNovice input). Data is sampled fresh from
+// y = baseline + trueBeta * x + N(0, sigma^2) using a per-(row,member) seed, with
+// its own integer baseline and — when the y-values toggle is on — integer y.
 
 let N_NOVICES_PER_GROUP = 2;   // group size − 1 (1 EXPERT + this many NOVICES); set by #seg-size
 const MONO_NSIMS = 100000;
@@ -747,29 +810,39 @@ function olsBetaHat(x, y) {
   return num / den;
 }
 
+// One member's series: its own integer baseline level, its own observation years,
+// and the y values realised in those years. betaHat is fitted to the REALISED
+// values, so with the y-values toggle on it is the slope through the rounded dots
+// — never through the raw continuous draws behind them. (The baseline cancels out
+// of the slope; it only puts the dots at a realistic height.)
 function simulateMember(rowIdx, memberIdx, trueBeta, n, sigma, baseSeed) {
   const seed = baseSeed + rowIdx * 10 + memberIdx;
   const rng = mulberry32(seed);
   const norm = makeNormal(rng);
+  const baseline = BASELINE_LO + Math.floor(rng() * (BASELINE_HI - BASELINE_LO + 1));
   let x;
   if (xMode === 'random') {
     x = new Array(n);
-    for (let i = 0; i < n; i++) x[i] = 10 * rng();
+    for (let i = 0; i < n; i++) x[i] = X_SPAN * rng();
   } else {
-    x = linspaceArr(0, 10, n);
+    x = linspaceArr(0, X_SPAN, n);
   }
   const y = new Array(n);
-  for (let i = 0; i < n; i++) y[i] = trueBeta * x[i] + sigma * norm();
-  return { x, y, betaHat: olsBetaHat(x, y) };
+  for (let i = 0; i < n; i++) y[i] = observe(baseline + trueBeta * x[i] + sigma * norm());
+  return { x, y, baseline, betaHat: olsBetaHat(x, y) };
 }
 
 // Strict monotonicity rates + monotonicity index distribution of y at the
 // NOVICE design. Uses a fresh base seed per Go press so MC noise is visible
 // across runs (kept independent of card scatter seeds).
+// The baseline is omitted here: it is an integer, and shifting a rounded series by
+// an integer cannot change which steps go up. With integer y equal consecutive
+// values are possible, and a flat step breaks a strictly monotone run (it counts
+// as "not up") — as it should.
 function monotonicityStats(rowIdx, trueBeta, n, sigma, nSims, baseSeed) {
   // In random-x mode "monotonic" means "monotonic when sorted by x", which is
-  // how a viewer reads the scatter; we sample x ~ U(0,10) per sim and sort.
-  const fixedXs = linspaceArr(0, 10, n);
+  // how a viewer reads the scatter; we sample x ~ U(0, 100) per sim and sort.
+  const fixedXs = linspaceArr(0, X_SPAN, n);
   const buckets = new Array(n).fill(0); // index k = sims with k upward jumps in (n-1) gaps
   let posCount = 0, negCount = 0;
   let upSum = 0;
@@ -780,16 +853,16 @@ function monotonicityStats(rowIdx, trueBeta, n, sigma, nSims, baseSeed) {
     let xs;
     if (xMode === 'random') {
       xs = new Array(n);
-      for (let i = 0; i < n; i++) xs[i] = 10 * rng();
+      for (let i = 0; i < n; i++) xs[i] = X_SPAN * rng();
       xs.sort((a, b) => a - b);
     } else {
       xs = fixedXs;
     }
-    let prev = trueBeta * xs[0] + sigma * norm();
+    let prev = observe(trueBeta * xs[0] + sigma * norm());
     let inc = true, dec = true;
     let upJumps = 0;
     for (let i = 1; i < n; i++) {
-      const yi = trueBeta * xs[i] + sigma * norm();
+      const yi = observe(trueBeta * xs[i] + sigma * norm());
       if (yi > prev) upJumps++;
       if (yi <= prev) inc = false;
       if (yi >= prev) dec = false;
@@ -840,12 +913,18 @@ function posteriorModeCandidate(betaHat, se, sortedBetas, priors) {
   return sortedBetas[bi];
 }
 
+// β is a per-year slope on a 0.01–0.04 scale, so 3 decimals (was 2 on the old
+// ±0.2 scale) — β̂ draws land around ±0.05 and two decimals would flatten them.
 function fmtSigned(v) {
-  if (Math.abs(v) < 1e-9) return '0';
-  return (v >= 0 ? '+' : '') + v.toFixed(2);
+  if (Math.abs(v) < 5e-4) return '0';
+  return (v >= 0 ? '+' : '') + v.toFixed(3);
 }
 
-function renderExamples(sortedBetas, sigma, nExpert, nNovice, priors) {
+// sigma = the residual sd used to GENERATE the data (and to frame the scatters);
+// sigmaAn = the sd the analysis uses (inflated by the rounding variance when y is
+// integer-valued), so every SE / posterior / expected error below describes the
+// dots as drawn.
+function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
   const host = $('example-groups');
   // Fresh base seeds per Go press for both the cards and the monotonicity MC,
   // drawn independently so the two streams don't alias.
@@ -890,7 +969,7 @@ function renderExamples(sortedBetas, sigma, nExpert, nNovice, priors) {
           <span class="nov-q-host pop-host">
             <button type="button" class="nov-q mini-info" aria-label="What do novices see on average?" aria-expanded="false">What do novices see on average?</button>
             <div class="info-popover pick-pop nov-pop" hidden>
-              <p><b>What do novices see on average?</b> Each NOVICE sees only <i class="mvar">n</i>=${nNovice} points, so the data often looks cleanly trended by chance. Across ${MONO_NSIMS.toLocaleString()} simulated samples at true <i class="mvar">β</i>=${fmtSigned(g.trueBeta)}:</p>
+              <p><b>What do novices see on average?</b> Each NOVICE sees only <i class="mvar">n</i>=${nNovice} points, so the data often looks cleanly trended by chance. Across ${MONO_NSIMS.toLocaleString()} simulated samples at true <i class="mvar">β</i>=${fmtSigned(g.trueBeta)}${intMode ? ' (integer y, so a flat step counts as "not up")' : ''}:</p>
               <div class="mono-stats">
                 <div class="mono-stat"><span class="lab">monotonic ↑</span><span class="val">${(mono.pos*100).toFixed(1)}%</span></div>
                 <div class="mono-stat"><span class="lab">monotonic ↓</span><span class="val">${(mono.neg*100).toFixed(1)}%</span></div>
@@ -916,7 +995,7 @@ function renderExamples(sortedBetas, sigma, nExpert, nNovice, priors) {
         <div class="example-row">
           ${g.members.map((m, j) => {
             const ssxR = ssOfX(m.x);
-            const seR = sigma / Math.sqrt(ssxR);
+            const seR = sigmaAn / Math.sqrt(ssxR);
             const nearestPick = nearestCandidate(m.betaHat, sortedBetas);
             const mostLikelyPick = posteriorModeCandidate(m.betaHat, seR, sortedBetas, priors);
             return `
@@ -930,6 +1009,7 @@ function renderExamples(sortedBetas, sigma, nExpert, nNovice, priors) {
                 <div class="example-stats">
                   <div class="stat-line"><span class="lab">true β</span><span class="val">${fmtSigned(g.trueBeta)}</span></div>
                   <div class="stat-line"><span class="lab">β̂</span><span class="val">${fmtSigned(m.betaHat)}</span></div>
+                  <div class="stat-line"><span class="lab">baseline</span><span class="val">${m.baseline}</span></div>
                   <div class="stat-line"><span class="lab">SE</span><span class="val">${seR.toFixed(4)}</span></div>
                 </div>
                 <div class="pick-block">
@@ -963,7 +1043,7 @@ function renderExamples(sortedBetas, sigma, nExpert, nNovice, priors) {
 
   // Cache what the canvases need, then draw. A later view-switch can redraw
   // from this same snapshot so numbers stay fixed until the next Go press.
-  lastExamples = { groups, sortedBetas, sigma, priors };
+  lastExamples = { groups, sortedBetas, sigma, sigmaAn, priors };
   drawExampleCanvases(lastExamples);
   renderGroupDecisions(lastExamples);
   fillRealizationDecisions(lastExamples);
@@ -1033,7 +1113,7 @@ function behaviouralName(rho) {
 
 function renderGroupDecisions(state) {
   if (!state) return;
-  const { groups, sortedBetas, sigma } = state;
+  const { groups, sortedBetas, sigmaAn } = state;
   const rho = getRho();
   if ($('rho-val')) $('rho-val').textContent = 'ρ = ' + rho.toFixed(2);
   if ($('rho-regime')) $('rho-regime').textContent = rhoRegime(rho);
@@ -1043,7 +1123,7 @@ function renderGroupDecisions(state) {
     if (!box) return;
     // Per-member realised SE and precision τ = 1/SE².
     const ms = g.members.map(m => {
-      const se = sigma / Math.sqrt(ssOfX(m.x));
+      const se = sigmaAn / Math.sqrt(ssOfX(m.x));
       return { role: m.role, betaHat: m.betaHat, se, tau: 1 / (se * se) };
     });
     const tau = ms.map(m => m.tau);
@@ -1094,12 +1174,12 @@ function renderGroupDecisions(state) {
 // Deterministic from this draw's estimates; does NOT depend on ρ.
 function fillRealizationDecisions(state) {
   if (!state) return;
-  const { groups, sortedBetas, sigma } = state;
+  const { groups, sortedBetas, sigmaAn } = state;
   groups.forEach(g => {
     const host = $('real-' + g.rowIdx);
     if (!host) return;
     const ms = g.members.map(m => {
-      const se = sigma / Math.sqrt(ssOfX(m.x));
+      const se = sigmaAn / Math.sqrt(ssOfX(m.x));
       return { role: m.role, betaHat: m.betaHat, se };
     });
     const tau = ms.map(m => 1 / (m.se * m.se));
@@ -1139,20 +1219,20 @@ function fillRealizationDecisions(state) {
   });
 }
 
-function drawExampleCanvases({ groups, sortedBetas, sigma, priors }) {
+function drawExampleCanvases({ groups, sortedBetas, sigma, sigmaAn, priors }) {
   // Draw canvases now that the DOM is in place.
   groups.forEach(g => {
     g.members.forEach((m, j) => {
-      const seObs = sigma / Math.sqrt(ssOfX(m.x));
+      const seObs = sigmaAn / Math.sqrt(ssOfX(m.x));
       // Highlight the bar matching the "most likely" rule (posterior mode).
       const pick = posteriorModeCandidate(m.betaHat, seObs, sortedBetas, priors);
-      drawScatter(`sc-${g.rowIdx}-${j}`, m.x, m.y, m.role, g.trueBeta, sigma);
+      drawScatter(`sc-${g.rowIdx}-${j}`, m.x, m.y, m.role, g.trueBeta, sigma, m.baseline);
       drawMiniPosterior(`mini-${g.rowIdx}-${j}`, m.betaHat, seObs, sortedBetas, pick, priors);
     });
   });
 }
 
-function drawScatter(canvasId, x, y, role, trueBeta, sigma) {
+function drawScatter(canvasId, x, y, role, trueBeta, sigma, baseline) {
   const c = document.getElementById(canvasId);
   if (!c) return;
   const w = c.clientWidth || c.parentElement.clientWidth || 180;
@@ -1164,29 +1244,53 @@ function drawScatter(canvasId, x, y, role, trueBeta, sigma) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
-  const pad = { top: 6, right: 6, bottom: 6, left: 6 };
+  // Room on the left for the y tick labels and under the plot for the abstract
+  // year labels (the series is one 100-year window, not calendar years).
+  const pad = { top: 7, right: 7, bottom: 15, left: 25 };
   const pw = w - pad.left - pad.right;
   const ph = h - pad.top - pad.bottom;
 
-  // Match generate_group_stimuli.py framing: y centred on trueBeta * 5 with
-  // a half-window that grows with sigma and |trueBeta|.
-  const xLo = -0.5, xHi = 10.5;
-  const yCenter = trueBeta * 5;
-  const yHalf = Math.max(Math.abs(trueBeta * 10) + 3 * sigma, 3 * sigma + 1);
-  const yLo = yCenter - yHalf, yHi = yCenter + yHalf;
+  const xLo = -0.03 * X_SPAN, xHi = 1.03 * X_SPAN;
+  // y is a level around this series' own baseline: baseline (+ the drift over the
+  // window) ± 3σ, widened so an extreme realised dot can never fall outside.
+  const lo = baseline + Math.min(0, trueBeta * X_SPAN);
+  const hi = baseline + Math.max(0, trueBeta * X_SPAN);
+  let yLo = lo - (3 * sigma + 1), yHi = hi + (3 * sigma + 1);
+  for (let i = 0; i < y.length; i++) {
+    if (y[i] - 1 < yLo) yLo = y[i] - 1;
+    if (y[i] + 1 > yHi) yHi = y[i] + 1;
+  }
 
   const tx = (v) => pad.left + (v - xLo) / (xHi - xLo) * pw;
   const ty = (v) => pad.top + (1 - (v - yLo) / (yHi - yLo)) * ph;
 
-  // Faint baseline at y = 0 if it fits the window.
-  if (yLo <= 0 && 0 <= yHi) {
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineWidth = 1;
+  const font = getComputedStyle(document.body).fontFamily;
+  // Horizontal guides + y tick labels, so the realistic dot heights (and, with
+  // integer y, the fact that the dots sit on whole numbers) are readable.
+  ctx.font = '9px ' + font;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 1;
+  const yStep = niceStep((yHi - yLo) / 3);
+  const yDec = yStep < 1 ? 1 : 0;   // integer levels normally; decimals only for a tiny σ
+  for (let v = Math.ceil(yLo / yStep) * yStep; v <= yHi; v += yStep) {
+    ctx.strokeStyle = '#f1f5f9';
     ctx.beginPath();
-    ctx.moveTo(pad.left, ty(0));
-    ctx.lineTo(pad.left + pw, ty(0));
+    ctx.moveTo(pad.left, ty(v));
+    ctx.lineTo(pad.left + pw, ty(v));
     ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(v.toFixed(yDec), pad.left - 3, ty(v));
   }
+  ctx.textBaseline = 'alphabetic';
+
+  // Abstract year labels: the window is "yr 0 … yr 100", never calendar years.
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#94a3b8';
+  [0, 0.5, 1].forEach(f => {
+    const yr = f * X_SPAN;
+    ctx.fillText((f === 0 ? 'yr ' : '') + Math.round(yr), tx(yr), h - 4);
+  });
 
   const color = role === 'EXPERT' ? 'rgba(37,99,235,0.78)' : 'rgba(220,38,38,0.78)';
   const r = x.length > 20 ? 2.4 : 4;
@@ -1286,16 +1390,7 @@ window.addEventListener('resize', () => {
   const slider = $('rho');
   if (slider) slider.addEventListener('input', () => renderGroupDecisions(lastExamples));
   // Info popover for the aggregation schemes (click to toggle, outside/Esc to close).
-  const btn = $('rho-info-btn'), pop = $('rho-popover');
-  if (btn && pop) {
-    const setOpen = open => {
-      if (open) pop.removeAttribute('hidden'); else pop.setAttribute('hidden', '');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    };
-    btn.addEventListener('click', e => { e.stopPropagation(); setOpen(pop.hasAttribute('hidden')); });
-    document.addEventListener('click', e => { if (!pop.contains(e.target) && e.target !== btn) setOpen(false); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
-  }
+  wireInfoPopover('rho-info-btn', 'rho-popover');
 })();
 
 window.addEventListener('load', () => recompute());

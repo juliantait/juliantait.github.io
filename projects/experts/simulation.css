@@ -66,6 +66,12 @@
   }
   .cg-body { display: flex; align-items: flex-start; gap: 12px; }   /* ITEM 2: inputs top-aligned */
 
+  /* Two rows of controls inside one group: used by Candidate states (# states +
+     growth arm above the β/π grid) and by the Design switches (x design above
+     y values), which keeps the single-row control panel from getting too wide. */
+  .cg-stacked { flex-direction: column; gap: 9px; }
+  .cg-row { display: flex; align-items: flex-start; gap: 12px; }
+
   /* Thin separators between groups (desktop only — hidden once the row wraps). */
   .cg-divider { align-self: stretch; width: 1px; background: var(--border); }
   @media (max-width: 1079px) { .cg-divider { display: none; } }

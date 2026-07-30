@@ -28,25 +28,31 @@
 
 /* ============================================================================
    GAME — single-player betting / prediction task.
-   Reuses the page's existing generators and posterior math:
-     linspaceArr, makeNormal, olsBetaHat, ssOfX, posteriorOverCandidates, fmtSigned.
-   Candidate slopes and prior are fixed per the study; σ and the EXPERT/NOVICE
-   sample sizes are read live from the Simulation controls (so the Game stays in
-   sync with the rest of the page), with the page defaults as fallback.
+   Reuses the page's existing generators, constants and posterior math:
+     X_SPAN, BASELINE_LO/HI, observe, analysisSigma, linspaceArr, makeNormal,
+     olsBetaHat, ssOfX, posteriorOverCandidates, readPriors, candCount, fmtSigned.
+   The candidate slopes, their prior, σ and the EXPERT/NOVICE sample sizes are all
+   read LIVE from the Simulation controls, so the Game always runs the design the
+   panel shows (2 states, prior 0.8 / 0.2, β₂ = 0.02 by default), with these
+   fallbacks if the panel is unreadable. The belief bars, the €1 allocation bar
+   and its handles are therefore built per round, one slot per candidate.
    ============================================================================ */
 (function(){
   'use strict';
 
-  var BETAS  = [-0.2, 0, 0.2];        // candidate true slopes
-  var PRIORS = [0.25, 0.5, 0.25];     // heavy-middle prior: P(0)=½, ¼ on each extreme
+  var FALLBACK_BETAS  = [0, 0.02];
+  var FALLBACK_PRIORS = [0.8, 0.2];
   var MAXBELIEF = 100;                // belief bars are 0–100, independent (never auto-adjusted)
+  // β-guess slider range. β is a per-year slope now, so ±0.06 covers the 0.01–0.04
+  // growth arms plus a NOVICE SE either side; the axis labels are drawn from these.
+  var BETA_LO = -0.06, BETA_HI = 0.06, BETA_STEP = 0.001;
 
   // ---- mutable round + control state ----
-  var round = null;          // { sigma, n, isExpert, trueIdx, trueBeta, x, y, betaHat, se, posterior }
+  var round = null;          // { sigma, n, isExpert, states, trueIdx, trueBeta, baseline, x, y, betaHat, se, posterior }
   var revealed = false;      // false on the bet screen, true on the results screen
-  var beliefs = [25, 50, 25]; // belief-bar heights (independent; init at prior)
-  var h1 = 0.25, h2 = 0.75;   // allocation handles default to the prior split: €0.25 / €0.50 / €0.25
-  var betaGuess = 0;          // vertical slider value in [-0.5, +0.5]
+  var beliefs = [];          // belief-bar heights (independent; init at the prior)
+  var cuts = [];             // K−1 allocation cut positions in [0,1] (init at the prior)
+  var betaGuess = 0;         // vertical slider value in [BETA_LO, BETA_HI]
 
   // ---- in-memory session accumulators (reset on page reload) ----
   var sess = { rounds: 0, won: 0, betHits: 0 };
@@ -54,7 +60,9 @@
 
   function gid(id){ return document.getElementById(id); }
   function eur(x){ return '€' + x.toFixed(2); }
-  function signed(v){ return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2); }
+  // β is a per-year slope on a 0.01–0.04 scale — use the page's shared formatter
+  // (3 decimals) so the Game and the Simulation print the same numbers.
+  function signed(v){ return fmtSigned(v); }
 
   function readParam(id, fallback){
     var el = gid(id);
@@ -62,40 +70,108 @@
     return (isFinite(v) && v > 0) ? v : fallback;
   }
 
+  // ---- candidate slopes + prior, live from the Simulation controls ----
+  function readStates(){
+    var k = (typeof candCount === 'number') ? candCount : 2;
+    var ids = (k === 3) ? ['b1','b2','b3'] : ['b1','b2'];
+    var betas = ids.map(function(id){ var el = gid(id); return el ? parseFloat(el.value) : NaN; });
+    var priors = readPriors(k);
+    var ok = betas.every(function(v){ return isFinite(v); })
+          && new Set(betas).size === betas.length
+          && priors.every(function(p){ return isFinite(p) && p >= 0; });
+    if (!ok){ betas = FALLBACK_BETAS.slice(); priors = FALLBACK_PRIORS.slice(); }
+    // sort ascending so bars / bet segments read left→right like the rest of the page
+    var order = betas.map(function(b, i){ return i; })
+                     .sort(function(a, b){ return betas[a] - betas[b]; });
+    return { betas: order.map(function(i){ return betas[i]; }),
+             priors: order.map(function(i){ return priors[i]; }) };
+  }
+
+  // Colour slot for a candidate: with 3 states keep the page's −/0/+ colouring,
+  // otherwise colour by sign (red down, grey flat, blue up).
+  function segClass(b, i, K){
+    if (K === 3) return 's' + i;
+    return b < 0 ? 's0' : (b > 0 ? 's2' : 's1');
+  }
+
   // ---- generate one fresh round ----
   function genRound(){
-    var sigma = readParam('sigma', 1.5);
+    var sigma = readParam('sigma', 2.5);
     var nNov  = Math.round(readParam('nNov', 4));
     var nExp  = Math.round(readParam('nExp', 80));
+    var states = readStates();
 
     var isExpert = Math.random() < 0.5;        // P(expert) = P(novice) = ½
     var n = isExpert ? nExp : nNov;
 
-    // draw the true state from the prior  P(0)=½, P(−0.2)=¼, P(+0.2)=¼
-    var u = Math.random(), trueIdx;
-    if (u < 0.5) trueIdx = 1; else if (u < 0.75) trueIdx = 0; else trueIdx = 2;
-    var trueBeta = BETAS[trueIdx];
+    // draw the true state from the prior (0.8 flat / 0.2 growing by default)
+    var u = Math.random(), acc = 0, trueIdx = states.betas.length - 1;
+    for (var k = 0; k < states.betas.length; k++){
+      acc += states.priors[k];
+      if (u < acc){ trueIdx = k; break; }
+    }
+    var trueBeta = states.betas[trueIdx];
 
-    // fixed design x = linspace(0,10,n) (the page's default fixed-x mode);
-    // y = β·x + N(0, σ²) using the page's Box–Muller generator.
-    var x = linspaceArr(0, 10, n);
+    // fixed design x = linspace(0, 100, n): n evenly spaced observation years
+    // across the window (the page's default fixed-x mode). y = baseline + β·x +
+    // N(0, σ²) using the page's Box–Muller generator, with an integer baseline so
+    // the dots sit at realistic heights — and rounded to whole numbers at this
+    // simulation step whenever the page's y-values toggle is on integers.
+    var baseline = BASELINE_LO + Math.floor(Math.random() * (BASELINE_HI - BASELINE_LO + 1));
+    var x = linspaceArr(0, X_SPAN, n);
     var norm = makeNormal(Math.random);
     var y = new Array(n);
-    for (var i = 0; i < n; i++) y[i] = trueBeta * x[i] + sigma * norm();
+    for (var i = 0; i < n; i++) y[i] = observe(baseline + trueBeta * x[i] + sigma * norm());
 
+    // β̂ and everything derived from it therefore come from the REALISED dots.
     var betaHat = olsBetaHat(x, y);
-    var se = sigma / Math.sqrt(ssOfX(x));
+    var se = analysisSigma(sigma) / Math.sqrt(ssOfX(x));
     // optimal allocation = posterior P(state | data), exactly the page's closed form.
     // Renormalise defensively so the optimal bet ALWAYS sums to exactly 1 (€1.00).
-    var posterior = posteriorOverCandidates(betaHat, se, BETAS, PRIORS);
-    var pz = posterior[0] + posterior[1] + posterior[2];
+    var posterior = posteriorOverCandidates(betaHat, se, states.betas, states.priors);
+    var pz = posterior.reduce(function(a, b){ return a + b; }, 0);
     posterior = posterior.map(function(v){ return v / pz; });
 
-    return { sigma:sigma, n:n, isExpert:isExpert, trueIdx:trueIdx, trueBeta:trueBeta,
-             x:x, y:y, betaHat:betaHat, se:se, posterior:posterior };
+    return { sigma:sigma, n:n, isExpert:isExpert, states:states, trueIdx:trueIdx,
+             trueBeta:trueBeta, baseline:baseline, x:x, y:y, betaHat:betaHat, se:se,
+             posterior:posterior };
   }
 
   // ---- renderers ----
+  // The bet is K stakes; the draggable state is the K−1 cut positions between them.
+  function alloc(){
+    var out = [], prev = 0;
+    for (var i = 0; i < cuts.length; i++){ out.push(cuts[i] - prev); prev = cuts[i]; }
+    out.push(1 - prev);
+    return out;
+  }
+
+  // Build the per-round widgets: one belief bar, one bet segment and one label per
+  // candidate slope, plus K−1 drag handles. Rebuilt each round, so the drag
+  // handlers are re-wired onto the fresh elements.
+  function buildBetUI(){
+    var b = round.states.betas, K = b.length, i;
+    var bars = '', segs = '', handles = '', labels = '';
+    for (i = 0; i < K; i++){
+      var cls = segClass(b[i], i, K);
+      bars += '<div class="bbar" data-i="' + i + '">' +
+                '<div class="bbar-val"></div>' +
+                '<div class="bbar-track"><div class="bbar-fill ' + cls + '"></div>' +
+                  '<div class="bbar-opt"><span></span></div></div>' +
+                '<div class="bbar-lab">' + fmtSigned(b[i]) + '</div>' +
+              '</div>';
+      segs   += '<div class="alloc-seg ' + cls + '"></div>';
+      labels += '<span>β=' + fmtSigned(b[i]) + '</span>';
+    }
+    for (i = 0; i < K - 1; i++) handles += '<div class="alloc-handle" data-h="' + i + '"></div>';
+    gid('belief-bars').innerHTML = bars;
+    gid('alloc-bar').innerHTML = '<div class="alloc-track">' + segs + '</div>' + handles;
+    gid('alloc-optbar').innerHTML = segs;
+    gid('alloc-labels').innerHTML = labels;
+    setupBeliefDrag();
+    setupAllocDrag();
+  }
+
   function renderBeliefBars(){
     var bars = document.querySelectorAll('#belief-bars .bbar');
     for (var k = 0; k < bars.length; k++){
@@ -106,19 +182,21 @@
   }
 
   function renderAlloc(){
-    var p1 = h1 * 100, p2 = h2 * 100;
-    var s = [h1, h2 - h1, 1 - h2];
-    var segs = [gid('seg-a'), gid('seg-b'), gid('seg-c')];
-    segs[0].style.left = '0%';  segs[0].style.width = p1 + '%';
-    segs[1].style.left = p1 + '%'; segs[1].style.width = (p2 - p1) + '%';
-    segs[2].style.left = p2 + '%'; segs[2].style.width = (100 - p2) + '%';
-    for (var i = 0; i < 3; i++) segs[i].textContent = (s[i] >= 0.06) ? eur(s[i]) : '';
-    gid('ah1').style.left = p1 + '%';
-    gid('ah2').style.left = p2 + '%';
+    var a = alloc(), bar = gid('alloc-bar');
+    var segs = bar.querySelectorAll('.alloc-seg'), left = 0, i;
+    for (i = 0; i < segs.length; i++){
+      segs[i].style.left = (left * 100) + '%';
+      segs[i].style.width = (a[i] * 100) + '%';
+      segs[i].textContent = (a[i] >= 0.06) ? eur(a[i]) : '';
+      left += a[i];
+    }
+    var hs = bar.querySelectorAll('.alloc-handle');
+    for (i = 0; i < hs.length; i++) hs[i].style.left = (cuts[i] * 100) + '%';
   }
 
   function renderBeta(){
-    var frac = (0.5 - betaGuess) / 1.0;   // 0 at top (+0.5), 1 at bottom (−0.5)
+    var span = BETA_HI - BETA_LO;
+    var frac = (BETA_HI - betaGuess) / span;   // 0 at top (BETA_HI), 1 at bottom
     gid('beta-thumb').style.top = (frac * 100) + '%';
     gid('beta-val').textContent = signed(betaGuess);
   }
@@ -143,7 +221,8 @@
     var pad = { top:16, right:14, bottom:28, left:44 };
     var pw = w - pad.left - pad.right, ph = h - pad.top - pad.bottom;
     var x = round.x, y = round.y;
-    var xLo = -0.5, xHi = 10.5;
+    // one 100-year observation window; ticks are abstract year labels, not dates
+    var xLo = -0.03 * X_SPAN, xHi = 1.03 * X_SPAN;
     var ymin = Math.min.apply(null, y), ymax = Math.max.apply(null, y);
     var span = Math.max(ymax - ymin, 1);
     ymin -= 0.12 * span; ymax += 0.12 * span;
@@ -155,10 +234,11 @@
     // gridlines + NUMERIC tick labels on both axes
     ctx.font = '9.5px ' + font; ctx.lineWidth = 1;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    for (var xv = 0; xv <= 10; xv += 2){
+    var xTick = X_SPAN / 5;
+    for (var xv = 0; xv <= X_SPAN + 1e-9; xv += xTick){
       var pxv = tx(xv);
       ctx.strokeStyle = '#eef2f7'; ctx.beginPath(); ctx.moveTo(pxv, pad.top); ctx.lineTo(pxv, pad.top + ph); ctx.stroke();
-      ctx.fillStyle = '#94a3b8'; ctx.fillText(String(xv), pxv, pad.top + ph + 6);
+      ctx.fillStyle = '#94a3b8'; ctx.fillText(String(Math.round(xv)), pxv, pad.top + ph + 6);
     }
     var yStep = niceStep((ymax - ymin) / 4);
     var yDec = yStep < 1 ? 1 : 0;
@@ -208,14 +288,14 @@
     ctx.fillStyle = '#94a3b8';
     ctx.font = '11px ' + font;
     ctx.textAlign = 'center';
-    ctx.fillText('x', pad.left + pw / 2, h - 4);
+    ctx.fillText('year in window', pad.left + pw / 2, h - 4);
     ctx.save(); ctx.translate(11, pad.top + ph / 2); ctx.rotate(-Math.PI / 2);
     ctx.fillText('y', 0, 0); ctx.restore();
 
     // RESULTS overlays: realised true β (top-right) + β̂ on the OLS line (top-left),
     // both with a white halo so they stay legible over the cloud.
     if (revealed){
-      var fmtB = function(b){ return b === 0 ? 'β = 0' : 'β = ' + (b > 0 ? '+' : '−') + Math.abs(b); };
+      var fmtB = function(b){ return 'β = ' + signed(b); };
       ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 4;
       ctx.textAlign = 'left'; ctx.font = 'bold 11px ' + font;
       ctx.fillStyle = '#0e7d54'; ctx.fillText('β̂ = ' + signed(round.betaHat) + '  (OLS fit)', pad.left + 6, pad.top + 13);
@@ -264,30 +344,33 @@
 
   function setupAllocDrag(){
     var bar = gid('alloc-bar');
-    function makeMove(which){
-      return function(e){
-        var rct = bar.getBoundingClientRect();
-        var p = (e.clientX - rct.left) / rct.width;
-        p = Math.max(0, Math.min(1, p));
-        // Handles PUSH each other: drag one into the other and keep going and the
-        // second is shoved along, so you can sweep both to either end in one drag.
-        if (which === 1){ h1 = p; if (h2 < h1) h2 = h1; }
-        else            { h2 = p; if (h1 > h2) h1 = h2; }
-        renderAlloc();
-      };
+    var hs = bar.querySelectorAll('.alloc-handle');
+    for (var k = 0; k < hs.length; k++){
+      (function(hEl){
+        var which = +hEl.dataset.h;
+        hEl.addEventListener('pointerdown', startDrag(hEl, function(e){
+          var rct = bar.getBoundingClientRect();
+          var p = (e.clientX - rct.left) / rct.width;
+          p = Math.max(0, Math.min(1, p));
+          cuts[which] = p;
+          // Handles PUSH each other: drag one into its neighbour and keep going and
+          // the neighbour is shoved along, so you can sweep them all to either end.
+          for (var j = which + 1; j < cuts.length; j++) if (cuts[j] < p) cuts[j] = p;
+          for (var i = which - 1; i >= 0; i--)          if (cuts[i] > p) cuts[i] = p;
+          renderAlloc();
+        }));
+      })(hs[k]);
     }
-    var hdl1 = gid('ah1'), hdl2 = gid('ah2');
-    hdl1.addEventListener('pointerdown', startDrag(hdl1, makeMove(1)));
-    hdl2.addEventListener('pointerdown', startDrag(hdl2, makeMove(2)));
   }
 
   function setupBetaDrag(){
     var track = gid('beta-track');
+    var span = BETA_HI - BETA_LO;
     track.addEventListener('pointerdown', startDrag(track, function(e){
       var rct = track.getBoundingClientRect();
       var frac = (e.clientY - rct.top) / rct.height;
       frac = Math.max(0, Math.min(1, frac));
-      betaGuess = Math.round((0.5 - frac) * 100) / 100;
+      betaGuess = Math.round((BETA_HI - frac * span) / BETA_STEP) * BETA_STEP;
       renderBeta();
     }));
   }
@@ -297,23 +380,23 @@
   // Quadratic loss ℓ = Σ(aₖ − eₖ)² ∈ [0,2]; win-probability w = 1 − ℓ/2 ∈ [0,1].
   // A single Uniform(0,1) draw U binarizes it: pay €1 iff U < w, else €0. Expected
   // payoff = w euros, maximised (truthfully) at a = posterior — a strictly proper rule.
-  function winProbOf(alloc, eIdx){
+  function winProbOf(a, eIdx){
     var loss = 0;
-    for (var k = 0; k < 3; k++){
+    for (var k = 0; k < a.length; k++){
       var e = (k === eIdx) ? 1 : 0;
-      loss += (alloc[k] - e) * (alloc[k] - e);
+      loss += (a[k] - e) * (a[k] - e);
     }
     return 1 - loss / 2;
   }
 
-  // largest-remainder (Hamilton) rounding → three integer % summing to EXACTLY 100
+  // largest-remainder (Hamilton) rounding → integer % summing to EXACTLY 100
   function pcts(probs){
     var raw = probs.map(function(p){ return p * 100; });
     var fl = raw.map(Math.floor);
-    var rem = Math.round(100 - (fl[0] + fl[1] + fl[2]));
+    var rem = Math.round(100 - fl.reduce(function(a, b){ return a + b; }, 0));
     var order = raw.map(function(v, i){ return { i:i, f:v - fl[i] }; })
                    .sort(function(a, b){ return b.f - a.f; });
-    for (var j = 0; j < rem; j++){ fl[order[j % 3].i]++; }
+    for (var j = 0; j < rem; j++){ fl[order[j % order.length].i]++; }
     return fl;
   }
 
@@ -322,8 +405,10 @@
     // Re-standardise the player's beliefs to sum to 100 — SAME ratios they
     // submitted, just rescaled — so they share the optimal posterior's scale;
     // then overlay that posterior (orange line) on each bar.
-    var sum = beliefs[0] + beliefs[1] + beliefs[2];
-    var frac = (sum > 0) ? beliefs.map(function(b){ return b / sum; }) : [1/3, 1/3, 1/3];
+    var K = beliefs.length;
+    var sum = beliefs.reduce(function(a, b){ return a + b; }, 0);
+    var frac = (sum > 0) ? beliefs.map(function(b){ return b / sum; })
+                         : beliefs.map(function(){ return 1 / K; });
     var lab = pcts(frac);                       // integer % summing to exactly 100
     var bars = document.querySelectorAll('#belief-bars .bbar');
     for (var k = 0; k < bars.length; k++){
@@ -337,18 +422,19 @@
   }
   function renderAllocOptimal(){
     var p = round.posterior;                    // sums to 1 → fills the optimal bar
-    var segs = [gid('oseg-a'), gid('oseg-b'), gid('oseg-c')];
-    var w = [p[0] * 100, p[1] * 100, p[2] * 100];
-    segs[0].style.left = '0%';              segs[0].style.width = w[0] + '%';
-    segs[1].style.left = w[0] + '%';        segs[1].style.width = w[1] + '%';
-    segs[2].style.left = (w[0] + w[1]) + '%'; segs[2].style.width = w[2] + '%';
-    for (var i = 0; i < 3; i++) segs[i].textContent = (p[i] >= 0.07) ? eur(p[i]) : '';
+    var segs = gid('alloc-optbar').querySelectorAll('.alloc-seg'), left = 0;
+    for (var i = 0; i < segs.length; i++){
+      segs[i].style.left = (left * 100) + '%';
+      segs[i].style.width = (p[i] * 100) + '%';
+      segs[i].textContent = (p[i] >= 0.07) ? eur(p[i]) : '';
+      left += p[i];
+    }
   }
   function renderBetaHat(){
-    var bh = Math.max(-0.5, Math.min(0.5, round.betaHat));   // clamp marker onto the track
-    gid('beta-hat').style.top = ((0.5 - bh) * 100) + '%';
+    var bh = Math.max(BETA_LO, Math.min(BETA_HI, round.betaHat));   // clamp onto the track
+    gid('beta-hat').style.top = ((BETA_HI - bh) / (BETA_HI - BETA_LO) * 100) + '%';
     gid('beta-hat').querySelector('span').textContent = signed(round.betaHat);
-    gid('beta-hat-val').textContent = 'β̂ ' + signed(round.betaHat) + ' (you off ' + Math.abs(betaGuess - round.betaHat).toFixed(2) + ')';
+    gid('beta-hat-val').textContent = 'β̂ ' + signed(round.betaHat) + ' (you off ' + Math.abs(betaGuess - round.betaHat).toFixed(3) + ')';
   }
 
   // ---- Submit → results screen: same layout, truth revealed in place ----
@@ -357,17 +443,17 @@
     revealed = true;
     gid('sec-game').classList.add('revealed');
 
-    var alloc = [h1, h2 - h1, 1 - h2];
+    var stakes = alloc();
     var t = round.trueIdx;
     var p = round.posterior;
 
     // realised paired-uniform payout (scored against the state that occurred)
-    var winChance = winProbOf(alloc, t);
+    var winChance = winProbOf(stakes, t);
     var payout = (Math.random() < winChance) ? 1 : 0;
 
     // ex-ante expected score under the posterior — maximised by betting a = p
-    var expScore = function(a){ var s = 0; for (var k = 0; k < 3; k++) s += p[k] * winProbOf(a, k); return s; };
-    var wYou = expScore(alloc), wOpt = expScore(p);
+    var expScore = function(a){ var s = 0; for (var k = 0; k < p.length; k++) s += p[k] * winProbOf(a, k); return s; };
+    var wYou = expScore(stakes), wOpt = expScore(p);
 
     renderBeliefOverlay();   // your beliefs (rescaled) + optimal posterior overlay (bottom-left)
     renderAllocOptimal();    // the "optimal" bet bar under your bet (bottom-right)
@@ -382,7 +468,7 @@
     // ---- accumulate this round into the session (once) ----
     if (!scoredThisRound){
       scoredThisRound = true;
-      var betTopIdx = alloc.indexOf(Math.max(alloc[0], alloc[1], alloc[2]));   // largest euro stake
+      var betTopIdx = stakes.indexOf(Math.max.apply(null, stakes));   // largest euro stake
       sess.rounds  += 1;
       sess.won     += payout;
       sess.betHits += (betTopIdx === t) ? 1 : 0;
@@ -398,8 +484,14 @@
     revealed = false;
     scoredThisRound = false;
     gid('sec-game').classList.remove('revealed');
-    beliefs = [25, 50, 25];
-    h1 = 0.25; h2 = 0.75;   // prior split €0.25 / €0.50 / €0.25 (matches the belief-bar default)
+    // beliefs and the €1 split both start at the prior (0.8 / 0.2 by default)
+    beliefs = round.states.priors.map(function(p){ return p * MAXBELIEF; });
+    cuts = [];
+    var acc = 0;
+    for (var k = 0; k < round.states.priors.length - 1; k++){
+      acc += round.states.priors[k];
+      cuts.push(acc);
+    }
     betaGuess = 0;
 
     var rl = gid('game-role');
@@ -407,6 +499,7 @@
     rl.className = 'game-role ' + (round.isExpert ? 'expert' : 'novice');
 
     gid('game-submit').textContent = 'Submit';   // reset the in-place button label
+    buildBetUI();
     renderBeliefBars(); renderAlloc(); renderBeta(); drawGameScatter();
   }
 
@@ -458,15 +551,17 @@
   window.__gameState = function(){
     return {
       round: round ? { trueIdx: round.trueIdx, trueBeta: round.trueBeta, isExpert: round.isExpert, n: round.n } : null,
-      betaGuess: betaGuess, alloc: [h1, h2 - h1, 1 - h2], revealed: revealed,
+      betaGuess: betaGuess, alloc: alloc(), revealed: revealed,
       sess: { rounds: sess.rounds, won: sess.won, betHits: sess.betHits }
     };
   };
 
   // ---- init ----
-  setupBeliefDrag();
-  setupAllocDrag();
+  // The belief bars and the allocation bar are rebuilt (and re-wired) each round by
+  // buildBetUI; only the β-guess track is a permanent element.
   setupBetaDrag();
+  // β-axis labels come from the slider bounds so they cannot drift out of sync
+  gid('beta-axis').innerHTML = '<span>' + signed(BETA_HI) + '</span><span>0</span><span>' + signed(BETA_LO) + '</span>';
   // one footer button: Submit on the bet screen, Next round on the results screen
   gid('game-submit').addEventListener('click', function(){ if (revealed) newRound(); else submit(); });
   gid('game-results-btn').addEventListener('click', showSummary);   // reveal screen → session summary
