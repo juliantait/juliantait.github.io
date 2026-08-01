@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#12151c">
+<title>Codenames Duet — Key Card</title>
+<style>
+  :root {
+    --bg: #12151c;
+    --panel: #1b1f29;
+    --panel-2: #232838;
+    --border: #313749;
+    --text: #eef1f6;
+    --muted: #9aa3b5;
+    --accent: #5b8cff;
+
+    --green: #2e9e5b;
+    --green-text: #ffffff;
+    --assassin: #0c0d10;
+    --assassin-text: #f2f2f2;
+    --bystander: #d9c08a;
+    --bystander-text: #2a2416;
+    --neutral: #2c3243;
+    --neutral-text: #d7ddea;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: env(safe-area-inset-top) 16px calc(16px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 560px;
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header.top {
+    text-align: center;
+    padding: 22px 0 6px;
+  }
+  header.top h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+  }
+  header.top .sub {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .screen { display: none; flex-direction: column; gap: 16px; padding-top: 12px; }
+  .screen.active { display: flex; }
+
+  /* Pass-the-device banner */
+  .passbar {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .passbar .who {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .passbar .warn {
+    margin-top: 3px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .p1accent .who { color: #7fb0ff; }
+  .p2accent .who { color: #ffcf6b; }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 7px;
+    width: 100%;
+  }
+  .cell {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: clamp(0.95rem, 4.6vw, 1.5rem);
+    background: var(--neutral);
+    color: var(--neutral-text);
+    border: 1px solid rgba(255,255,255,0.06);
+    user-select: none;
+  }
+  .cell.green    { background: var(--green);     color: var(--green-text); }
+  .cell.assassin { background: var(--assassin);  color: var(--assassin-text); border-color: #3a3a3a; }
+  .cell.bystander{ background: var(--bystander); color: var(--bystander-text); }
+
+  .cell .num {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    opacity: 0.72;
+  }
+  .cell .mark {
+    font-size: clamp(1rem, 5vw, 1.6rem);
+    line-height: 1;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+  .legend .sw {
+    width: 15px; height: 15px; border-radius: 4px; display: inline-block;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .sw.green { background: var(--green); }
+  .sw.assassin { background: var(--assassin); }
+  .sw.bystander { background: var(--bystander); }
+  .legend .count { color: var(--text); font-weight: 600; }
+
+  /* Buttons */
+  .btns { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    transition: transform 0.05s ease, filter 0.15s ease;
+  }
+  .btn:active { transform: scale(0.985); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.p1 { background: #2b4c8f; border-color: #345aa8; color: #eaf1ff; }
+  .btn.p2 { background: #8a6a1f; border-color: #a67f28; color: #fff6e2; }
+  .btn.done { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn.ghost { background: transparent; }
+
+  .preview-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .preview-hint { text-align: center; color: var(--muted); font-size: 0.82rem; }
+
+  footer.site {
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+    padding: 22px 0 6px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  footer.site a { color: var(--accent); text-decoration: none; }
+  footer.site a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Codenames Duet</h1>
+    <p class="sub">Digital key card · pass-and-play</p>
+  </header>
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <div class="preview-wrap">
+      <div class="grid" id="previewGrid" aria-label="Board preview, positions 1 to 25"></div>
+      <p class="preview-hint">The physical picture cards sit in this 5×5 grid, numbered 1–25.</p>
+    </div>
+    <div class="btns">
+      <button class="btn p1" id="btnP1">Player 1 — view your key</button>
+      <button class="btn p2" id="btnP2">Player 2 — view your key</button>
+      <button class="btn ghost" id="btnRegen">↻ Regenerate board</button>
+    </div>
+  </section>
+
+  <!-- PLAYER VIEW (shared for P1 / P2) -->
+  <section id="player" class="screen">
+    <div class="passbar" id="passbar">
+      <div class="who" id="passWho">Player 1</div>
+      <div class="warn">Pass the device to this player only — don't let your partner see this key.</div>
+    </div>
+    <div class="grid" id="playerGrid"></div>
+    <div class="legend">
+      <div class="item"><span class="sw green"></span> Agent <span class="count">×9</span></div>
+      <div class="item"><span class="sw assassin"></span> Assassin <span class="count">×3</span></div>
+      <div class="item"><span class="sw bystander"></span> Bystander <span class="count">×13</span></div>
+    </div>
+    <div class="btns">
+      <button class="btn done" id="btnDone">Done — back to home</button>
+    </div>
+  </section>
+</div>
+
+<footer class="site">
+  <a href="https://juliantait.eu" target="_top">juliantait.eu</a>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // --- Official Codenames Duet fixed distribution ---------------------------
+  // Code = [P1 type][P2 type], where G=Green(agent), A=Assassin, B=Bystander.
+  var DISTRIBUTION = [
+    { code: "GG", count: 3 },
+    { code: "GB", count: 5 },
+    { code: "GA", count: 1 },
+    { code: "BG", count: 5 },
+    { code: "BB", count: 7 },
+    { code: "BA", count: 1 },
+    { code: "AG", count: 1 },
+    { code: "AB", count: 1 },
+    { code: "AA", count: 1 }
+  ];
+
+  function buildDeck() {
+    var deck = [];
+    DISTRIBUTION.forEach(function (d) {
+      for (var i = 0; i < d.count; i++) deck.push(d.code);
+    });
+    return deck; // 25 entries
+  }
+
+  // Fisher-Yates shuffle
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  var TYPE = {
+    G: { cls: "green",     mark: "" },
+    A: { cls: "assassin",  mark: "☠" },
+    B: { cls: "bystander", mark: "" }
+  };
+
+  // Self-check: each side must have exactly 9 green, 3 assassin, 13 bystander.
+  function selfCheck(board) {
+    var tally = { P1: { G: 0, A: 0, B: 0 }, P2: { G: 0, A: 0, B: 0 } };
+    board.forEach(function (code) {
+      tally.P1[code.charAt(0)]++;
+      tally.P2[code.charAt(1)]++;
+    });
+    ["P1", "P2"].forEach(function (p) {
+      if (tally[p].G !== 9 || tally[p].A !== 3 || tally[p].B !== 13) {
+        throw new Error("Self-check FAILED for " + p + ": " + JSON.stringify(tally[p]));
+      }
+    });
+    if (board.length !== 25) throw new Error("Board is not 25 cells: " + board.length);
+    console.log("Self-check OK — P1:", tally.P1, "P2:", tally.P2,
+                "(each side: 9 green, 3 assassin, 13 bystander)");
+    return tally;
+  }
+
+  // --- State ---------------------------------------------------------------
+  var board = [];      // array of 25 codes, index 0..24 -> positions 1..25
+  var currentPlayer = 1;
+
+  function generate() {
+    board = shuffle(buildDeck());
+    selfCheck(board);
+  }
+
+  // --- Rendering -----------------------------------------------------------
+  var previewGrid = document.getElementById("previewGrid");
+  var playerGrid  = document.getElementById("playerGrid");
+
+  function renderPreview() {
+    previewGrid.innerHTML = "";
+    for (var i = 0; i < 25; i++) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.innerHTML = '<span class="num">' + (i + 1) + '</span>';
+      previewGrid.appendChild(cell);
+    }
+  }
+
+  function renderPlayer(playerIdx) {
+    // playerIdx: 0 = P1's own key, 1 = P2's own key
+    playerGrid.innerHTML = "";
+    for (var i = 0; i < 25; i++) {
+      var t = board[i].charAt(playerIdx); // 'G' | 'A' | 'B'
+      var info = TYPE[t];
+      var cell = document.createElement("div");
+      cell.className = "cell " + info.cls;
+      var html = '<span class="num">' + (i + 1) + '</span>';
+      if (info.mark) html += '<span class="mark">' + info.mark + '</span>';
+      cell.innerHTML = html;
+      playerGrid.appendChild(cell);
+    }
+  }
+
+  // --- Navigation ----------------------------------------------------------
+  var homeScreen   = document.getElementById("home");
+  var playerScreen = document.getElementById("player");
+  var passbar      = document.getElementById("passbar");
+  var passWho      = document.getElementById("passWho");
+
+  function showScreen(el) {
+    homeScreen.classList.remove("active");
+    playerScreen.classList.remove("active");
+    el.classList.add("active");
+    window.scrollTo(0, 0);
+  }
+
+  function openPlayer(player) {
+    currentPlayer = player;
+    renderPlayer(player - 1);
+    passWho.textContent = "Player " + player;
+    passbar.className = "passbar " + (player === 1 ? "p1accent" : "p2accent");
+    showScreen(playerScreen);
+  }
+
+  document.getElementById("btnP1").addEventListener("click", function () { openPlayer(1); });
+  document.getElementById("btnP2").addEventListener("click", function () { openPlayer(2); });
+  document.getElementById("btnDone").addEventListener("click", function () { showScreen(homeScreen); });
+  document.getElementById("btnRegen").addEventListener("click", function () {
+    generate();
+    // preview stays neutral; nothing to recolour on home
+  });
+
+  // --- Init ----------------------------------------------------------------
+  renderPreview();
+  generate();
+})();
+</script>
+</body>
+</html>
