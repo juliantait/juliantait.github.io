@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download exp_pilots.zip</title>
+  <!-- Fallback auto-download if JS is disabled -->
+  <meta http-equiv="refresh" content="1; url=exp_pilots.zip">
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 40rem;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+    a { color: #2a6df4; }
+    a.download {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    p.note { color: #888; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <h1>Your download should start automatically</h1>
+  <p class="note">If it doesn't, use the link below.</p>
+  <a class="download" id="dl" href="exp_pilots.zip" download="exp_pilots.zip">Download exp_pilots.zip</a>
+
+  <script>
+    // Trigger the download immediately on load.
+    (function () {
+      var a = document.getElementById('dl');
+      try { a.click(); } catch (e) { window.location.href = 'exp_pilots.zip'; }
+    })();
+  </script>
+</body>
+</html>
