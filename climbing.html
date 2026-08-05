@@ -4,6 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Climbing – Julian Tait</title>
+  <meta name="description" content="Julian Tait built CRAG-ference, a free shared board where academics who climb post which conferences they are attending and find climbing partners at the same events." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "CRAG-ference",
+        "url": "https://climbing.juliantait.eu",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "description": "Julian Tait built CRAG-ference, a free shared board where academics who climb post which conferences they are attending and find climbing partners at the same events."
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is CRAG-ference?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "CRAG-ference is a free shared board where academics who climb post which conferences they are attending, so they can find climbing partners at the same events."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What does the embeddable widget show?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The widget is a shared, auto-updating list of all upcoming conferences that users have posted, optionally filtered to a single academic field. It is not a personal profile and is not limited to the person who embedded it — everyone sees the same community-wide list."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <link rel="stylesheet" href="static/css/style.css" />
   <style>
     .cragference-embed {
@@ -165,7 +203,9 @@
           <div class="latex-body">
             <p>
               Want the CRAG-ference widget on your own site? Copy the embed code below and paste it
-              wherever you want it to appear.
+              wherever you want it to appear. The widget shows the shared, auto-updating list of every
+              upcoming conference that people have posted — not just your own trips — and you can scope it
+              to a single academic field if you like.
             </p>
             <div class="embed-code">
               <button type="button" class="copy-btn" id="copy-embed" aria-label="Copy embed code">Copy</button>
