@@ -38,7 +38,7 @@
   WHY THE NESTED FRAME: the template sizes itself in viewport units (the card
   is 88vh; base.css tightens its rhythm below 820px of height), so the layout
   is only defined at a given screen size. The screen is therefore drawn on a
-  fixed 1920x1080 canvas — an ordinary participant display — inside its own
+  fixed 1152x648 canvas — an ordinary participant display — inside its own
   browsing context, where those units resolve as they do for a participant,
   and the canvas is scaled to fill whatever 16:9 box the page is given. The
   scale is pure CSS (a length divided by a length is a number), so it works
@@ -52,11 +52,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f6; }
     position: absolute;
     top: 0;
     left: 0;
-    width: 1920px;
-    height: 1080px;
+    width: 1152px;
+    height: 648px;
     border: 0;
     transform-origin: top left;
-    transform: scale(calc(100vw / 1920px));
+    transform: scale(calc(100vw / 1152px));
 }
 </style>
 </head>
@@ -1792,42 +1792,40 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
 &lt;body&gt;
 &lt;!-- CONSENT — THE LAB RENDERING of before/welcome+consent.html.
 
-     THE TWO THINGS THAT MUST STAY TRUE, and both are mechanics, not copy:
+     THE COPY IS THE TEMPLATE&#x27;S OWN, VERBATIM (Julian, 2026-08-15). Every
+     sentence below is what `before/welcome+consent.html` renders for a lab
+     participant out of the box — nothing added, nothing lengthened. A fuller,
+     realistic-density consent page was tried here and REVERSED, and the
+     reasoning is worth keeping because it decides the next such question:
+     this screen goes on the website as what the template produces, so it has
+     to BE what the template produces. A departure explained in a file header
+     is invisible to somebody looking at the picture.
 
-       * NO CONSENT CONTROL OF ANY KIND. The lab profile sets
-         `explicit_consent=False` and `before.welcome.get_form_fields` adds the
-         radio only under that flag, so consent in the lab is IMPLICIT, by
-         continuing — an ethics choice made because there is an experimenter in
-         the room. An earlier build of this preview showed a pre-selected
-         &quot;I consent&quot; radio: a screen no lab participant has ever seen.
-       * NO &quot;WELCOME TO [lab]&quot; HEADER. That belongs to the gate page alone
-         (welcome_lab.html); this page renders in both study types.
-     Also lab-resolved: `show_duration_and_fee` ships OFF, so no duration and no
-     fee sentence; `collect_bank_details=True`, so the panel carries the bank
-     wording; `is_lab`, so the closing line is &quot;raise your hand&quot;.
+     THE SHIPPED COPY IS SHORT, AND THE CANVAS IS SIZED FOR IT rather than the
+     copy being padded to fill the canvas. See CANVASES in
+     previews/build_site_previews.py: this screen is composed on a smaller 16:9
+     canvas than the others, so the card renders at its natural proportions
+     instead of floating in a void.
 
-     THE COPY IS PLACEHOLDER, AND IT IS LONGER THAN THE COPY THE TEMPLATE SHIPS
-     (Julian, 2026-08-15). Say so plainly, because the opposite error — showing
-     something the app does not render — is what the consent radio was:
+     WHAT THE LAB PROFILE RESOLVES, and therefore what is on screen:
+       explicit_consent      False -&gt; NO consent control of any kind. Consent in
+                                      the lab is implicit, by continuing, an
+                                      ethics choice made because there is an
+                                      experimenter in the room; the radio is
+                                      added by `before.welcome.get_form_fields`
+                                      only under that flag. An early build of
+                                      this preview showed a pre-selected
+                                      &quot;I consent&quot; radio — a screen no lab
+                                      participant has ever seen.
+       show_duration_and_fee False -&gt; no duration sentence, no fee sentence.
+       collect_bank_details  True  -&gt; the bank-details wording in the panel.
+       is_lab                True  -&gt; &quot;raise your hand to speak to the
+                                      experimenter&quot;, never &quot;through Prolific&quot;.
+     NO &quot;WELCOME TO [lab]&quot; HEADER: that belongs to the gate page alone
+     (welcome_lab.html), and this page renders in both study types.
 
-       The template ships a MINIMAL consent panel, because consent text is the
-       first thing every study replaces with its own ethics-approved wording.
-       Rendered on this canvas that shipped copy used ~262px of a 613px region,
-       leaving a visible empty band above the divider, so as the website&#x27;s
-       representative CONSENT screen it understated the densest page in the
-       study. The copy below is neutral placeholder at the density a real
-       consent page carries — voluntary participation, withdrawal, anonymity
-       and data use, the payment-details sentence, the by-continuing sentence
-       and the contact route. Every component is the page&#x27;s own
-       (.panel--hug, .section-text); nothing here is a real study&#x27;s text, a real
-       ethics-board reference, or an institution specific the template does not
-       already ship.
-
-     WHY NOT THE ~750px QUOTED IN base.css: that figure is the PROLIFIC consent
-     page measured at 375px wide, where lines wrap three times as often. On this
-     1920x1080 canvas the pinned Next row and logo strip leave a 613px region,
-     so 750px of copy would overflow and be cut — the one thing these previews
-     may not do. --&gt;
+     The institution in the privacy sentence comes from
+     `settings.INSTITUTION_NAME` in the real page; it is written out here. --&gt;
 &lt;div class=&quot;experimental-screen&quot;&gt;
     &lt;div class=&quot;screen-card narrative-card&quot;&gt;
         &lt;div class=&quot;experimental-header&quot;&gt;
@@ -1836,26 +1834,12 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
         &lt;/div&gt;
 
         &lt;div class=&quot;experimental-content&quot;&gt;
-            &lt;p class=&quot;section-text&quot;&gt;
-                This session has three parts: a set of instructions, a few
-                questions to check they are clear, and the task itself.
-            &lt;/p&gt;
-
             &lt;div class=&quot;panel panel--hug&quot;&gt;
                 All recorded data are stored anonymously and used solely for
                 research purposes by researchers at the University of Amsterdam.
-                Your responses are stored under a randomly generated participant
-                number, and nothing that could identify you is published or
-                shared outside the research team. Your contact and bank details
-                are used only to arrange your payment and are never linked to
-                the published data.
+                Your contact and bank details are used only to arrange your
+                payment and are never linked to the published data.
             &lt;/div&gt;
-
-            &lt;p class=&quot;section-text&quot;&gt;
-                Taking part is voluntary. You may stop at any time and you do
-                not have to give a reason; if you stop early, please tell the
-                experimenter so that your payment can still be arranged.
-            &lt;/p&gt;
 
             &lt;p class=&quot;section-text&quot;&gt;
                 &lt;strong&gt;By continuing to the next page you consent&lt;/strong&gt; to
