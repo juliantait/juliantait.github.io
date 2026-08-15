@@ -80,11 +80,13 @@
     </div>
 
     <p>
-      An oTree template for running experiments in the lab and online. Plug your instructions and
-      your game into the <em>main</em> app — the welcome, consent, comprehension quiz, demographics,
-      and payment flow are already wired in across the <em>before</em>, <em>intro</em>, and
+      An oTree template for running experiments in the lab and online. Your instructions go in the
+      <em>intro</em> app and your game in the empty <em>main</em> app — the welcome, consent, comprehension quiz, demographics,
+      and earnings tracking are already wired in across the <em>before</em>, <em>intro</em>, and
       <em>outro</em> apps, together with the recruitment, screening and deployment plumbing a live
-      study needs around them.
+      study needs around them. The earnings rule itself is yours to write: the template gives you the
+      prepared place for it, then tracks what each participant earned and carries the figure through
+      to the results screen. It does not work out earnings on its own, and it pays nobody.
     </p>
 
     <section id="app-timeline">
@@ -95,28 +97,33 @@
       <ul>
         <li><strong>before</strong> — landing page, welcome message, and informed consent.</li>
         <li><strong>intro</strong> — task instructions followed by a comprehension quiz.</li>
-        <li><strong>main</strong> — the experimental task itself, including any treatment-specific pages.</li>
-        <li><strong>outro</strong> — demographic questionnaire, debrief, and payment information.</li>
+        <li><strong>main</strong> — the experimental task you build yourself; the app arrives empty and takes your game pages, including any treatment-specific ones.</li>
+        <li><strong>outro</strong> — demographic questionnaire, debrief, and the earnings tracked for that participant, together with the bank details a lab session needs to pay them later.</li>
       </ul>
 
       <div class="preview-grid">
         <figure>
-          <iframe src="otree-preview-before.html" title="before app preview"></iframe>
-          <figcaption><strong>before</strong> app — welcome &amp; consent</figcaption>
+          <iframe src="otree-preview-welcome-lab.html" title="lab welcome screen preview"></iframe>
+          <figcaption><strong>before</strong> app — welcome screen, lab variant</figcaption>
         </figure>
         <figure>
-          <iframe src="otree-preview-intro.html" title="intro app preview"></iframe>
-          <figcaption><strong>intro</strong> app — instructions</figcaption>
+          <iframe src="otree-preview-instructions.html" title="instructions page preview"></iframe>
+          <figcaption><strong>intro</strong> app — an instructions page</figcaption>
         </figure>
         <figure>
-          <iframe src="otree-preview-main.html" title="main app preview"></iframe>
-          <figcaption><strong>main</strong> app — experimental task</figcaption>
+          <iframe src="otree-preview-game.html" title="example decision screen preview"></iframe>
+          <figcaption><strong>main</strong> app — an example decision screen</figcaption>
         </figure>
         <figure>
-          <iframe src="otree-preview-outro.html" title="outro app preview"></iframe>
-          <figcaption><strong>outro</strong> app — results &amp; payment</figcaption>
+          <iframe src="otree-preview-results-lab.html" title="lab results screen preview"></iframe>
+          <figcaption><strong>outro</strong> app — results screen, lab variant</figcaption>
         </figure>
       </div>
+      <p>
+        The instructions page and the decision screen above both show the same <strong>invented</strong>
+        stag hunt. It is there only to make the screenshots concrete: no game ships with the template,
+        and the <em>main</em> app arrives empty for you to build your own into.
+      </p>
     </section>
 
     <section id="how-to-use">
@@ -131,7 +138,7 @@
         <li><strong>Comprehension quiz</strong> — define quiz items (prompt, choices, correct answer) in <code>intro/quiz_items.py</code>.</li>
         <li><strong>Treatment assignment</strong> — set up your conditions in <code>before/treatment_assignment.py</code>. Treatments are assigned at session creation via <code>creating_session</code> in the <code>before</code> app.</li>
         <li><strong>Game</strong> — build your economic game in the <code>main</code> app. Add any HTML pages for the game to this app, and configure the app settings (rounds, decisions, payoffs) in <code>main/__init__.py</code>.</li>
-        <li><strong>Payment logic</strong> — decide how participants are paid in <code>outro/payment_rule.py</code>. The function there controls which rounds and payoffs count towards the final payment.</li>
+        <li><strong>Earnings rule</strong> — write your own rule in <code>outro/payment_rule.py</code>. The file is a prepared slot, not a formula: the function you put there decides which rounds and payoffs count, and the template tracks the result and shows it.</li>
       </ul>
     </section>
 
@@ -148,7 +155,7 @@
         link still shows a button.
       </p>
       <p>
-        Payment stays a single ledger however a participant was recruited, and each way of finishing
+        Earnings are tracked in a single ledger however a participant was recruited, and each way of finishing
         the study returns its own completion code, so those groups remain distinguishable in the
         data afterwards.
       </p>
@@ -159,14 +166,21 @@
         <h2>Running it for real</h2>
       </div>
       <p>
-        The integrity checks a live study needs are already in place: a focus and tab monitor that
-        can either record what happened or remove the participant, a device screen-out, and a
-        comprehension gate. Each reports a readable verdict rather than a raw count for an analyst
-        to interpret later.
+        A Prolific study gets three layers of screening, already in place; comprehension screening
+        runs in the lab too, while device and focus screening come with the Prolific configuration:
+      </p>
+      <ul>
+        <li><strong>Comprehension screening</strong> — removes a participant who still cannot pass the quiz once their attempts are used up.</li>
+        <li><strong>Device screening</strong> — keeps out phones, or whatever device types the study disallows.</li>
+        <li><strong>Focus screening</strong> — watches for the participant leaving the tab, and can either just record it or remove them.</li>
+      </ul>
+      <p>
+        Each reports a readable verdict rather than a raw count for an analyst to interpret later.
       </p>
       <p>
-        The template is built to be deployed, not only run locally — a Docker image, safe against a
-        hosted Postgres database, and a pre-deploy check that boots the new build against a copy of
+        The template is built to be deployed, not only run locally — a Docker image that runs on a
+        hosted Postgres database as readily as on the local file one, a boot guard that wipes
+        existing data on neither, and a pre-deploy check that boots the new build against a copy of
         the live database, since a fresh install cannot reveal a broken upgrade. Layout is confirmed
         by measured browser checks rather than by eye, and the repository records why each decision
         was made, so a later reader can tell a deliberate choice from an accident.

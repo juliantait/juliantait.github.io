@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome (lab) — oTree study template</title>
+<!--
+  =========================================================================
+  WHAT THIS FILE IS
+  =========================================================================
+  A DISPLAY ARTEFACT for the academic website: one screen of the CREED oTree
+  study template, shown in a 16:9 iframe. It is NOT participant-facing, it is
+  not wired to anything, and it is not part of the shipped study apps.
+
+  THE LAB VARIANT of the welcome/consent screen, as a participant sitting in
+  the CREED lab sees it: the lab contact route and the lab payment wording,
+  and no mention of Prolific anywhere. The Prolific variant of this page is
+  the same page with different config; it is not shown here.
+
+  =========================================================================
+  HOW IT WAS MADE — do not hand-edit this file
+  =========================================================================
+  Generated from the live template by previews/build_site_previews.py.
+  Hand-editing it is how the previous website snapshots went stale: edit the
+  body in previews/site_preview_bodies/ and RE-RUN THE SCRIPT instead, and
+  re-run it whenever _static/global/css/ changes, or this screen quietly
+  stops representing the study.
+
+  SELF-CONTAINED BY REQUIREMENT: it is loaded on a static site with no access
+  to the study repository, so there is no stylesheet link, no font, no script
+  and no image by URL anywhere in this file. Every rule inside the frame
+  below is copied verbatim from _static/global/css/; the two institutional
+  marks are embedded as data URIs.
+
+  WHY THE NESTED FRAME: the template sizes itself in viewport units (the card
+  is 88vh; base.css tightens its rhythm below 820px of height), so the layout
+  is only defined at a given screen size. The screen is therefore drawn on a
+  fixed 1920x1080 canvas — an ordinary participant display — inside its own
+  browsing context, where those units resolve as they do for a participant,
+  and the canvas is scaled to fill whatever 16:9 box the page is given. The
+  scale is pure CSS (a length divided by a length is a number), so it works
+  with scripts disabled.
+-->
+<style>
+/* PREVIEW SHELL — the only hand-written CSS in this file. It positions the
+   canvas; it never styles the screen inside it. */
+html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f6; }
+#screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    border: 0;
+    transform-origin: top left;
+    transform: scale(calc(100vw / 1920px));
+}
+</style>
+</head>
+<body>
+<iframe id="screen" title="Welcome (lab)" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Welcome (lab)&lt;/title&gt;
+&lt;style&gt;
+/* The ground oTree&#x27;s own page chrome would otherwise paint. */
+html, body { margin: 0; padding: 0; background: #eef1f6; }
+
+/* ===== base.css — verbatim from _static/global/css/ ===== */
+
+/* ===========================================================================
+   Participant-facing design system.
+
+   One shared shell for every screen (welcome, consent, instructions, quiz,
+   task, results) so the study reads as a single designed product.
+
+   Constraints: plain CSS only. No external fonts, no CDN, no network calls of
+   any kind (a study may run on Prolific, where an outbound request is both a
+   privacy leak and a point of failure). System font stack, hand-rolled
+   controls. Everything is fluid and legible down to a 320px phone.
+   =========================================================================== */
+
+:root {
+    /* --- surfaces --------------------------------------------------------- */
+    --page-bg: #eef1f6;
+    --card-bg: #ffffff;
+    --sunken: #f4f6fa;
+    --line: #e3e8ef;
+    --line-strong: #cbd5e1;
+
+    /* --- ink -------------------------------------------------------------- */
+    --ink: #16202c;
+    --ink-soft: #4a5766;
+    --ink-mute: #71808f;
+
+    /* --- accent (actions only; used sparingly and on purpose) ------------- */
+    --accent: #2f6feb;
+    --accent-hover: #1f57c9;
+    --accent-soft: #e8effd;
+    --accent-ring: rgba(47, 111, 235, 0.32);
+
+    --danger: #c2384a;
+    --ok: #1f9254;
+
+    /* --- shape ------------------------------------------------------------ */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --shadow: 0 1px 2px rgba(16, 32, 52, .04), 0 8px 28px rgba(16, 32, 52, .07);
+    --shadow-lift: 0 2px 4px rgba(16, 32, 52, .06), 0 14px 38px rgba(16, 32, 52, .12);
+
+    /* The reading measure: the width running prose is held to for legibility.
+       Lives in ONE place, so every text family (narrative, instructions, quiz)
+       narrows running text to the SAME width. Controls, tables and widgets are
+       deliberately NOT clamped to it (see notes below). */
+    --read-measure: 68ch;
+
+    /* Gap between stacked options in one multiple-choice group (see the
+       mc-option component). */
+    --mc-gap: 10px;
+
+    /* --- COMPATIBILITY ALIASES -------------------------------------------
+       The tokens above are the design system. These older `--color-*` names
+       are kept as aliases ONLY so page-scoped stylesheets that predate the
+       rename (results.css, demographics.css, quiz.css) keep working untouched.
+       DO NOT use them in new rules — reach for the real token instead. A new
+       study is free to delete this block once nothing references it. */
+    --color-background: var(--card-bg);
+    --color-page-bg: var(--page-bg);
+    --color-text: var(--ink-soft);
+    --color-heading: var(--ink);
+    --color-accent: var(--accent);
+    --color-border: var(--line-strong);
+    --color-muted: var(--ink-mute);
+    --color-muted-hover: var(--ink-soft);
+    --color-primary: var(--accent);
+    --color-primary-hover: var(--accent-hover);
+    --color-disabled: var(--line-strong);
+    --color-table-header: var(--sunken);
+    --color-table-selected: var(--accent-soft);
+    --color-focus-ring: var(--accent-ring);
+    --reading-measure: var(--read-measure);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+/* General layout &amp; typography.
+   System font stack only — no webfont is bundled and none may be fetched (see
+   the no-network constraint above). Fluid base size: comfortable on a phone,
+   generous on a desktop. */
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--page-bg);
+    color: var(--ink-soft);
+    font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+                 &quot;Helvetica Neue&quot;, Arial, &quot;Noto Sans&quot;, sans-serif;
+    font-size: clamp(16px, 0.55vw + 14.6px, 19px);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { color: var(--ink); font-weight: 650; letter-spacing: -0.011em; }
+
+p { margin: 0 0 1em; }
+p:last-child { margin-bottom: 0; }
+
+/* Bold text is the SAME ink as body copy, just heavier — emphasis must not
+   shout in a second colour. */
+strong { color: var(--ink); font-weight: 650; }
+
+a { color: var(--accent); }
+
+/* --- neutralise oTree&#x27;s page chrome ------------------------------------------
+   oTree wraps every page in &lt;div class=&quot;otree-body container&quot;&gt;: its theme CSS
+   gives .otree-body a max-width and a top margin, and Bootstrap&#x27;s .container
+   adds its own width caps and gutters. Together they cap the card width and add
+   a grey band above it. Zero all of it so .experimental-screen below is the only
+   shell that sets widths and gutters. (.otree-body.container out-ranks both
+   single-class originals on specificity, so load order cannot matter.) */
+.otree-body.container {
+    max-width: none;
+    width: 100%;
+    margin-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+/* WIDTH IS LOAD-BEARING HERE, not cosmetic. oTree wraps the page in
+   &lt;form class=&quot;otree-form&quot;&gt;, and the `form` rule further down this file makes it
+   a flex column with `align-items: center`. That makes .otree-content — the
+   form&#x27;s only flex item, and the ancestor of every card — SHRINK-TO-FIT its
+   content, so `.screen-card`&#x27;s own `max-width: min(94vw, 1200px)` never binds
+   and each page&#x27;s card ends up as wide as whatever happens to be inside it.
+   Measured before this line (1280px viewport): lab gate 651px, consent 824px,
+   instructions 818px, quiz 571px — four widths for the one frame the card
+   component promises. `width: 100%` restores the promise without touching the
+   `form` rule, which oTree&#x27;s own injected elements also sit under. */
+.otree-content { margin-top: 0; width: 100%; }
+.otree-title.page-header { margin: 0; }
+
+/* --- remove oTree&#x27;s &quot;powered by oTree&quot; line + trailing spacer ----------------
+   oTree&#x27;s Page.html injects a `.powered-by-otree` line and a trailing &lt;br/&gt;
+   after the content, both OUTSIDE our .experimental-screen. Both add stray
+   whitespace below the card that made the bottom gutter deeper than the sides.
+   (On the licence: the AGPL is satisfied by CITING THE OTREE PAPER — Chen,
+   Schonger &amp; Wickens, 2016 — not by displaying the badge. We cite it; see the
+   README.) */
+.powered-by-otree { display: none; }
+.otree-body.container &gt; br { display: none; }
+
+/* COMPONENT — page shell. INTENTION: centre one card in the viewport with an
+   equal grey gutter on every side (see EQUAL MARGINS below). Every participant
+   page is one .experimental-screen wrapping one .screen-card. */
+.experimental-screen {
+    display: flex;
+    justify-content: center;   /* horizontal centring */
+    align-items: center;       /* vertical centring of a short card */
+    /* Fill the viewport so a card that does not need to scroll sits centred both
+       ways. min-height (not height) means a card TALLER than the viewport simply
+       grows the page: it stays fully reachable and scrolls downward, rather than
+       being clipped. */
+    min-height: 100vh;
+    /* EQUAL MARGINS. One symmetric gutter on all four sides, so the grey band
+       above the card matches the band beside it. The middle term is 3vw — the
+       SAME as the card&#x27;s own 94vw side gutter ((100 − 94)/2 = 3vw) — so when the
+       card is width-limited the top gap equals each side gap exactly. Vertical
+       centring then keeps top = bottom on a short card. */
+    padding: clamp(16px, 3vw, 40px);
+    background: var(--page-bg);
+}
+
+/* COMPONENT — card frame. INTENTION: the single white card every page sits in.
+   ONE card width for EVERY page; only its height responds to content. Long-form
+   text stays readable because running text carries its own reading band;
+   functional components (tables, widgets) span the card&#x27;s inner width.
+
+   HEIGHT: A FLOOR *AND* A CEILING. The card is never shorter than --card-min
+   (so a one-line page does not look stubby) and never taller than --card-max
+   (so the page background always frames it — the white edge must never touch the
+   top or bottom of the screen). Between the two it sizes to its content. Past
+   the ceiling the card does NOT grow: the middle region scrolls inside it (see
+   .experimental-content), which is why this element is a flex column.
+
+   dvh with a vh fallback: on mobile `vh` ignores the retracting URL bar, so a
+   88vh card can still overflow the visible area on a phone. Browsers that do not
+   know `dvh` drop the second declaration and keep the first. */
+:root {
+    /* THE FLOOR IS DERIVED FROM THE TASK SCREEN (change_requests item 5,
+       2026-08-11). A card shorter than the game screen makes the frame jump
+       between pages, which is what Julian saw: measured at 1280x720, short
+       pages (lab gate, Prolific ID, game screen) sat at the 75vh floor = 540px
+       while tall pages (consent, quiz, results) sat at the 88vh cap = 634px —
+       a 94px jump every time the participant moved between them.
+       HOW THE NUMBER IS DERIVED, so it stays stable rather than following
+       whatever the placeholder task screen happens to contain today:
+       tests/render_check.py renders the task pages with the floor DISABLED and
+       records their NATURAL height (geometry.json -&gt; card_min_derivation). For
+       this template that is ~300px at 1280x720 — far BELOW the tall pages — so
+       the binding constraint is &quot;never shorter than the tall pages&quot; and the
+       derived floor rounds up to the ceiling: one constant card height, no
+       jumping. A real study re-derives --card-derived from ITS task screen;
+       the render check FAILS if the task screen ever grows past the floor,
+       which is the signal to re-derive rather than let the jumping return.
+       THE min() IS LOAD-BEARING. A floor expressed in px alone would, on a
+       short window, exceed the ceiling — and CSS lets min-height beat
+       max-height, so the card would grow past 88vh, touch the top and bottom
+       of the screen and start scrolling the page. Taking the min with
+       --card-max means the ceiling always wins on a short window and the card
+       simply sits at the cap with its content region scrolling, which is what
+       short windows already do. */
+    --card-derived: 88vh;
+    --card-max: 88vh;
+    --card-min: min(var(--card-derived), var(--card-max));
+    /* The width a scroll region reserves for its scrollbar on EACH edge
+       (`scrollbar-gutter: stable both-edges`). It must equal the
+       ::-webkit-scrollbar width below; anything that needs to line up with the
+       content INSIDE a scroll region reads it from here. */
+    --scroll-gutter: 10px;
+}
+.screen-card {
+    width: 100%;
+    max-width: min(94vw, 1200px);
+    min-height: var(--card-min);
+    max-height: var(--card-max);
+    margin-inline: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(18px, 3vw, 32px) clamp(18px, 4.5vw, 48px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2.6vw, 26px);
+    /* Flush-left is the default; the narrative family (below) opts into
+       centring, and the card itself is never centre-aligned by default. */
+    text-align: left;
+    /* DO NOT add transform / filter / backdrop-filter / contain to this rule.
+       Any of them makes the card a containing block for position:fixed, which
+       would trap the tab-monitor&#x27;s full-screen overlay inside the card. */
+}
+@supports (height: 1dvh) {
+    :root { --card-max: 88dvh; }
+}
+
+/* THE SCROLL REGION — ON A WIDE SCREEN. The header strip and the button row are
+   PINNED (they are flex:0 0 auto siblings) and only this middle region scrolls.
+
+   THE INTENTION, STATED HONESTLY (rewritten 2026-08-12, improvement_suggestions
+   item 1). This used to read &quot;so the forward action is always on screen&quot;. That
+   is TRUE ON A WIDE SCREEN and is why the pattern exists: a participant on a
+   laptop never has to hunt for Next. IT IS DELIBERATELY NOT TRUE ON A PHONE.
+   Below 520px the card-scroll model is switched off entirely (see the phone
+   breakpoint further down): the card grows, the PAGE scrolls, and Next sits
+   after the content in document order — so on a phone the forward action is
+   reached BY scrolling past the content rather than being pinned beside it.
+
+   Why the difference is on purpose, and not a compromise: at 375x667 the
+   consent page&#x27;s copy is ~750px in a ~415px region, so no arrangement of a
+   pinned layout puts the consent options above the fold — the one thing this
+   template may not do is trim consent copy. A pinned Next on a screen where the
+   choice is below the cut is the &quot;reach the action before seeing what you are
+   agreeing to&quot; shape, which is worse than scrolling. Phone participants also
+   expect to scroll a page rather than a box inside it. So: pinned action on a
+   wide screen, natural document flow on a narrow one, and the property claimed
+   here holds exactly where it is claimed.
+
+   `min-height: 0` IS LOAD-BEARING. A flex child&#x27;s default min-height is `auto`,
+   which refuses to shrink below its content — without this line the region
+   silently never scrolls and the card grows past its max-height instead. This is
+   the single most common way this pattern fails; do not remove it.
+
+   `safe center` keeps the short-page vertical centring while guaranteeing that
+   overflowing content is never cut off at the TOP (plain `center` makes the
+   overflow above the box unreachable). Browsers without `safe` keep plain
+   `center`, which is correct for them because they only reach this rule when the
+   content is short enough not to overflow anyway.
+
+   The padding is not decoration: `overflow-y: auto` also clips horizontally, and
+   a :focus-visible ring is 3px + 2px offset. Without room the focus outline on
+   the first/last option card would be sliced off by the scroll edge. */
+.experimental-content {
+    /* NO `width: 100%` HERE, and that is deliberate. As a flex item of the card
+       this region already stretches to the card&#x27;s content width; adding
+       `width: 100%` FIXES that width, so the negative side margins below could
+       only move the box LEFT instead of widening it symmetrically. Measured
+       with it in place (1280px viewport): the region&#x27;s box sat 8px left of the
+       card&#x27;s content box, which pushed the whole centred reading band off the
+       card&#x27;s centre line — the instructions title read visibly left of centre
+       (band centre 625 against a card centre of 632.5). */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    justify-content: center;
+    justify-content: safe center;
+    padding: 8px;
+    margin: -8px;           /* cancel the focus-ring gutter so nothing shifts */
+    scroll-padding-block: 8px;
+
+    /* SCROLL AFFORDANCE — THREE LAYERS. Measured 2026-08-10: the background
+       gradients alone (layer 2) were far too quiet to read as &quot;there is more
+       below&quot;, and a background can only ever paint BEHIND the text, so a
+       partially visible line was still sliced cleanly through the glyphs and
+       read as a rendering bug rather than as something to scroll to.
+
+       1. A STYLED, ALWAYS-VISIBLE SCROLLBAR (below). Overlay scrollbars fade
+          out when idle and say nothing; an explicitly styled one is painted for
+          as long as the region overflows and needs no script. `stable
+          both-edges` reserves the gutter symmetrically, so centred copy stays
+          centred and nothing shifts when a page starts scrolling.
+       2. THESE GRADIENTS — the JS-free fallback. Two pairs: the `local` ones
+          scroll WITH the content in the card colour, the `scroll` ones are
+          fixed shadows at the edges. At the top of the scroll the local
+          gradient covers the top shadow; scroll and it moves away, revealing
+          it. So each shadow shows only while there is more content that way.
+          Explicit rgba(255,255,255,0) rather than `transparent`, which some
+          engines interpolate through black.
+       3. A CONTENT FADE (the .is-scrollable-* rules below), applied as a MASK
+          so it fades the text itself. It is driven by global.js, which knows
+          the scroll position, so the LAST line is never faded — the fade means
+          &quot;there is more&quot;, always. */
+    scrollbar-gutter: stable both-edges;
+    /* THE MASKING GRADIENTS MUST BE FULLY OPAQUE FOR AT LEAST THE SHADOW&#x27;S
+       HEIGHT (16px). They are 30px tall and solid to 60% of that = 18px, then
+       fade. With the earlier 30% stop they were solid for only 9px, so the
+       lower half of a shadow bled through even on a page with nothing to
+       scroll — a phantom band across a card that fits, which is worse than no
+       affordance at all (measured on the lab gate and the instructions page,
+       2026-08-11).
+       NB 2026-08-11 (2): the `/*` that opens this comment was MISSING, so CSS
+       error recovery swallowed everything from here to the end of the
+       `background` declaration below — layer 2 was silently absent from every
+       page. A comment that does not open is not a comment; it is a deleted
+       rule. */
+    background:
+        linear-gradient(var(--card-bg) 60%, rgba(255, 255, 255, 0)) top / 100% 30px no-repeat local,
+        linear-gradient(rgba(255, 255, 255, 0), var(--card-bg) 40%) bottom / 100% 30px no-repeat local,
+        radial-gradient(farthest-side at 50% 0, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) top / 100% 16px no-repeat scroll,
+        radial-gradient(farthest-side at 50% 100%, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) bottom / 100% 16px no-repeat scroll;
+}
+
+/* Layer 1 — the scrollbar itself. WebKit/Blink ignores scrollbar-width when a
+   ::-webkit-scrollbar rule exists, and painting one explicitly is what stops
+   Chromium using an overlay bar that is invisible in a screenshot (and to a
+   participant who never moves the wheel). */
+/* BOTH scroll regions reserve the gutter symmetrically. The instructions page
+   scrolls its own slide body (.instruction-wrapper), not .experimental-content,
+   and without this it took the scrollbar out of its RIGHT side only — which
+   shifts a centred reading band 5px left of the card&#x27;s centre line on a phone
+   (measured 2026-08-11). */
+.instruction-wrapper { scrollbar-gutter: stable both-edges; }
+
+.experimental-content::-webkit-scrollbar,
+.instruction-wrapper::-webkit-scrollbar { width: var(--scroll-gutter); }
+.experimental-content::-webkit-scrollbar-track,
+.instruction-wrapper::-webkit-scrollbar-track {
+    background: var(--sunken);
+    border-radius: 999px;
+}
+.experimental-content::-webkit-scrollbar-thumb,
+.instruction-wrapper::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 2px solid var(--card-bg);
+    border-radius: 999px;
+}
+.experimental-content::-webkit-scrollbar-thumb:hover,
+.instruction-wrapper::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
+
+/* Firefox has no ::-webkit-scrollbar and needs the standard properties. They are
+   scoped to it on purpose: Chromium supports BOTH, and when the standard ones
+   are present it IGNORES the ::-webkit-* rules above and paints a thin OVERLAY
+   bar that fades out when idle — measured 2026-08-10 as no visible bar at all,
+   which is the affordance we are trying not to have. */
+@supports not selector(::-webkit-scrollbar) {
+    .experimental-content,
+    .instruction-wrapper {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line-strong) var(--sunken);
+    }
+}
+
+/* Layer 3 — the content fade. A MASK, not a background: only a mask can fade
+   the TEXT, and a half-faded line reads as &quot;continues below&quot; where a
+   hard-cut one reads as broken. The classes come from global.js
+   (`is-scrollable-up` / `is-scrollable-down`); with no JavaScript no class is
+   ever set, no mask is applied, and layers 1-2 carry the affordance alone —
+   the script only ever ADDS to a page that already works. */
+:root { --scroll-fade: 46px; }
+.experimental-content.is-scrollable-down,
+.instruction-wrapper.is-scrollable-down {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+}
+.experimental-content.is-scrollable-up,
+.instruction-wrapper.is-scrollable-up {
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade));
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade));
+}
+.experimental-content.is-scrollable-up.is-scrollable-down,
+.instruction-wrapper.is-scrollable-up.is-scrollable-down {
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade),
+                                        #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade),
+                                #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+}
+
+/* Pinned regions: never shrink, never scroll away. EXACTLY THREE — the header
+   strip, the forward action, and the logo footer (see THE LOGO FOOTER RULE
+   below, which is what makes the third one correct rather than the ~90px tax it
+   used to be). */
+.experimental-header,
+.screen-card &gt; .button-row,
+.screen-card &gt; .logo-section {
+    flex: 0 0 auto;
+}
+
+/* =============================================================================
+   THE LOGO FOOTER RULE  (Julian, 2026-08-13, change_requests_round2 item 9)
+   =============================================================================
+   THE RULE, in one sentence: the logo footer sits at the BOTTOM OF THE WHITE
+   CARD, BELOW the divider line that separates it from the content, and it is
+   the SAME on every page that shows it.
+
+   It is A RULE, not a per-page decision, and it is enforced HERE rather than by
+   each template getting its markup right — because a per-page arrangement is
+   exactly the kind of thing a new page copies from whichever page its author
+   happened to open. Two guarantees:
+
+     * `order: 999` puts the strip LAST among the card&#x27;s flex children whatever
+       order the markup is in, so a template that includes it before the button
+       row still renders it below the button row;
+     * `margin-top: auto` pushes it to the card&#x27;s bottom edge when the content
+       does not fill the card, so a one-sentence page (the lab gate) reads as
+       copy with the marks along the foot rather than copy and marks clumped
+       together in the middle.
+
+   THE DIVIDER is `border-top` on `.logo-section` itself (see the logos section
+   further down), so it travels with the strip and cannot be forgotten.
+
+   WHAT A TEMPLATE MUST DO: include `_static/global/html/logo_section.html` as a
+   DIRECT CHILD OF `.screen-card`. That is the whole contract, and the include
+   says so at the top of itself.
+
+   HISTORY, because this reverses an earlier decision and the earlier reasoning
+   was sound at the time: the strip used to live inside `.experimental-content`
+   on every page but Results, because as a PINNED sibling it reserved ~90px of
+   every card and pushed the consent options below the fold at 1280x720. What
+   changed is that it is no longer a reserved band ABOVE the fold — it is the
+   last thing on the card, after the action, so a short page gets it for free and
+   a long page pushes it down with everything else. Re-measured at three
+   viewports by tests/render_check.py. If a future edit makes the strip taller,
+   MEASURE AGAIN: a layout regression here produces no error and no red test.
+
+   THE PRIORITY, and it decides future arguments rather than describing a past
+   one (Julian, 2026-08-13): THE LOGO STRIP IS EXTRA, AND MUST NOT TAKE
+   PRECEDENCE OVER IMPORTANT FEATURES. It is an institutional footer, not
+   something a participant came here to read or act on, so ON A SHORT SCREEN IT
+   GIVES WAY BEFORE PARTICIPANT-FACING CONTENT DOES — see the `max-height: 820px`
+   block further down, which shrinks the marks to the phone size.
+
+   SO WHEN VERTICAL SPACE IS SHORT AGAIN, THIS STRIP IS THE FIRST THING THAT
+   YIELDS: shrink it (or, if it ever comes to it, drop it on that breakpoint)
+   before tightening a control, and never before cutting copy a participant is
+   agreeing to. That ordering is the rule; the pixel counts are just where it
+   landed this time. What must NOT change to buy space is the strip&#x27;s PLACEMENT —
+   the order, the bottom-edge push and the divider above are what Julian asked
+   for and are not the flexible part. */
+.screen-card &gt; .logo-section {
+    order: 999;
+    margin-top: auto;
+}
+
+.experimental-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* --- reading measure --------------------------------------------------------
+   Running prose (titles + body copy) narrows to the reading measure and centres
+   as a column inside the wider card. Controls, forms, tables and widgets are
+   NOT in these selectors, so they keep the full card (band) width — never
+   clamp a control to the reading measure. */
+.header-title,
+.header-text,
+.section-title,
+.section-header,
+.section-text {
+    width: 100%;
+    max-width: var(--read-measure);
+    margin-inline: auto;
+}
+
+/* COMPONENT — reading band. INTENTION: narrow running text to a centred measure
+   inside the wide card, so lines stay legible while functional components still
+   span the card. This component only sets the measure + centres the block; the
+   opting-in FAMILY chooses the alignment (narrative centres, instructions
+   justify). Apply with class=&quot;read-band&quot;. */
+.read-band { width: 100%; max-width: var(--read-measure); margin-inline: auto; }
+
+/* SINGLE SOURCE OF TRUTH for the page-title look. INTENTION: the narrative /
+   welcome / consent page title (.header-title) and the instructions section
+   title (.instruction-block &gt; h2) are the SAME visual element, so both draw
+   their type from this ONE rule — edit the title look here and nowhere else.
+   (Both are &lt;h2&gt;, so colour and letter-spacing come from the shared h1,h2,h3
+   rule above; this rule only sets the size/line-height/weight.)
+   ALIGNMENT IS A CONSTANT RULE, NOT A FAMILY CHOICE (change_requests item 8,
+   Julian 2026-08-11): IF A PAGE HAS A TITLE, THE TITLE IS CENTRED — on every
+   page, in every family. It used to be centred by .narrative-card only, so the
+   narrative pages, the instruction step titles and the end-of-experiment
+   heading disagreed with each other for no reason a participant could see.
+   The centring therefore lives HERE, on the component, and the note that used
+   to say the opposite is gone. Body copy alignment is still the family&#x27;s
+   business (narrative centres, instructions justify, quiz stays left) — this
+   is about the title only. Visible knock-on when this shipped: the Quiz,
+   Results and demographics titles became centred too, which is the rule
+   working. */
+.header-title {
+    margin: 0;
+    font-size: clamp(23px, 2.4vw, 31px);
+    line-height: 1.22;
+    font-weight: 680;
+    text-align: center;
+}
+
+.header-text {
+    margin-block: 0;
+    color: var(--ink-mute);
+    font-size: 0.94em;
+}
+
+.section-header {
+    margin-block: 24px 12px;
+    font-size: clamp(18px, 1.5vw, 21px);
+    color: var(--ink);
+}
+
+.section-title {
+    margin-block: 24px 12px;
+    font-size: clamp(18px, 1.5vw, 21px);
+    font-weight: 650;
+    color: var(--ink);
+}
+
+/* NOT JUSTIFIED. Justification belongs to the instructions family and to the
+   reading band only (`instructions.css` justifies `.instruction-block &gt; p/ul/ol`
+   itself); it was here as a global default, so a one- or two-line sentence on a
+   narrative or task page — the lab gate&#x27;s single line, the task screen&#x27;s
+   prompt — came out with stretched word spacing. Narrative pages centre this
+   text (`.narrative-card` below); everything else inherits the card&#x27;s
+   flush-left. */
+.section-text {
+    margin-block: 0;
+}
+
+/* An &quot;eyebrow&quot;: small, quiet, uppercase context line above a title. It lives
+   inside .experimental-header, which spans the card and stays top-LEFT.
+   ALIGNMENT: on a page whose content is held to a reading band, the eyebrow
+   follows that band (see the family rules below) rather than the card&#x27;s padding
+   edge. Julian, 2026-08-11: with the frame now a constant 1200px the eyebrow sat
+   ~180px away from the copy it introduces and read as stranded in the margin.
+   (NB the reference build leaves it at the card edge — its narrative cards are
+   the same 1200px frame, so this is a deliberate departure, not a port.)
+   On a FULL-WIDTH page — a task screen, a results table — there is no band to
+   follow, so the eyebrow keeps the card edge, which is why this is scoped to
+   the families that have one. */
+.eyebrow {
+    font-size: 0.74em;
+    font-weight: 650;
+    letter-spacing: .085em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+}
+/* Narrative family: the whole HEADER STRIP takes the band, so the eyebrow AND
+   the title sit on the same left edge as the copy below them.
+   Why the strip and not the eyebrow itself: `--read-measure` is `68ch`, and
+   `ch` resolves against the ELEMENT&#x27;s own font — the eyebrow is 0.74em, so
+   capping it at 68ch gave a band ~360px wide and pushed it further from the
+   copy, not closer (measured 2026-08-11). The strip inherits the card&#x27;s font,
+   so its 68ch is the same 68ch the body copy uses.
+   The extra `--scroll-gutter` of width and matching padding line the strip up
+   with the CONTENT region, which reserves that gutter for its scrollbar on both
+   edges; without it the strip&#x27;s band would sit a gutter-width outside the copy&#x27;s. */
+.narrative-card .experimental-header {
+    width: 100%;
+    max-width: calc(var(--read-measure) + 2 * var(--scroll-gutter));
+    margin-inline: auto;
+    padding-inline: var(--scroll-gutter);
+}
+
+/* COMPONENT — panel. INTENTION: a quiet grey card for secondary information
+   (privacy statements, callouts, reminders), full width of its column by
+   default. */
+.panel {
+    background: var(--sunken);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: clamp(14px, 2.4vw, 20px);
+}
+
+/* COMPONENT — hug panel (variant of .panel). INTENTION: a highlight panel that
+   SHRINKS to fit its content and sits centred, instead of stretching to the band
+   (a full-width grey block looks heavy behind a one-line reminder).
+   `display:table` shrink-wraps the content; `margin-inline:auto` centres it
+   regardless of the parent&#x27;s text-align. Opt in with class=&quot;panel panel--hug&quot;. */
+.panel--hug { display: table; max-width: var(--read-measure); margin-inline: auto; }
+
+/* COMPONENT — warning panel (variant of .panel). INTENTION: a panel that says
+   SOMETHING MAY GO WRONG AND YOU MUST ACT, as opposed to the quiet grey .panel,
+   which says &quot;here is some secondary information&quot;. The two are different
+   intentions and so are two classes, not one class with a colour override.
+   Opt in with class=&quot;panel panel--warning&quot; (composes with panel--hug).
+
+   Its only user today is the non-SEPA bank warning on outro/Results.html —
+   &quot;speak to the experimenter before leaving to ensure payment will be
+   successful&quot; — which shipped in the grey panel and therefore looked like a
+   footnote (Julian, 2026-08-13, change_requests_round2 item 4). It is the last
+   chance to fix a payment that will otherwise fail, and it has to look like it.
+
+   Colour comes from --danger, the same token the error panel and the warning
+   modal use, so a study that retunes the palette retunes this too. The tint is
+   a light wash rather than a solid fill: solid --danger behind body copy fails
+   contrast at this text size, and the panel must stay READABLE, not just
+   alarming. The left bar is what carries the alarm at a glance. */
+.panel--warning {
+    background: #fdeaec;
+    border-color: var(--danger);
+    box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.hint { color: var(--ink-mute); font-size: 0.86em; }
+
+/* COMPONENT — template note. INTENTION: a muted italic aside addressed to the
+   STUDY AUTHOR, not the participant — &quot;this is shipped example content,
+   replace it&quot; (the Stag Hunt instructions use it). Ink from the tokens, never
+   a hardcoded grey, so it follows a palette change like everything else. A
+   real study should end up with no remaining users of this class.
+   Specimen in _static/global/html/template.html. */
+.template-note {
+    font-size: 14px;
+    color: var(--ink-mute);
+    font-style: italic;
+}
+
+/* FAMILY — narrative card. INTENTION: narrative screens (welcome, consent, the
+   agreement and part/block-start screens) CENTRE their script — the page title,
+   the sentences and the panels are centred and held to the reading band — while
+   the header strip stays full-width top-LEFT. Instructions are the JUSTIFIED
+   family; quiz is the LEFT-aligned form family; task/results are unchanged.
+   Opt in with class=&quot;screen-card narrative-card&quot;. */
+.narrative-card .experimental-content { text-align: center; }
+/* (The title&#x27;s centring is no longer here: it is the constant rule on
+   .header-title itself — see item 8 above. The eyebrow above it stays left.) */
+.narrative-card .section-text { max-width: var(--read-measure); margin-inline: auto; text-align: center; }
+/* Option groups keep the uniform band width (see the mc-option component) and
+   centre as a block; each option row stays left-aligned inside. */
+.narrative-card .stacked-form { width: 100%; max-width: var(--read-measure); margin-inline: auto; text-align: left; }
+
+/* --- reserved height (no-jump pattern) --------------------------------------
+   For anything that appears or disappears while a page is on screen, reserve
+   its box permanently and toggle .is-visible, so nothing below it shifts when
+   it clears. Hide with `visibility` (space kept), NOT `display`/`hidden` (space
+   collapses). Used live by the instructions Page counter (instructions.js
+   toggles the counter&#x27;s visibility rather than removing it). */
+.reserve-height { visibility: hidden; }
+.reserve-height.is-visible { visibility: visible; }
+
+/* --- submit veil ------------------------------------------------------------
+   Opaque full-page cover dropped the instant a script auto-fills a form and
+   submits it (e.g. the DEBUG skip-quiz control), so the participant never sees
+   controls being set before navigation completes. Matches the page background
+   so it reads as a plain loading frame.
+   Painted ONLY by global.js&#x27;s submitFormBehindVeil() — the single shared
+   implementation. Do not hand-roll another overlay in a page script; route the
+   auto-fill through that helper instead. */
+.submit-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--page-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-mute);
+    font-size: .95em;
+}
+
+/* --- buttons ----------------------------------------------------------------
+   The primary forward button is horizontally centred and pushed to the FOOT of
+   the card (margin-top: auto), so the card&#x27;s default height is filled: content
+   sits up top, the action near the bottom. Scoped to the card&#x27;s OWN row, so a
+   button-row nested inside a widget keeps its tight rhythm. */
+.button-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+}
+
+.screen-card &gt; .button-row { margin-top: auto; padding-top: 24px; }
+
+.next-button,
+button.next-button,
+input.next-button {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    font-weight: 620;
+    font-size: 1em;
+    line-height: 1;
+    color: #fff;
+    background: var(--accent);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.85em 2em;
+    cursor: pointer;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color .16s ease, transform .12s ease, box-shadow .16s ease;
+    box-shadow: 0 1px 2px rgba(16, 32, 52, .12);
+}
+
+.next-button:hover { background: var(--accent-hover); box-shadow: var(--shadow-lift); }
+.next-button:active { transform: translateY(1px); }
+
+/* Secondary action (e.g. &quot;Back&quot; on the instruction pager). Same geometry as the
+   primary so the pair sits evenly; quieter so the forward action leads. */
+.next-button.ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border-color: var(--line-strong);
+    box-shadow: none;
+}
+.next-button.ghost:hover { background: var(--sunken); color: var(--ink); box-shadow: none; }
+
+.next-button:disabled { opacity: .42; cursor: default; }
+.next-button:disabled:hover { background: var(--accent); box-shadow: none; }
+.next-button.ghost:disabled:hover { background: transparent; }
+
+/* COMPONENT — exit-button. INTENTION: an IRREVERSIBLE way off a page, offered
+   as the quieter of two options. Used by the entry screen-out page&#x27;s &quot;end the
+   study and go back to Prolific&quot; link, where the action we actually want — go
+   and switch device — has no control at all, and this one closes the door.
+   Same geometry as the shared ghost button so it still reads as a real control.
+
+   NB deliberately NOT .next-button, and NOT .next-button.ghost: global.js&#x27;s
+   Enter handler clicks the first .next-button on the page, and an irreversible
+   exit must never be one stray keystroke away. Same reasoning as
+   .modal-dismiss-button below. It is an &lt;a href&gt;, so it also has to set the
+   things a link does not inherit from a button (display, text-decoration). */
+.exit-button {
+    display: inline-block;
+    font: inherit;
+    font-weight: 620;
+    font-size: 1em;
+    line-height: 1;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.85em 2em;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.exit-button:hover { background: var(--sunken); color: var(--ink); }
+
+/* --- forms ------------------------------------------------------------------ */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* COMPONENT — stacked form. INTENTION: a column of labels and controls that
+   fills its band, so a group of option cards reads as one block of equal-width
+   rows rather than as ragged tags sized by their own text.
+   `align-items: stretch` (the default, stated explicitly because it is
+   load-bearing) is what makes that true: with `flex-start` every child
+   shrink-wrapped, so on the consent page an option card came out roughly half
+   the width of the privacy panel directly above it. The quiz family already
+   overrode this to stretch (quiz.css), which is why quiz options looked right
+   and consent options did not — one behaviour now, defined here. */
+.stacked-form {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.stacked-form input[type=&quot;text&quot;] {
+    width: 100%;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+input[type=&quot;text&quot;], input[type=&quot;number&quot;], select, textarea {
+    font: inherit;
+    padding: .7em .85em;
+    box-sizing: border-box;
+    color: var(--ink);
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+input[type=&quot;text&quot;]:focus, input[type=&quot;number&quot;]:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+    outline: none;
+}
+
+/* Validation errors. .otree-form-errors is oTree&#x27;s own banner — style it too, or
+   an unstyled framework box drops into an otherwise designed page. */
+.errors, .otree-form-errors {
+    color: var(--danger);
+    background: #fdeff1;
+    border: 1px solid #f3c6cd;
+    border-radius: var(--r-md);
+    padding: .8em 1em;
+    margin: 0;
+    font-size: .94em;
+}
+
+/* --- range sliders: touch-sized, one consistent look ------------------------
+   Generous 30px thumb so the control is comfortably draggable with a thumb on a
+   phone. Hand-rolled so it looks the same on every browser. */
+input[type=&quot;range&quot;] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: pan-y;
+}
+input[type=&quot;range&quot;]:active { cursor: grabbing; }
+input[type=&quot;range&quot;]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line-strong);
+}
+input[type=&quot;range&quot;]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line-strong);
+}
+input[type=&quot;range&quot;]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 30px;
+    height: 30px;
+    margin-top: -12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(16, 32, 52, 0.22);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+input[type=&quot;range&quot;]::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(16, 32, 52, 0.22);
+}
+input[type=&quot;range&quot;]:hover::-webkit-slider-thumb { transform: scale(1.06); }
+input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.12); }
+
+/* --- focus: always visible, never removed (accessibility) ------------------- */
+:focus-visible {
+    outline: 3px solid var(--accent-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* --- ONE focus indicator per option card, and it is the CARD ------------------
+   (improvement_suggestions item 2, Julian 2026-08-12: &quot;drop the INNER one&quot;.)
+
+   An option card is one control as far as a participant is concerned, so it
+   gets ONE ring. Two rules used to fire on the same keystroke — the card&#x27;s
+   `:focus-within` treatment (border + 3px ring, further down this file) and the
+   global `:focus-visible` outline on the radio INSIDE it — which drew a ring
+   inside a ring. The card ring is the more legible of the two, especially at
+   phone size, so the inner outline is suppressed here and the card ring is the
+   single indicator.
+
+   THIS IS A SUPPRESSION WITH A REPLACEMENT, NOT A REMOVAL. Never delete a focus
+   outline without one: the rule immediately below (.mc-option:focus-within) is
+   what a keyboard user actually sees, it is asserted by
+   tests/render_check.py&#x27;s focus leg, and if that rule is ever dropped this one
+   must go with it.
+
+   THE BOOTSTRAP RESET STAYS. oTree loads bootstrap5 before this file, and it
+   ships `.form-check-input:focus { outline: 0; box-shadow: 0 0 0 .25rem
+   rgba(13,110,253,.25) }`. The outline part no longer matters (we want none
+   anyway), but the box-shadow does: without the reset a focused radio wears
+   Bootstrap&#x27;s #0d6efd glow, which is neither of this design&#x27;s colours and
+   reintroduces the doubled look it was just rid of. The `:checked` inset dot is
+   more specific and is untouched. */
+.form-check-input:focus-visible,
+.mc-option input:focus-visible,
+.form-check input:focus-visible {
+    outline: none;
+}
+/* Scoped to Bootstrap&#x27;s own class ONLY, deliberately: `.mc-option input:focus`
+   would sit at the same specificity as the `:checked` inset-dot rule below and
+   is one reorder away from erasing the selected dot of a focused option. */
+.form-check-input:focus { box-shadow: none; }
+
+/* Testing-only skip buttons (rendered only when settings.DEBUG). Deliberately
+   muted/dashed so they read as tooling, not part of the experiment UI. */
+.debug-tools {
+    text-align: center;
+}
+
+.skip-button {
+    display: inline-block;
+    border: 1px dashed var(--ink-mute);
+    background: transparent;
+    color: var(--ink-mute);
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.skip-button:hover {
+    color: var(--ink-soft);
+    border-color: var(--ink-soft);
+}
+
+/* --- logos: quiet, at the foot of the card ----------------------------------
+   Sizing lives HERE, not as inline height attributes on the &lt;img&gt; tags in
+   logo_section.html — an inline style beats any stylesheet rule, so a logo sized
+   in the markup cannot be re-tuned from the design system. */
+.logo-section { margin-top: 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+/* WRAPS, and no image may exceed the row. The marks are sized by HEIGHT, so
+   their widths follow their aspect ratios: at 375px the two shipped logos came
+   to 221px + 108px + gap = 347px in a ~333px column, which overflowed the card&#x27;s
+   scroll region SIDEWAYS and cost ~15px of it to a horizontal scrollbar
+   (measured 2026-08-11). Wrapping stacks them instead; `max-width: 100%` means a
+   single wide mark shrinks rather than overflowing. */
+.logo-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px 26px;
+}
+.logo-row img { height: 40px; width: auto; max-width: 100%; opacity: .62; }
+
+/* The welcome header&#x27;s inline CREED logo (lab gate page). */
+.welcome-header-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.welcome-header-row img { height: 44px; width: auto; max-width: 100%; }
+/* The title INSIDE this row sizes to its words. It is an .header-title, which
+   carries `width: 100%; max-width: var(--read-measure); margin-inline: auto` so
+   that a page title holds the reading band — correct for a title that owns its
+   line, wrong for one paired with a logo: it claimed the whole measure and shoved
+   the mark to the far edge of the card, so &quot;Welcome to&quot; and the CREED logo read
+   as two unrelated things. */
+.welcome-header-row .header-title { width: auto; max-width: none; margin-inline: 0; }
+
+/* --- responsive: phone breakpoint -------------------------------------------
+   A PHONE SCROLLS THE PAGE, NOT A BOX INSIDE THE CARD (improvement_suggestions
+   item 1, Julian 2026-08-12). Below 520px the card-scroll model is switched off
+   completely: the card&#x27;s height cap comes off, both scroll regions go back to
+   normal flow, and the browser&#x27;s own scrollbar takes over. The consequences are
+   the point, not side effects:
+
+     * NEXT COMES AFTER THE CONTENT, in document order and on screen, so it
+       cannot be reached without passing the options above it. On the consent
+       page at 375x667 the choice was 125px below the fold of a pinned layout,
+       which is the one shape this page must not have.
+     * The page scrolls the way a phone user expects, with the system scrollbar
+       and momentum, instead of a nested region with its own bar.
+     * The scroll AFFORDANCES (fade, edge shadow, pulsing V) all disappear here
+       by construction: they are bound to a region that overflows, and nothing
+       overflows any more. That is correct — they exist to say &quot;this box has
+       more inside it&quot;, and on a phone there is no box, just a page.
+
+   THE GUTTER COUPLING, easy to miss: `scrollbar-gutter: stable both-edges` only
+   reserves space on a SCROLL CONTAINER, so turning overflow off also removes
+   the gutters the header strips were offset by. The eyebrow rules for the
+   narrative and instructions families subtract those same gutters, so both must
+   be zeroed here or the eyebrow ends up one or two gutters right of the copy it
+   introduces (measured by the eyebrow leg in tests/render_check.py, which is
+   what catches it).
+
+   The card KEEPS its min-height, so a one-line page still fills the screen
+   rather than collapsing to a stub. */
+@media (max-width: 520px) {
+    .button-row { justify-content: stretch; }
+    .button-row .next-button { flex: 1; text-align: center; }
+    .logo-row img { height: 32px; }
+    .logo-row { gap: 18px; }
+
+    .screen-card { max-height: none; }
+    /* A card that now EXCEEDS the viewport must not be centred by the old
+       rule: `align-items: center` on an overflowing flex item pushes its top
+       above the container&#x27;s start edge, where it cannot be scrolled back to.
+       `safe center` centres a card that fits and falls back to start-aligning
+       one that does not; browsers without `safe` keep the flex-start line
+       above it, which is the correct behaviour for them for the same reason. */
+    .experimental-screen {
+        align-items: flex-start;
+        align-items: safe center;
+    }
+    .experimental-content {
+        overflow: visible;
+        /* the padding/negative-margin pair existed to stop `overflow-y: auto`
+           clipping a focus ring; with nothing clipping, it only adds width. */
+        padding: 0;
+        margin: 0;
+    }
+    /* No scroll container, no reserved gutter — so the header strip must not
+       offset itself by one any more (see THE GUTTER COUPLING above).
+       The INSTRUCTIONS page&#x27;s twin of this pair lives in instructions.css, and
+       has to: that file loads after this one, so its `.instruction-wrapper`
+       overflow rule would otherwise win over anything written here (a media
+       query adds no specificity — only order decides). */
+    .narrative-card .experimental-header {
+        max-width: 100%;
+        padding-inline: 0;
+    }
+}
+
+/* --- SHORT VIEWPORTS: tighten the rhythm, not the content -------------------
+   Every value in the card&#x27;s vertical rhythm is driven by vw (3vw padding, 2.6vw
+   gaps), so a WIDE BUT SHORT screen — a 1280x720 laptop, the single most common
+   participant display — gets a desktop&#x27;s generous spacing inside a card that is
+   only 634px tall. Measured 2026-08-10: on that screen the consent options sat
+   entirely below the fold, so a participant could reach Next without ever seeing
+   the choice they were consenting to.
+
+   This block buys back ~60px of visible content on a 720px-tall screen by
+   tightening spacing ONLY — no font size, no copy, no component changes, so
+   nothing about how the page reads changes. Keyed on height, so a tall desktop
+   is untouched. */
+@media (max-height: 820px) {
+    .screen-card {
+        padding: 18px clamp(18px, 4.5vw, 48px);
+        gap: 16px;
+    }
+    .screen-card &gt; .button-row { padding-top: 14px; }
+    .experimental-header { gap: 8px; }
+    .experimental-content { gap: 12px; }
+    .panel { padding: 14px 16px; }
+    .logo-section { margin-top: 0; padding-top: 8px; }
+
+    /* THE CONSENT CHOICE MUST CLEAR THE FOLD WHOLE — BOTH OPTIONS, NOT ONE.
+       (Julian, 2026-08-13.) Measured at 1280x720 before this block: the DECLINE
+       option ran 484..550 while the scroll region ended at 514, so exactly half
+       of it (30px of 66px) was visible and a participant saw a full &quot;I consent&quot;
+       card above a sliced one. The fold falling BETWEEN two options is worse
+       than it falling below both: it reads as a complete list.
+
+       WHY IT REGRESSED, and why the fix is here rather than there: THE LOGO
+       FOOTER RULE (above) pins the strip as a card-level band, which is what
+       Julian asked for and is not in question — this block pays for it out of
+       SPACING instead, the same trade base.css already makes for the card and
+       results.css makes for the payment summary. Nothing about the copy, the
+       font sizes or the components changes.
+
+       THE SELECTOR IS EVERY `.stacked-form` OPTION ROW, AND THAT IS THE RULE,
+       NOT A LEAK (Julian, 2026-08-14): on a short viewport, option rows
+       tighten to this rhythm on EVERY page that stacks them — consent, the
+       quiz, demographics, and whatever a study adds. One component, one rule,
+       everywhere: a component that tightens on short viewports on one page
+       but not another is exactly the mixing-and-matching THE LOGO FOOTER RULE
+       exists to prevent, wearing a different class.
+
+       AN EARLIER SCOPING INTENT WAS ABANDONED HERE, ON PURPOSE — recorded so
+       it cannot read as an oversight. When this block landed (2026-08-13) its
+       comment claimed it was &quot;the consent group only&quot;, on the reasoning that
+       one page&#x27;s shortfall must not silently retune every choice in the
+       study — but the quiz and demographics stack their options in
+       `.stacked-form` directly (no &quot;different wrapper&quot; ever existed), so the
+       rule reached them from day one. The discrepancy surfaced through a
+       geometry-baseline diff, not by design; measured and screenshotted on
+       both pages, the shared rhythm was judged neutral-to-better (rows stay
+       over the 44px touch floor that `min-height` guarantees, nothing
+       cramped, more content above the fold), and Julian RATIFIED the shipped
+       behaviour rather than restoring the scope. See the 2026-08-14 entry in
+       DECISIONS.md. Do not re-scope this to one page without a new decision.
+
+       THE TOUCH TARGET SURVIVES, which is the constraint that decides how far
+       this can go: .85em -&gt; .5em block padding leaves each row 52px tall,
+       comfortably over the 44px Apple/WCAG minimum that `min-height` guarantees
+       anyway.
+
+       WHAT IS LEFT, MEASURED (2026-08-13) — because the next person to trip
+       this will be adding a sentence to the consent copy, not reading CSS:
+
+         headroom below the last option today ............  7px @ 1280x720
+                                                          182px @ 1512x1200
+                                                          111px @ 375x667
+         option rows to the 44px touch floor ............. +16px  (the floor;
+                                                    below it min-height wins and
+                                                    further padding buys nothing)
+         logo marks 32px -&gt; 24px ......................... +8px
+         panel padding 14px -&gt; 10px ...................... +8px
+         ------------------------------------------------------------------
+         realistically available in total ................ ~32px
+         cost of ONE more line of consent copy ........... ~31px
+
+       SO THE FOLD ABSORBS ABOUT ONE EXTRA LINE, and then it is out. Two things
+       follow. Do NOT set the inter-option gap to 0 to find another 6px: the two
+       options would touch and read as one block, which is the last thing a
+       consent choice may do. And when the budget runs out, STOP TIGHTENING —
+       shorten the copy, or accept that the card scrolls. The scroll affordance
+       is real and is asserted (conditionally, both ways, in
+       tests/render_check.py), and the guarantee that actually stops somebody
+       consenting blind is elsewhere: the radio ships un-pre-checked and an
+       untouched submit is REJECTED. The fold is a courtesy, not the control. */
+    .stacked-form .mc-option,
+    .stacked-form .form-check { padding-block: .5em; }
+    .stacked-form .mc-option + .mc-option,
+    .stacked-form .form-check + .form-check { margin-top: 6px; }
+    /* AND THE STRIP YIELDS — both levers, deliberately, not whichever one
+       reached the number first (Julian, 2026-08-13). It gets the phone
+       breakpoint&#x27;s smaller marks for the same reason it gets them on a narrow
+       screen, and the reason is a PRIORITY, not a pixel count: the logo strip is
+       EXTRA and must not take precedence over important features, so on a short
+       screen it gives way before participant-facing content does. The full
+       statement is at THE LOGO FOOTER RULE above; if vertical space is ever
+       short again, this strip is the first thing that should shrink. The RULE
+       itself (placement, order, divider) is untouched — only the mark height. */
+    .logo-row img { height: 32px; }
+}
+
+/* --- respect reduced-motion preference -------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
+
+/* ============================================================================
+   DESIGN SYSTEM — shared components
+   ----------------------------------------------------------------------------
+   CASCADE PRINCIPLE: the rules that make screens consistent live HERE, centrally.
+   A page may override them, but only as a deliberate rule in that page&#x27;s own CSS
+   carrying an &quot;EXCEPTION:&quot; comment that says why (e.g. an EXCEPTION comment on the
+   task screen that lifts the chart cap), never by quietly duplicating a value. If
+   you find yourself copying a rule, move it here instead. Read this file
+   top-to-bottom before adding a page override.
+   ============================================================================ */
+
+/* --- three-section card anatomy ---------------------------------------------
+   Every screen card is one of three stacked regions, in this order:
+     .experimental-header  — title + intro line (top)
+     .experimental-content — the substance, vertically centred, grows to fill
+     .button-row           — the single forward action, centred at the FOOT
+   These already exist above; the aliases below let a card name its regions
+   explicitly when the semantic classes don&#x27;t fit. Same flex behaviour. */
+.card-top    { display: flex; flex-direction: column; gap: 12px; }
+.card-body   { flex: 1 1 auto; display: flex; flex-direction: column;
+               gap: 16px; justify-content: center; }
+.card-foot   { margin-top: auto; padding-top: 24px; }
+
+/* --- mc-option: the shared multiple-choice option card ----------------------
+   ONE component for every single-choice answer in the study — the comprehension
+   quiz answers AND the welcome-page consent options both render as these, so
+   they look and behave identically. A full-width selectable card wrapping one
+   radio/checkbox.
+
+   NAMING. `.mc-option` is the canonical class; use it in any hand-authored
+   choice markup. oTree&#x27;s formfield helper emits Bootstrap `.form-check` markup
+   that we CANNOT add a class to, so `.form-check` is aliased to the same rules
+   here — treat the two as the same component. Without this alias every
+   oTree-rendered radio in the study (consent, quiz, agreement) falls back to a
+   bare unstyled Bootstrap control.
+
+   GAP. Options in a group are separated by --mc-gap via an adjacent-sibling
+   margin, so adjacent cards never touch WHATEVER container oTree wraps them in.
+   Reuse this component for future MC questions and the gap comes for free.
+
+   Markup (hand-authored):
+     &lt;div class=&quot;mc-options&quot;&gt;
+       &lt;label class=&quot;mc-option&quot;&gt;
+         &lt;input type=&quot;radio&quot; name=&quot;q1&quot; value=&quot;a&quot;&gt;
+         &lt;span class=&quot;mc-option-body&quot;&gt;Option A text&lt;/span&gt;
+       &lt;/label&gt;
+     &lt;/div&gt;
+   Markup (oTree): {{ formfield &#x27;field&#x27; }} with widget=widgets.RadioSelect —
+   nothing to do, the alias picks it up. */
+.mc-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mc-gap);
+    width: 100%;
+    max-width: 560px;   /* a control band, NOT the reading measure */
+    margin-inline: auto;
+}
+
+.mc-option, .form-check {
+    display: flex;
+    align-items: center;
+    gap: .7em;
+    margin: 0;
+    /* symmetric internal padding: top/bottom equal to the sides */
+    padding: .85em;
+    /* comfortable touch target: guarantee &gt;=44px tall even at small font scales
+       (Apple/WCAG minimum). Content stays vertically centred via align-items. */
+    min-height: 44px;
+    /* positioning context for the label hit-area overlay (see below) */
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: border-color .14s ease, background-color .14s ease, box-shadow .14s ease;
+}
+/* separate stacked options in the same group (works in any oTree wrapper) */
+.mc-option + .mc-option, .form-check + .form-check { margin-top: var(--mc-gap); }
+
+.mc-option:hover, .form-check:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Selected state (no JS). */
+.mc-option--selected,
+.mc-option:has(input:checked),
+.form-check:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Hand-rolled radio/checkbox, so the control looks the same on every browser. */
+.mc-option input[type=&quot;radio&quot;],
+.mc-option input[type=&quot;checkbox&quot;],
+.form-check input[type=&quot;radio&quot;],
+.form-check input[type=&quot;checkbox&quot;] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 auto;
+    width: 1.15em;
+    height: 1.15em;
+    margin: 0;
+    border: 2px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: border-color .14s ease, box-shadow .14s ease;
+}
+.mc-option input[type=&quot;checkbox&quot;], .form-check input[type=&quot;checkbox&quot;] { border-radius: 5px; }
+.mc-option input:checked, .form-check input:checked {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 4px var(--accent);
+}
+
+.mc-option label, .mc-option .form-check-label, .mc-option-body,
+.form-check label, .form-check .form-check-label {
+    margin: 0;
+    cursor: pointer;
+    flex: 1;
+    color: var(--ink);
+}
+
+/* FULL-CARD HIT AREA. INTENTION: oTree emits each option as a .form-check DIV
+   holding an &lt;input&gt; and a bound &lt;label&gt;, and we style that DIV as a padded,
+   pointer-cursor card — so it LOOKS entirely clickable, but only the input and
+   the label element actually toggle the choice; the padding and card edges are
+   dead space. On touch that reads as lag (the first tap misses). We cannot add
+   JS or change the emitted markup, so the BOUND LABEL grows a transparent
+   pseudo-element covering the whole card (inset:0): a tap ANYWHERE on the card —
+   padding, far edge, corner — now lands on the label and selects the option.
+   The overlay MUST sit on the label, not on the card: a ::after on the card
+   itself intercepts the click instead of forwarding it. The input is lifted
+   above the overlay so the radio dot stays directly clickable and keyboard
+   tab/space are unaffected. */
+.mc-option label::after,
+.mc-option .form-check-label::after,
+.mc-option .mc-option-body::after,
+.form-check label::after,
+.form-check .form-check-label::after {
+    content: &quot;&quot;;
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+}
+.mc-option input, .form-check input { position: relative; z-index: 1; }
+
+/* Keyboard focus: a visible ring on the whole card when the control is focused,
+   so tab focus is obvious. Sits after :has(input:checked) so a focused option
+   reads clearly. */
+.mc-option:focus-within, .form-check:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* --- mc-scale: the horizontal variant --------------------------------------
+   ESCAPE HATCH for a many-point rating scale (a 0–10 Likert / Dohmen risk item).
+   Because .form-check above is a full-width card, an 11-point
+   RadioSelectHorizontal would otherwise render as ELEVEN stacked giant cards.
+   Wrap such a field in .mc-scale and the options become compact side-by-side
+   cells instead. oTree emits .form-check.form-check-inline for horizontal
+   widgets, so both selectors are covered.
+
+   Markup:
+     &lt;div class=&quot;mc-scale&quot;&gt;{{ formfield &#x27;risk_item&#x27; }}&lt;/div&gt; */
+.mc-scale .controls,
+.mc-scale &gt; div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+}
+.mc-scale .form-check,
+.mc-scale .form-check-inline {
+    flex: 1 1 auto;
+    min-width: 2.6em;
+    flex-direction: column;
+    align-items: center;
+    gap: .35em;
+    padding: .5em .35em;
+    min-height: 0;
+    text-align: center;
+}
+/* the stacked-card gap rule above must not apply to a horizontal row */
+.mc-scale .form-check + .form-check { margin-top: 0; }
+.mc-scale .form-check label,
+.mc-scale .form-check .form-check-label { flex: 0 0 auto; text-align: center; }
+
+/* --- anchored popover -------------------------------------------------------
+   A small help panel anchored to a trigger (e.g. a &quot;?&quot;), shown on hover/focus.
+   CSS-only; the panel is positioned relative to .popover-anchor and reserves no
+   layout space (absolute), so it never shifts the page.
+
+   Markup:
+     &lt;span class=&quot;popover-anchor&quot; tabindex=&quot;0&quot;&gt;?
+       &lt;span class=&quot;popover-panel&quot; role=&quot;tooltip&quot;&gt;Explanatory text…&lt;/span&gt;
+     &lt;/span&gt;
+*/
+.popover-anchor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    font-size: 0.8em;
+    cursor: help;
+    user-select: none;
+}
+.popover-panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 280px;
+    padding: 10px 12px;
+    background: var(--color-heading);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;             /* reserve nothing; no page shift */
+    transition: opacity 0.12s ease;
+    z-index: 50;
+}
+.popover-panel::after {            /* little arrow */
+    content: &quot;&quot;;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--color-heading);
+}
+.popover-anchor:hover .popover-panel,
+.popover-anchor:focus .popover-panel,
+.popover-anchor:focus-within .popover-panel {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- COMPONENT: the scroll cue, a wide low pulsing V --------------------------
+   THE FOURTH LAYER of the scroll affordance (change_requests item 4, Julian
+   2026-08-11), and it JOINS the other three rather than replacing any of them:
+   the styled scrollbar, the CSS-only edge shadow and the content fade all stay.
+   Julian&#x27;s rule: anything that makes it obvious there is more text below is
+   worth having.
+
+   DRAWN, NOT TYPED. Two rounded bars, one per arm — no glyph, so it cannot come
+   out as a tofu box in a font that lacks a chevron (that is what happened to the
+   results page&#x27;s ▸). Bars rather than the usual rotated-square-with-two-borders
+   trick because that trick CANNOT make this shape: flattening a rotated square
+   enough to be wide and low also squashes its borders, and the V comes out as a
+   hairline (measured 2026-08-11 — Julian&#x27;s &quot;too small and too thin&quot;). Two
+   explicit bars keep a constant 4px stroke at any width and any shallowness.
+   Geometry: 96px wide, 16px tall — wide and low, as asked.
+
+   WHERE IT IS DRAWN, and why NOT inside the scroll region: the region carries
+   the content fade as a CSS MASK, and a mask fades EVERYTHING the element
+   paints, so a cue drawn there would be faded away exactly where it is needed.
+   It is therefore drawn on the element that FOLLOWS the scroller.
+
+   IT MUST NEVER LAND ON A LINE OF TEXT (fixed 2026-08-11 after Julian saw it
+   painted across the results page&#x27;s &quot;Total €79.50&quot; row, which reads as a
+   rendering fault, not as a cue). Its own strip is the ALWAYS-EMPTY band around
+   the top edge of that following element: the card&#x27;s flex gap above the edge
+   (&gt;=16px) and the row&#x27;s own padding-top below it (&gt;=14px on the shortest
+   viewport; .instruction-controls carries a matching padding-top for the same
+   reason). `bottom: 100%` + `translateY(50%)` centres each bar&#x27;s box exactly on
+   that edge, so the V spans edge-8px .. edge+8px and both halves are in
+   reserved whitespace. It is measured off the rendered pixels in
+   tests/render_check.py: with the cue suppressed, its band must be blank card.
+
+   NO CUE ON A CARD WITH NO BUTTON ROW (the lab results page). The only band
+   available there is the logo strip&#x27;s top rule, and a V drawn across a
+   horizontal rule looks like the very glitch this rule exists to avoid; those
+   pages keep the other three layers.
+
+   It is bound to the .is-scrollable-down class global.js already maintains, so
+   it appears only while there is more below and disappears at the end of the
+   scroll. No JavaScript of its own; with scripts blocked no class is ever set
+   and the other three layers carry the affordance alone. The pulse sits under
+   the file&#x27;s global prefers-reduced-motion rule, which kills every animation. */
+.experimental-content.is-scrollable-down ~ .button-row,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls {
+    position: relative;
+}
+
+.experimental-content.is-scrollable-down ~ .button-row::before,
+.experimental-content.is-scrollable-down ~ .button-row::after,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::before,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::after {
+    content: &quot;&quot;;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 51px;                 /* arm length: hypotenuse of 48 x 16 */
+    height: 4px;                 /* constant stroke, whatever the shape */
+    border-radius: 999px;
+    background: var(--ink-mute);
+    pointer-events: none;        /* never intercept a click meant for a button */
+    animation: scroll-cue-pulse 2.6s ease-in-out infinite;
+}
+
+/* left arm: down-right; right arm: down-left. They meet on the centre line,
+   8px below the edge, with their outer ends 8px above it. */
+.experimental-content.is-scrollable-down ~ .button-row::before,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::before {
+    margin-left: -50px;
+    transform: translateY(50%) rotate(18.4deg);
+}
+
+.experimental-content.is-scrollable-down ~ .button-row::after,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::after {
+    margin-left: -1px;
+    transform: translateY(50%) rotate(-18.4deg);
+}
+
+@keyframes scroll-cue-pulse {
+    0%, 100% { opacity: .30; }
+    50%      { opacity: .95; }
+}
+
+/* --- COMPONENT: round-of-total progress strip --------------------------------
+   The task screens&#x27; one progress indicator (change_requests item 7): a text
+   line above a slim bar, both fed by the SAME server-side numbers
+   (main.progress_vars), so they cannot disagree. Ported from the reference
+   build&#x27;s task screen and simplified to &quot;Round X of Y&quot; — this template has no
+   blocks/parts. Lives here, not in a page stylesheet, because any page that
+   needs to say where the participant is should use this one component. */
+.progress-strip { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.progress-count {
+    font-size: clamp(17px, 1.5vw, 20px);
+    font-weight: 650;
+    color: var(--ink);
+    letter-spacing: -.01em;
+}
+
+.progress-track {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: width .3s ease;
+}
+
+/* --- COMPONENT: warning modal ------------------------------------------------
+   ALL WARNINGS ARE CENTRED, SCREEN-DIMMING MODALS (change_requests item 9,
+   Julian 2026-08-11) — never a banner that pushes the page down under the
+   participant. These rules used to live in quiz.css and serve the lab&#x27;s
+   quiz-failure dialogs only; they are the shared component now, and
+   global.js&#x27;s warning-modal helper builds oTree&#x27;s validation errors into
+   exactly this chrome on every page. An overlay, so revealing it moves nothing
+   underneath (the stability rule).
+
+   DELIBERATELY NOT SHARED: the tab monitor&#x27;s full-screen red overlay
+   (tabmonitor.css). That is an ENFORCEMENT warning covering the whole viewport
+   on purpose, not a validation message, and Julian confirmed it stays as it is.
+
+   [hidden] must win over the flex display. */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(16, 32, 52, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.modal-backdrop[hidden] { display: none; }
+
+.modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lift);
+    max-width: 34rem;
+    width: 100%;
+    padding: 28px 32px;
+    text-align: center;
+}
+
+.modal-title {
+    color: var(--ink);
+    margin: 0 0 12px;
+    font-size: 1.15em;
+    font-weight: 680;
+}
+
+/* A validation failure is the one modal that reads as an error, so its title
+   takes the danger ink (the reference build does the same). */
+.modal-card--warning .modal-title { color: var(--danger); }
+
+.modal-text {
+    margin: 0 0 20px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Secondary (dismiss) action: quieter than the primary, but clearly a real
+   control — not the dashed debug styling. Matches the shared .ghost button so
+   the modal&#x27;s two actions read as one pair.
+   NB: deliberately NOT .next-button — global.js&#x27;s Enter handler targets the
+   first .next-button, and dismissing must never steal Enter from a page&#x27;s own
+   submit while the modal is closed. */
+.modal-dismiss-button {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    font: inherit;
+    font-weight: 620;
+    line-height: 1;
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 0.85em 2em;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.modal-dismiss-button:hover {
+    background: var(--sunken);
+    border-color: var(--line-strong);
+    color: var(--ink);
+}
+
+/* The warning modal&#x27;s single OK: it looks primary, but it is NOT .next-button —
+   see the note above. While the modal is open global.js disables the page&#x27;s own
+   submits, so Enter reaches the modal&#x27;s own handler and dismisses it. */
+.modal-ok-button {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    font: inherit;
+    font-weight: 620;
+    line-height: 1;
+    color: #fff;
+    background: var(--accent);
+    border: 1px solid transparent;
+    padding: 0.85em 2em;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(16, 32, 52, .12);
+    transition: background-color .16s ease;
+}
+
+.modal-ok-button:hover { background: var(--accent-hover); }
+
+/* (The old rule that lived here — &quot;a logo strip that is a direct child of the
+   card, the results page only&quot; — is gone: being a direct child of the card is
+   now THE arrangement on every page, not the results page&#x27;s exception. See THE
+   LOGO FOOTER RULE near the top of this file, which carries the flex, the
+   order and the bottom-edge push in one place.) */
+
+/* Pilot feedback textarea: a control, so it keeps the full card width (never
+   clamped to the reading measure). */
+.feedback-textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--color-text);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;!-- WELCOME — LAB VARIANT.
+     Mirrors before/welcome+consent.html rendered with is_lab = True:
+       * show_duration_and_fee   on  -&gt; the duration + show-up fee sentence
+       * collect_bank_details    on  -&gt; the lab wording of the privacy panel
+       * explicit_consent        on  -&gt; the two consent options (.mc-option)
+       * is_lab                  on  -&gt; &quot;raise your hand to speak to the
+                                        experimenter&quot; (never &quot;through Prolific&quot;)
+     No CREED header here on purpose: that header belongs to the lab gate page
+     (before/startpage.html) alone. --&gt;
+&lt;div class=&quot;experimental-screen&quot;&gt;
+    &lt;div class=&quot;screen-card narrative-card&quot;&gt;
+        &lt;div class=&quot;experimental-header&quot;&gt;
+            &lt;div class=&quot;eyebrow&quot;&gt;Before you begin&lt;/div&gt;
+            &lt;h2 class=&quot;header-title&quot;&gt;Welcome&lt;/h2&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;experimental-content&quot;&gt;
+            &lt;p class=&quot;section-text&quot;&gt;
+                This study takes about 30 minutes. You will receive
+                &lt;strong&gt;&amp;euro;2.50&lt;/strong&gt; for completing it, plus your earnings
+                from the decisions you make.
+            &lt;/p&gt;
+
+            &lt;div class=&quot;panel panel--hug&quot;&gt;
+                All recorded data are stored anonymously and used solely for
+                research purposes. Your bank details are used only to arrange
+                your payment and are never linked to the published data.
+            &lt;/div&gt;
+
+            &lt;div&gt;
+                &lt;p class=&quot;section-text&quot;&gt;&lt;strong&gt;Please indicate whether you
+                    consent to taking part:&lt;/strong&gt;&lt;/p&gt;
+                &lt;div class=&quot;stacked-form&quot;&gt;
+                    &lt;div class=&quot;form-check&quot;&gt;
+                        &lt;input type=&quot;radio&quot; name=&quot;consent&quot; id=&quot;consent-yes&quot; checked&gt;
+                        &lt;label class=&quot;form-check-label&quot; for=&quot;consent-yes&quot;&gt;I consent to take part&lt;/label&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;form-check&quot;&gt;
+                        &lt;input type=&quot;radio&quot; name=&quot;consent&quot; id=&quot;consent-no&quot;&gt;
+                        &lt;label class=&quot;form-check-label&quot; for=&quot;consent-no&quot;&gt;I do not consent&lt;/label&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;p class=&quot;section-text&quot;&gt;
+                If you have any questions, please raise your hand to speak to the
+                experimenter.
+            &lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;button-row&quot;&gt;
+            &lt;input type=&quot;submit&quot; value=&quot;Next&quot; class=&quot;next-button&quot;&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;logo-section&quot;&gt;
+            &lt;div class=&quot;logo-row&quot;&gt;
+                &lt;img src=&quot;data:image/jpeg;base64,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&quot; alt=&quot;University of Amsterdam logo&quot;&gt;
+                &lt;img src=&quot;data:image/jpeg;base64,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&quot; alt=&quot;CREED logo with subtitle&quot;&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
