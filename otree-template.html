@@ -80,10 +80,11 @@
     </div>
 
     <p>
-      An oTree starter scaffold for running lab experiments. Plug your instructions and your game
-      into the <em>main</em> app — the welcome, consent, comprehension quiz, demographics, and
-      payment flow are already wired in across the <em>before</em>, <em>intro</em>, and
-      <em>outro</em> apps.
+      An oTree template for running experiments in the lab and online. Plug your instructions and
+      your game into the <em>main</em> app — the welcome, consent, comprehension quiz, demographics,
+      and payment flow are already wired in across the <em>before</em>, <em>intro</em>, and
+      <em>outro</em> apps, together with the recruitment, screening and deployment plumbing a live
+      study needs around them.
     </p>
 
     <section id="app-timeline">
@@ -132,6 +133,44 @@
         <li><strong>Game</strong> — build your economic game in the <code>main</code> app. Add any HTML pages for the game to this app, and configure the app settings (rounds, decisions, payoffs) in <code>main/__init__.py</code>.</li>
         <li><strong>Payment logic</strong> — decide how participants are paid in <code>outro/payment_rule.py</code>. The function there controls which rounds and payoffs count towards the final payment.</li>
       </ul>
+    </section>
+
+    <section id="lab-and-online">
+      <div class="section-header">
+        <h2>Lab and online from one codebase</h2>
+      </div>
+      <p>
+        A single setting switches the study between a lab session and an online Prolific study.
+        The experiment itself is unchanged; only the recruitment plumbing differs — participant IDs
+        and completion codes online, bank details and demographics in the lab. Entry is handled as
+        well: the room entry page carries the study's own look, and a participant arriving from a
+        lab seat link or a Prolific link passes straight through it without seeing it, while a bare
+        link still shows a button.
+      </p>
+      <p>
+        Payment stays a single ledger however a participant was recruited, and each way of finishing
+        the study returns its own completion code, so those groups remain distinguishable in the
+        data afterwards.
+      </p>
+    </section>
+
+    <section id="running-for-real">
+      <div class="section-header">
+        <h2>Running it for real</h2>
+      </div>
+      <p>
+        The integrity checks a live study needs are already in place: a focus and tab monitor that
+        can either record what happened or remove the participant, a device screen-out, and a
+        comprehension gate. Each reports a readable verdict rather than a raw count for an analyst
+        to interpret later.
+      </p>
+      <p>
+        The template is built to be deployed, not only run locally — a Docker image, safe against a
+        hosted Postgres database, and a pre-deploy check that boots the new build against a copy of
+        the live database, since a fresh install cannot reveal a broken upgrade. Layout is confirmed
+        by measured browser checks rather than by eye, and the repository records why each decision
+        was made, so a later reader can tell a deliberate choice from an accident.
+      </p>
     </section>
 
     <section id="instructions-preview">
