@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Results (lab) — oTree study template</title>
+<title>Consent (lab) — oTree study template</title>
 <!--
   =========================================================================
   WHAT THIS FILE IS
@@ -12,18 +12,13 @@
   study template, shown in a 16:9 iframe. It is NOT participant-facing, it is
   not wired to anything, and it is not part of the shipped study apps.
 
-  THE LAB VARIANT of the results screen: the lab ending, with no Prolific
-  completion link and none anywhere on the page.
-
-  TRIMMED FOR DISPLAY, AND HERE IS WHAT WAS TRIMMED. The real page is the
-  longest in the study and genuinely SCROLLS inside its card on an
-  ordinary display — with the payoff table open it does not fit 16:9 at
-  any size. Two cuts bought the room: the unconditional "Thank you,
-  you're all done." greeting above the total is dropped, and a short
-  three-round session is shown rather than a full-length one. So a
-  participant sees MORE than this, and sees it a screenful at a time.
-  Everything present — the receipt and its arithmetic, the lab note, the
-  accordion, the table styling — is the page as it really renders.
+  THE LAB RENDERING of the shared welcome/consent page. Consent in the lab is
+  IMPLICIT — the profile sets explicit_consent=False, an ethics choice made
+  because there is an experimenter in the room — so there is no consent
+  control on screen at all, and the duration/fee sentence is off by default.
+  An earlier build of this preview showed a pre-selected "I consent" radio
+  and a fee: a screen no lab participant has ever seen. It carries no lab
+  header, because that belongs to the gate page alone.
 
   =========================================================================
   HOW IT WAS MADE — do not hand-edit this file
@@ -66,11 +61,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f6; }
 </style>
 </head>
 <body>
-<iframe id="screen" title="Results (lab)" srcdoc="&lt;!DOCTYPE html&gt;
+<iframe id="screen" title="Consent (lab)" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
 &lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Results (lab)&lt;/title&gt;
+&lt;title&gt;Consent (lab)&lt;/title&gt;
 &lt;style&gt;
 /* The ground oTree&#x27;s own page chrome would otherwise paint. */
 html, body { margin: 0; padding: 0; background: #eef1f6; }
@@ -1792,335 +1787,89 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
     resize: vertical;
 }
 
-
-/* ===== results.css — verbatim from _static/global/css/ ===== */
-
-/* Outro results */
-
-/* --- the payment receipt (change_requests item 11) ---------------------------
-   Ported from the reference build&#x27;s payment screen: a compact block holding a
-   thank-you line, the headline earnings figure and the composition as
-   label/amount rows. Deliberately NARROW (a receipt, not a full-width panel)
-   and CENTRED in the card, which is where this template differs from the
-   reference — Julian asked for the summary block centred.
-   THE FIGURES ARE REAL: every row is a value from Results.vars_for_template,
-   i.e. from what compute_final_payoff actually paid. Nothing here is arithmetic
-   done in the template, so the breakdown cannot drift from the payment. */
-.payment-summary {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(12px, 2vw, 18px);
-    width: 100%;
-    max-width: 340px;
-    margin-inline: auto;
-    text-align: left;
-}
-
-.payment-greeting { margin: 0; text-align: center; color: var(--ink-soft); }
-
-/* headline earnings figure */
-.payout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    background: var(--accent-soft);
-    border: 1px solid #cddcfb;
-    border-radius: var(--r-lg);
-    padding: clamp(18px, 3vw, 26px);
-}
-
-.payout-label {
-    font-size: .8em;
-    font-weight: 650;
-    letter-spacing: .07em;
-    text-transform: uppercase;
-    color: var(--accent);
-}
-
-.payout-total {
-    font-size: clamp(34px, 5vw, 46px);
-    font-weight: 720;
-    line-height: 1.05;
-    color: var(--ink);
-    letter-spacing: -.02em;
-    font-variant-numeric: tabular-nums;
-}
-
-/* the breakdown lines */
-.payout-lines { display: flex; flex-direction: column; gap: 0; }
-
-.payout-line {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: .62em 0;
-    border-bottom: 1px solid var(--line);
-    font-size: .95em;
-}
-
-.payout-line:last-child { border-bottom: 0; }
-
-.payout-line.total {
-    font-weight: 680;
-    color: var(--ink);
-    border-top: 2px solid var(--line-strong);
-}
-
-.payout-line .amount {
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    font-weight: 620;
-}
-
-/* The notes under the receipt (processing time, the SEPA warning) and the line
-   that introduces the per-round table. Centred with the receipt. */
-.results-notes { text-align: center; }
-.results-lead { margin: 0 0 4px; }
-
-/* --- SHORT VIEWPORTS: get the WHOLE receipt above the fold -------------------
-   Measured 2026-08-11 at 1280x720 (the commonest participant display): the
-   receipt&#x27;s &quot;Total&quot; row — the line that proves the breakdown adds up — ended
-   20px below the fold, so it was cut and dimmed by the scroll fade. The whole
-   point of this page is that a participant reads what they earned, so the
-   rhythm tightens on a short screen exactly as base.css does for the card:
-   SPACING ONLY, no copy and no component changes. Buys ~48px, which is enough
-   to clear the fold at both 720p and on a phone. The headline figure stays
-   large — it is the number that matters most. */
-@media (max-height: 820px) {
-    .payment-summary { gap: 10px; }
-    .payout { padding: 12px; }
-    .payout-total { font-size: clamp(30px, 4vw, 36px); }
-    .payout-line { padding: .45em 0; }
-    .results-notes { font-size: .94em; }
-}
-
-/* Wide tables scroll inside their own container rather than being clamped to the
-   reading measure or forcing the page to scroll sideways (house convention). */
-.table-scroll {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* COMPONENT — per-round payoff table. The look is ported from the exp_pilots
-   pilot (Julian, 2026-08-13, change_requests_round2 item 8; reference kept at
-   _ai/ref_exp_pilots/_static/global/css/results.css, local only: _ai/ is
-   gitignored). PORTED BY REASON, NOT BY
-   PASTE — each rule below is here for the effect it produces, and the pilot&#x27;s
-   coconut/allocation columns and its win / no-win vocabulary are deliberately
-   NOT imported, because this table is Round + Payoff and has no win state.
-
-   What actually makes it read as tidy, in rough order of how much it does:
-
-   1. TABULAR NUMERALS on the body cells. Proportional digits make a column of
-      money jitter left and right by a fraction of a character per row; tabular
-      figures put every digit on the same advance width, so the column aligns
-      down the page. This is most of the improvement and it is invisible until
-      you look at two builds side by side.
-   2. THE HEADER IS QUIET, NOT BOXED. Uppercase, letter-spaced, muted ink, and a
-      STRONGER bottom border than the body rows carry — so the header is read as
-      a boundary rather than as a filled band competing with the data. The old
-      rules boxed every cell in #ddd and filled the header with a background,
-      which draws a grid the reader has to look through.
-   3. HORIZONTAL RULES ONLY, and the LAST ROW DROPS ITS BORDER, so the table
-      ends on the card instead of on a stray line.
-   4. PAID ROUNDS GET TWO SIGNALS: an accent-soft row wash AND an inset left bar
-      (box-shadow inset 3px 0 0). The wash alone is easy to lose when scanning a
-      long list; the bar gives the eye a hard edge to run down. Weight is no
-      longer used for this — bold digits defeat point 1 by changing their
-      widths.
-
-   The table is wrapped in .table-scroll (above) so a wider table scrolls inside
-   itself instead of widening the page. UNCHANGED BY THIS ITEM: the accordion
-   (.results-toggle / .results-arrow / .results-collapsible) — Julian was
-   explicit that it stays, and the pilot has no equivalent to copy from. */
-.results-table {
-    width: 100%;
-    max-width: 700px;
-    margin: 20px auto;
-    border-collapse: collapse;
-    font-size: .92em;
-}
-
-.results-table th,
-.results-table td {
-    padding: .62em .8em;
-    text-align: left;
-    border-bottom: 1px solid var(--line);
-    white-space: nowrap;
-}
-
-.results-table th {
-    font-weight: 650;
-    font-size: .88em;
-    letter-spacing: .03em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    border-bottom: 1px solid var(--line-strong);
-}
-
-.results-table td {
-    color: var(--ink-soft);
-    font-variant-numeric: tabular-nums;
-}
-
-.results-table tr:last-child td { border-bottom: 0; }
-
-/* The paid rounds, findable in a long list: wash + inset bar (see 4 above). */
-.results-table tbody tr.selected-row td { background: var(--accent-soft); }
-.results-table tbody tr.selected-row td:first-child {
-    box-shadow: inset 3px 0 0 var(--accent);
-}
-
-/* COMPONENT — table tag. A pill, ported from the pilot&#x27;s .tag. The pilot used
-   it for won / no-win; this table&#x27;s one state is PAID, so that is the one
-   modifier defined. A pill rather than the word alone because the round number
-   and its status then read as one cell instead of a sentence. */
-.results-table .tag {
-    display: inline-block;
-    padding: .1em .55em;
-    border-radius: 999px;
-    font-size: .78em;
-    font-weight: 620;
-    letter-spacing: .02em;
-    vertical-align: 1px;
-    margin-left: .35em;
-}
-.results-table .tag.paid-tag { background: var(--accent); color: #fff; }
-
-.results-section {
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.results-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    color: var(--color-heading);
-    cursor: pointer;
-    padding: 4px 8px;
-    font-weight: 700;
-}
-
-/* Disclosure caret, drawn with borders so it needs no glyph from the font (the
-   character it replaced, ▸ U+25B8, is absent from Roboto and rendered as a tofu
-   box). Same size and same 90° rotation as before, so the control behaves
-   identically. */
-.results-arrow {
-    display: inline-block;
-    transition: transform 0.2s ease;
-    width: 0;
-    height: 0;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-left: 9px solid currentColor;
-    margin-right: 4px;
-    vertical-align: middle;
-}
-
-.results-arrow.open {
-    transform: rotate(90deg);
-}
-
-.results-collapsible {
-    margin-top: 8px;
-}
-
-.results-collapsible.is-hidden {
-    display: none;
-}
-
-
 &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
-&lt;!-- RESULTS — LAB VARIANT.
-     Mirrors outro/Results.html rendered with is_lab = True and
-     prolific_completion_redirects = False, so:
-       * the &quot;stay seated until the experimenter tells you&quot; line is present;
-       * there is NO completion link and therefore NO button row — the logo
-         strip is the card&#x27;s last child, exactly as the lab ending renders it;
-       * the accordion ships OPEN in the lab (results_open), which is why the
-         caret carries .open and the wrapper is not .is-hidden.
-     The per-round table is the real .results-table component, paid rounds
-     carrying the row wash, the inset bar and the &quot;paid&quot; pill.
+&lt;!-- CONSENT — THE LAB RENDERING of before/welcome+consent.html.
 
-     TWO DEPARTURES FROM THE PAGE AS SHIPPED, both to fit a 16:9 canvas with
-     the payoff table OPEN, which the real page does not do (it is the longest
-     page in the study and scrolls inside the card on any ordinary display):
-       * the &quot;Thank you, you&#x27;re all done.&quot; greeting line above the total is
-         dropped — it is unconditional in outro/Results.html;
-       * a short 3-round session is shown.
-     Everything else — the receipt, the lab note, the accordion, the table —
-     is the page as a lab participant sees it. --&gt;
+     THE TWO THINGS THAT MUST STAY TRUE, and both are mechanics, not copy:
+
+       * NO CONSENT CONTROL OF ANY KIND. The lab profile sets
+         `explicit_consent=False` and `before.welcome.get_form_fields` adds the
+         radio only under that flag, so consent in the lab is IMPLICIT, by
+         continuing — an ethics choice made because there is an experimenter in
+         the room. An earlier build of this preview showed a pre-selected
+         &quot;I consent&quot; radio: a screen no lab participant has ever seen.
+       * NO &quot;WELCOME TO [lab]&quot; HEADER. That belongs to the gate page alone
+         (welcome_lab.html); this page renders in both study types.
+     Also lab-resolved: `show_duration_and_fee` ships OFF, so no duration and no
+     fee sentence; `collect_bank_details=True`, so the panel carries the bank
+     wording; `is_lab`, so the closing line is &quot;raise your hand&quot;.
+
+     THE COPY IS PLACEHOLDER, AND IT IS LONGER THAN THE COPY THE TEMPLATE SHIPS
+     (Julian, 2026-08-15). Say so plainly, because the opposite error — showing
+     something the app does not render — is what the consent radio was:
+
+       The template ships a MINIMAL consent panel, because consent text is the
+       first thing every study replaces with its own ethics-approved wording.
+       Rendered on this canvas that shipped copy used ~262px of a 613px region,
+       leaving a visible empty band above the divider, so as the website&#x27;s
+       representative CONSENT screen it understated the densest page in the
+       study. The copy below is neutral placeholder at the density a real
+       consent page carries — voluntary participation, withdrawal, anonymity
+       and data use, the payment-details sentence, the by-continuing sentence
+       and the contact route. Every component is the page&#x27;s own
+       (.panel--hug, .section-text); nothing here is a real study&#x27;s text, a real
+       ethics-board reference, or an institution specific the template does not
+       already ship.
+
+     WHY NOT THE ~750px QUOTED IN base.css: that figure is the PROLIFIC consent
+     page measured at 375px wide, where lines wrap three times as often. On this
+     1920x1080 canvas the pinned Next row and logo strip leave a 613px region,
+     so 750px of copy would overflow and be cut — the one thing these previews
+     may not do. --&gt;
 &lt;div class=&quot;experimental-screen&quot;&gt;
-    &lt;div class=&quot;screen-card&quot;&gt;
+    &lt;div class=&quot;screen-card narrative-card&quot;&gt;
         &lt;div class=&quot;experimental-header&quot;&gt;
-            &lt;h2 class=&quot;header-title&quot;&gt;Results&lt;/h2&gt;
+            &lt;div class=&quot;eyebrow&quot;&gt;Before you begin&lt;/div&gt;
+            &lt;h2 class=&quot;header-title&quot;&gt;Welcome&lt;/h2&gt;
         &lt;/div&gt;
+
         &lt;div class=&quot;experimental-content&quot;&gt;
-            &lt;div class=&quot;payment-summary&quot;&gt;
-                &lt;div class=&quot;payout&quot;&gt;
-                    &lt;div class=&quot;payout-label&quot;&gt;Total earned&lt;/div&gt;
-                    &lt;div class=&quot;payout-total&quot;&gt;&amp;euro;10.50&lt;/div&gt;
-                &lt;/div&gt;
+            &lt;p class=&quot;section-text&quot;&gt;
+                This session has three parts: a set of instructions, a few
+                questions to check they are clear, and the task itself.
+            &lt;/p&gt;
 
-                &lt;div class=&quot;payout-lines&quot;&gt;
-                    &lt;div class=&quot;payout-line&quot;&gt;
-                        &lt;span&gt;Base payment&lt;/span&gt;&lt;span class=&quot;amount&quot;&gt;&amp;euro;2.50&lt;/span&gt;
-                    &lt;/div&gt;
-                    &lt;div class=&quot;payout-line&quot;&gt;
-                        &lt;span&gt;Bonus from your decisions&lt;/span&gt;
-                        &lt;span class=&quot;amount&quot;&gt;&amp;euro;8.00&lt;/span&gt;
-                    &lt;/div&gt;
-                    &lt;div class=&quot;payout-line total&quot;&gt;
-                        &lt;span&gt;Total&lt;/span&gt;&lt;span class=&quot;amount&quot;&gt;&amp;euro;10.50&lt;/span&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
+            &lt;div class=&quot;panel panel--hug&quot;&gt;
+                All recorded data are stored anonymously and used solely for
+                research purposes by researchers at the University of Amsterdam.
+                Your responses are stored under a randomly generated participant
+                number, and nothing that could identify you is published or
+                shared outside the research team. Your contact and bank details
+                are used only to arrange your payment and are never linked to
+                the published data.
             &lt;/div&gt;
 
-            &lt;div class=&quot;section-text results-notes&quot;&gt;
-                &lt;p&gt;
-                    Please &lt;strong&gt;stay seated&lt;/strong&gt; until the experimenter
-                    tells you that you can leave.
-                &lt;/p&gt;
-            &lt;/div&gt;
+            &lt;p class=&quot;section-text&quot;&gt;
+                Taking part is voluntary. You may stop at any time and you do
+                not have to give a reason; if you stop early, please tell the
+                experimenter so that your payment can still be arranged.
+            &lt;/p&gt;
 
-            &lt;div class=&quot;results-section&quot;&gt;
-                &lt;p class=&quot;section-text results-lead&quot;&gt;
-                    &lt;strong&gt;2&lt;/strong&gt; rounds counted for payment; they are
-                    highlighted below.
-                &lt;/p&gt;
-                &lt;button type=&quot;button&quot; id=&quot;results-toggle&quot; class=&quot;section-header results-toggle&quot;
-                        aria-expanded=&quot;true&quot; aria-controls=&quot;results-table-wrapper&quot;&gt;
-                    &lt;span id=&quot;results-arrow&quot; class=&quot;results-arrow open&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
-                    &lt;span&gt;See Payoff by Round&lt;/span&gt;
-                &lt;/button&gt;
-                &lt;div id=&quot;results-table-wrapper&quot; class=&quot;results-collapsible&quot;&gt;
-                    &lt;div class=&quot;table-scroll&quot;&gt;
-                        &lt;table class=&quot;results-table&quot;&gt;
-                            &lt;thead&gt;
-                                &lt;tr&gt;
-                                    &lt;th&gt;Round&lt;/th&gt;
-                                    &lt;th&gt;Payoff&lt;/th&gt;
-                                &lt;/tr&gt;
-                            &lt;/thead&gt;
-                            &lt;tbody&gt;
-                                &lt;tr class=&quot;selected-row&quot;&gt;&lt;td&gt;Round 1&lt;span class=&quot;tag paid-tag&quot;&gt;paid&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&amp;euro;4.00&lt;/td&gt;&lt;/tr&gt;
-                                &lt;tr&gt;&lt;td&gt;Round 2&lt;/td&gt;&lt;td&gt;&amp;euro;2.00&lt;/td&gt;&lt;/tr&gt;
-                                &lt;tr class=&quot;selected-row&quot;&gt;&lt;td&gt;Round 3&lt;span class=&quot;tag paid-tag&quot;&gt;paid&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&amp;euro;4.00&lt;/td&gt;&lt;/tr&gt;
-                            &lt;/tbody&gt;
-                        &lt;/table&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
+            &lt;p class=&quot;section-text&quot;&gt;
+                &lt;strong&gt;By continuing to the next page you consent&lt;/strong&gt; to
+                recording your experimental data.
+            &lt;/p&gt;
+
+            &lt;p class=&quot;section-text&quot;&gt;
+                If you have any questions at any time, please raise your hand to
+                speak to the experimenter.
+            &lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;button-row&quot;&gt;
+            &lt;input type=&quot;submit&quot; value=&quot;Next&quot; class=&quot;next-button&quot;&gt;
         &lt;/div&gt;
 
         &lt;div class=&quot;logo-section&quot;&gt;
