@@ -83,13 +83,13 @@
       An oTree template for running experiments in the lab and online.
     </p>
     <ul>
-      <li><strong>A participant flow, built and styled</strong> — welcome, consent, instructions, comprehension quiz, demographics, results.</li>
+      <li><strong>A participant flow, built and styled</strong> — with an adaptable payment rule.</li>
       <li><strong>Lab and Prolific from one setting</strong> — the same study, recruited either way.</li>
-      <li><strong>Three screening layers</strong> — comprehension, device and focus.</li>
-      <li><strong>Earnings tracked per participant</strong> — and carried through to the results screen.</li>
-      <li><strong>Deployment</strong> — Docker, a hosted database, pre-deploy checks.</li>
-      <li><strong>Instructions, game and earnings rule</strong> — yours to write.</li>
+      <li><strong>Three screening layers</strong> — comprehension, device, and tab-switching for web studies.</li>
     </ul>
+    <p>
+      Bring your <strong>instructions</strong> &amp; <strong>game</strong>, and you are ready to run.
+    </p>
 
     <section id="app-timeline">
       <div class="section-header">
@@ -140,7 +140,7 @@
         <li><strong>Comprehension quiz</strong> — define quiz items (prompt, choices, correct answer) in <code>intro/quiz_items.py</code>.</li>
         <li><strong>Treatment assignment</strong> — set up your conditions in <code>before/treatment_assignment.py</code>. Treatments are assigned at session creation via <code>creating_session</code> in the <code>before</code> app.</li>
         <li><strong>Game</strong> — build your economic game in the <code>main</code> app. Add any HTML pages for the game to this app, and configure the app settings (rounds, decisions, payoffs) in <code>main/__init__.py</code>.</li>
-        <li><strong>Earnings rule</strong> — write your own rule in <code>outro/payment_rule.py</code>. The file is a prepared slot, not a formula: the function you put there decides which rounds and payoffs count, and the template tracks the result and shows it.</li>
+        <li><strong>Earnings rule</strong> — <code>outro/payment_rule.py</code> ships a working default that pays up to N randomly chosen rounds, drawing on the payoffs your game produces; replace it with your own if your study pays differently.</li>
       </ul>
     </section>
 
@@ -169,12 +169,13 @@
       </div>
       <p>
         A Prolific study gets three layers of screening, already in place; comprehension screening
-        runs in the lab too, while device and focus screening come with the Prolific configuration:
+        runs in the lab too, while device and tab-switching screening are on by default for web
+        studies and can be turned on in the lab:
       </p>
       <ul>
         <li><strong>Comprehension screening</strong> — removes a participant who still cannot pass the quiz once their attempts are used up.</li>
         <li><strong>Device screening</strong> — keeps out phones, or whatever device types the study disallows.</li>
-        <li><strong>Focus screening</strong> — watches for the participant leaving the tab, and can either just record it or remove them.</li>
+        <li><strong>Tab-switching screening</strong> — watches for the participant leaving the tab, and can either just record it or remove them.</li>
       </ul>
       <p>
         Each reports a readable verdict rather than a raw count for an analyst to interpret later.
