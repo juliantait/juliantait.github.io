@@ -166,6 +166,17 @@ p {
   line-height: 1.65;
 }
 
+/* Inline code: long unbreakable tokens (paths, URLs) wrap instead of pushing
+   the page sideways on narrow screens. Code inside pre keeps its own
+   overflow-x scrolling, so a whole command stays on one line. */
+code {
+  overflow-wrap: anywhere;
+}
+
+pre code {
+  overflow-wrap: normal;
+}
+
 /* Typography scale */
 h1, h2, h3 {
   margin-top: 0;

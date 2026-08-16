@@ -1,0 +1,3092 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Instructions preview (interactive)</title><style>/* === base.css === */
+/* ===========================================================================
+   Participant-facing design system.
+
+   One shared shell for every screen (welcome, consent, instructions, quiz,
+   task, results) so the study reads as a single designed product.
+
+   Constraints: plain CSS only. No external fonts, no CDN, no network calls of
+   any kind (a study may run on Prolific, where an outbound request is both a
+   privacy leak and a point of failure). System font stack, hand-rolled
+   controls. Everything is fluid and legible down to a 320px phone.
+   =========================================================================== */
+
+:root {
+    /* --- surfaces --------------------------------------------------------- */
+    --page-bg: #eef1f6;
+    --card-bg: #ffffff;
+    --sunken: #f4f6fa;
+    --line: #e3e8ef;
+    --line-strong: #cbd5e1;
+
+    /* --- ink -------------------------------------------------------------- */
+    --ink: #16202c;
+    --ink-soft: #4a5766;
+    --ink-mute: #71808f;
+
+    /* --- accent (actions only; used sparingly and on purpose) ------------- */
+    --accent: #2f6feb;
+    --accent-hover: #1f57c9;
+    --accent-soft: #e8effd;
+    --accent-ring: rgba(47, 111, 235, 0.32);
+
+    --danger: #c2384a;
+    --ok: #1f9254;
+
+    /* --- shape ------------------------------------------------------------ */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --shadow: 0 1px 2px rgba(16, 32, 52, .04), 0 8px 28px rgba(16, 32, 52, .07);
+    --shadow-lift: 0 2px 4px rgba(16, 32, 52, .06), 0 14px 38px rgba(16, 32, 52, .12);
+
+    /* The reading measure: the width running prose is held to for legibility.
+       Lives in ONE place, so every text family (narrative, instructions, quiz)
+       narrows running text to the SAME width. Controls, tables and widgets are
+       deliberately NOT clamped to it (see notes below). */
+    --read-measure: 68ch;
+
+    /* Gap between stacked options in one multiple-choice group (see the
+       mc-option component). */
+    --mc-gap: 10px;
+
+    /* --- COMPATIBILITY ALIASES -------------------------------------------
+       The tokens above are the design system. These older `--color-*` names
+       are kept as aliases ONLY so page-scoped stylesheets that predate the
+       rename (results.css, demographics.css, quiz.css) keep working untouched.
+       DO NOT use them in new rules — reach for the real token instead. A new
+       study is free to delete this block once nothing references it. */
+    --color-background: var(--card-bg);
+    --color-page-bg: var(--page-bg);
+    --color-text: var(--ink-soft);
+    --color-heading: var(--ink);
+    --color-accent: var(--accent);
+    --color-border: var(--line-strong);
+    --color-muted: var(--ink-mute);
+    --color-muted-hover: var(--ink-soft);
+    --color-primary: var(--accent);
+    --color-primary-hover: var(--accent-hover);
+    --color-disabled: var(--line-strong);
+    --color-table-header: var(--sunken);
+    --color-table-selected: var(--accent-soft);
+    --color-focus-ring: var(--accent-ring);
+    --reading-measure: var(--read-measure);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+/* General layout & typography.
+   System font stack only — no webfont is bundled and none may be fetched (see
+   the no-network constraint above). Fluid base size: comfortable on a phone,
+   generous on a desktop. */
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--page-bg);
+    color: var(--ink-soft);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    font-size: clamp(16px, 0.55vw + 14.6px, 19px);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { color: var(--ink); font-weight: 650; letter-spacing: -0.011em; }
+
+p { margin: 0 0 1em; }
+p:last-child { margin-bottom: 0; }
+
+/* Bold text is the SAME ink as body copy, just heavier — emphasis must not
+   shout in a second colour. */
+strong { color: var(--ink); font-weight: 650; }
+
+a { color: var(--accent); }
+
+/* --- neutralise oTree's page chrome ------------------------------------------
+   oTree wraps every page in <div class="otree-body container">: its theme CSS
+   gives .otree-body a max-width and a top margin, and Bootstrap's .container
+   adds its own width caps and gutters. Together they cap the card width and add
+   a grey band above it. Zero all of it so .experimental-screen below is the only
+   shell that sets widths and gutters. (.otree-body.container out-ranks both
+   single-class originals on specificity, so load order cannot matter.) */
+.otree-body.container {
+    max-width: none;
+    width: 100%;
+    margin-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+/* WIDTH IS LOAD-BEARING HERE, not cosmetic. oTree wraps the page in
+   <form class="otree-form">, and the `form` rule further down this file makes it
+   a flex column with `align-items: center`. That makes .otree-content — the
+   form's only flex item, and the ancestor of every card — SHRINK-TO-FIT its
+   content, so `.screen-card`'s own `max-width: min(94vw, 1200px)` never binds
+   and each page's card ends up as wide as whatever happens to be inside it.
+   Measured before this line (1280px viewport): lab gate 651px, consent 824px,
+   instructions 818px, quiz 571px — four widths for the one frame the card
+   component promises. `width: 100%` restores the promise without touching the
+   `form` rule, which oTree's own injected elements also sit under. */
+.otree-content { margin-top: 0; width: 100%; }
+.otree-title.page-header { margin: 0; }
+
+/* --- remove oTree's "powered by oTree" line + trailing spacer ----------------
+   oTree's Page.html injects a `.powered-by-otree` line and a trailing <br/>
+   after the content, both OUTSIDE our .experimental-screen. Both add stray
+   whitespace below the card that made the bottom gutter deeper than the sides.
+   (On the licence: the AGPL is satisfied by CITING THE OTREE PAPER — Chen,
+   Schonger & Wickens, 2016 — not by displaying the badge. We cite it; see the
+   README.) */
+.powered-by-otree { display: none; }
+.otree-body.container > br { display: none; }
+
+/* COMPONENT — page shell. INTENTION: centre one card in the viewport with an
+   equal grey gutter on every side (see EQUAL MARGINS below). Every participant
+   page is one .experimental-screen wrapping one .screen-card. */
+.experimental-screen {
+    display: flex;
+    justify-content: center;   /* horizontal centring */
+    align-items: center;       /* vertical centring of a short card */
+    /* Fill the viewport so a card that does not need to scroll sits centred both
+       ways. min-height (not height) means a card TALLER than the viewport simply
+       grows the page: it stays fully reachable and scrolls downward, rather than
+       being clipped. */
+    min-height: 100vh;
+    /* EQUAL MARGINS. One symmetric gutter on all four sides, so the grey band
+       above the card matches the band beside it. The middle term is 3vw — the
+       SAME as the card's own 94vw side gutter ((100 − 94)/2 = 3vw) — so when the
+       card is width-limited the top gap equals each side gap exactly. Vertical
+       centring then keeps top = bottom on a short card. */
+    padding: clamp(16px, 3vw, 40px);
+    background: var(--page-bg);
+}
+
+/* COMPONENT — card frame. INTENTION: the single white card every page sits in.
+   ONE card width for EVERY page; only its height responds to content. Long-form
+   text stays readable because running text carries its own reading band;
+   functional components (tables, widgets) span the card's inner width.
+
+   HEIGHT: A FLOOR *AND* A CEILING. The card is never shorter than --card-min
+   (so a one-line page does not look stubby) and never taller than --card-max
+   (so the page background always frames it — the white edge must never touch the
+   top or bottom of the screen). Between the two it sizes to its content. Past
+   the ceiling the card does NOT grow: the middle region scrolls inside it (see
+   .experimental-content), which is why this element is a flex column.
+
+   dvh with a vh fallback: on mobile `vh` ignores the retracting URL bar, so a
+   88vh card can still overflow the visible area on a phone. Browsers that do not
+   know `dvh` drop the second declaration and keep the first. */
+:root {
+    /* THE FLOOR IS DERIVED FROM THE TASK SCREEN (change_requests item 5,
+       2026-08-11). A card shorter than the game screen makes the frame jump
+       between pages, which is what Julian saw: measured at 1280x720, short
+       pages (lab gate, Prolific ID, game screen) sat at the 75vh floor = 540px
+       while tall pages (consent, quiz, results) sat at the 88vh cap = 634px —
+       a 94px jump every time the participant moved between them.
+       HOW THE NUMBER IS DERIVED, so it stays stable rather than following
+       whatever the placeholder task screen happens to contain today:
+       scripts/tests/render_check.py renders the task pages with the floor DISABLED and
+       records their NATURAL height (geometry.json -> card_min_derivation). For
+       this template that is ~300px at 1280x720 — far BELOW the tall pages — so
+       the binding constraint is "never shorter than the tall pages" and the
+       derived floor rounds up to the ceiling: one constant card height, no
+       jumping. A real study re-derives --card-derived from ITS task screen;
+       the render check FAILS if the task screen ever grows past the floor,
+       which is the signal to re-derive rather than let the jumping return.
+       THE min() IS LOAD-BEARING. A floor expressed in px alone would, on a
+       short window, exceed the ceiling — and CSS lets min-height beat
+       max-height, so the card would grow past 88vh, touch the top and bottom
+       of the screen and start scrolling the page. Taking the min with
+       --card-max means the ceiling always wins on a short window and the card
+       simply sits at the cap with its content region scrolling, which is what
+       short windows already do. */
+    --card-derived: 88vh;
+    --card-max: 88vh;
+    --card-min: min(var(--card-derived), var(--card-max));
+    /* The width a scroll region reserves for its scrollbar on EACH edge
+       (`scrollbar-gutter: stable both-edges`). It must equal the
+       ::-webkit-scrollbar width below; anything that needs to line up with the
+       content INSIDE a scroll region reads it from here. */
+    --scroll-gutter: 10px;
+}
+.screen-card {
+    width: 100%;
+    max-width: min(94vw, 1200px);
+    min-height: var(--card-min);
+    max-height: var(--card-max);
+    margin-inline: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(18px, 3vw, 32px) clamp(18px, 4.5vw, 48px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2.6vw, 26px);
+    /* Flush-left is the default; the narrative family (below) opts into
+       centring, and the card itself is never centre-aligned by default. */
+    text-align: left;
+    /* DO NOT add transform / filter / backdrop-filter / contain to this rule.
+       Any of them makes the card a containing block for position:fixed, which
+       would trap the tab-monitor's full-screen overlay inside the card. */
+}
+@supports (height: 1dvh) {
+    :root { --card-max: 88dvh; }
+}
+
+/* THE SCROLL REGION — ON A WIDE SCREEN. The header strip and the button row are
+   PINNED (they are flex:0 0 auto siblings) and only this middle region scrolls.
+
+   THE INTENTION, STATED HONESTLY (rewritten 2026-08-12, improvement_suggestions
+   item 1). This used to read "so the forward action is always on screen". That
+   is TRUE ON A WIDE SCREEN and is why the pattern exists: a participant on a
+   laptop never has to hunt for Next. IT IS DELIBERATELY NOT TRUE ON A PHONE.
+   Below 520px the card-scroll model is switched off entirely (see the phone
+   breakpoint further down): the card grows, the PAGE scrolls, and Next sits
+   after the content in document order — so on a phone the forward action is
+   reached BY scrolling past the content rather than being pinned beside it.
+
+   Why the difference is on purpose, and not a compromise: at 375x667 the
+   consent page's copy is ~750px in a ~415px region, so no arrangement of a
+   pinned layout puts the consent options above the fold — the one thing this
+   template may not do is trim consent copy. A pinned Next on a screen where the
+   choice is below the cut is the "reach the action before seeing what you are
+   agreeing to" shape, which is worse than scrolling. Phone participants also
+   expect to scroll a page rather than a box inside it. So: pinned action on a
+   wide screen, natural document flow on a narrow one, and the property claimed
+   here holds exactly where it is claimed.
+
+   `min-height: 0` IS LOAD-BEARING. A flex child's default min-height is `auto`,
+   which refuses to shrink below its content — without this line the region
+   silently never scrolls and the card grows past its max-height instead. This is
+   the single most common way this pattern fails; do not remove it.
+
+   `safe center` keeps the short-page vertical centring while guaranteeing that
+   overflowing content is never cut off at the TOP (plain `center` makes the
+   overflow above the box unreachable). Browsers without `safe` keep plain
+   `center`, which is correct for them because they only reach this rule when the
+   content is short enough not to overflow anyway.
+
+   The padding is not decoration: `overflow-y: auto` also clips horizontally, and
+   a :focus-visible ring is 3px + 2px offset. Without room the focus outline on
+   the first/last option card would be sliced off by the scroll edge. */
+.experimental-content {
+    /* NO `width: 100%` HERE, and that is deliberate. As a flex item of the card
+       this region already stretches to the card's content width; adding
+       `width: 100%` FIXES that width, so the negative side margins below could
+       only move the box LEFT instead of widening it symmetrically. Measured
+       with it in place (1280px viewport): the region's box sat 8px left of the
+       card's content box, which pushed the whole centred reading band off the
+       card's centre line — the instructions title read visibly left of centre
+       (band centre 625 against a card centre of 632.5). */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    justify-content: center;
+    justify-content: safe center;
+    padding: 8px;
+    margin: -8px;           /* cancel the focus-ring gutter so nothing shifts */
+    scroll-padding-block: 8px;
+
+    /* SCROLL AFFORDANCE — THREE LAYERS. Measured 2026-08-10: the background
+       gradients alone (layer 2) were far too quiet to read as "there is more
+       below", and a background can only ever paint BEHIND the text, so a
+       partially visible line was still sliced cleanly through the glyphs and
+       read as a rendering bug rather than as something to scroll to.
+
+       1. A STYLED, ALWAYS-VISIBLE SCROLLBAR (below). Overlay scrollbars fade
+          out when idle and say nothing; an explicitly styled one is painted for
+          as long as the region overflows and needs no script. `stable
+          both-edges` reserves the gutter symmetrically, so centred copy stays
+          centred and nothing shifts when a page starts scrolling.
+       2. THESE GRADIENTS — the JS-free fallback. Two pairs: the `local` ones
+          scroll WITH the content in the card colour, the `scroll` ones are
+          fixed shadows at the edges. At the top of the scroll the local
+          gradient covers the top shadow; scroll and it moves away, revealing
+          it. So each shadow shows only while there is more content that way.
+          Explicit rgba(255,255,255,0) rather than `transparent`, which some
+          engines interpolate through black.
+       3. A CONTENT FADE (the .is-scrollable-* rules below), applied as a MASK
+          so it fades the text itself. It is driven by global.js, which knows
+          the scroll position, so the LAST line is never faded — the fade means
+          "there is more", always. */
+    scrollbar-gutter: stable both-edges;
+    /* THE MASKING GRADIENTS MUST BE FULLY OPAQUE FOR AT LEAST THE SHADOW'S
+       HEIGHT (16px). They are 30px tall and solid to 60% of that = 18px, then
+       fade. With the earlier 30% stop they were solid for only 9px, so the
+       lower half of a shadow bled through even on a page with nothing to
+       scroll — a phantom band across a card that fits, which is worse than no
+       affordance at all (measured on the lab gate and the instructions page,
+       2026-08-11).
+       NB 2026-08-11 (2): the `/*` that opens this comment was MISSING, so CSS
+       error recovery swallowed everything from here to the end of the
+       `background` declaration below — layer 2 was silently absent from every
+       page. A comment that does not open is not a comment; it is a deleted
+       rule. */
+    background:
+        linear-gradient(var(--card-bg) 60%, rgba(255, 255, 255, 0)) top / 100% 30px no-repeat local,
+        linear-gradient(rgba(255, 255, 255, 0), var(--card-bg) 40%) bottom / 100% 30px no-repeat local,
+        radial-gradient(farthest-side at 50% 0, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) top / 100% 16px no-repeat scroll,
+        radial-gradient(farthest-side at 50% 100%, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) bottom / 100% 16px no-repeat scroll;
+}
+
+/* Layer 1 — the scrollbar itself. WebKit/Blink ignores scrollbar-width when a
+   ::-webkit-scrollbar rule exists, and painting one explicitly is what stops
+   Chromium using an overlay bar that is invisible in a screenshot (and to a
+   participant who never moves the wheel). */
+/* BOTH scroll regions reserve the gutter symmetrically. The instructions page
+   scrolls its own slide body (.instruction-wrapper), not .experimental-content,
+   and without this it took the scrollbar out of its RIGHT side only — which
+   shifts a centred reading band 5px left of the card's centre line on a phone
+   (measured 2026-08-11). */
+.instruction-wrapper { scrollbar-gutter: stable both-edges; }
+
+.experimental-content::-webkit-scrollbar,
+.instruction-wrapper::-webkit-scrollbar { width: var(--scroll-gutter); }
+.experimental-content::-webkit-scrollbar-track,
+.instruction-wrapper::-webkit-scrollbar-track {
+    background: var(--sunken);
+    border-radius: 999px;
+}
+.experimental-content::-webkit-scrollbar-thumb,
+.instruction-wrapper::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 2px solid var(--card-bg);
+    border-radius: 999px;
+}
+.experimental-content::-webkit-scrollbar-thumb:hover,
+.instruction-wrapper::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
+
+/* Firefox has no ::-webkit-scrollbar and needs the standard properties. They are
+   scoped to it on purpose: Chromium supports BOTH, and when the standard ones
+   are present it IGNORES the ::-webkit-* rules above and paints a thin OVERLAY
+   bar that fades out when idle — measured 2026-08-10 as no visible bar at all,
+   which is the affordance we are trying not to have. */
+@supports not selector(::-webkit-scrollbar) {
+    .experimental-content,
+    .instruction-wrapper {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line-strong) var(--sunken);
+    }
+}
+
+/* Layer 3 — the content fade. A MASK, not a background: only a mask can fade
+   the TEXT, and a half-faded line reads as "continues below" where a
+   hard-cut one reads as broken. The classes come from global.js
+   (`is-scrollable-up` / `is-scrollable-down`); with no JavaScript no class is
+   ever set, no mask is applied, and layers 1-2 carry the affordance alone —
+   the script only ever ADDS to a page that already works. */
+:root { --scroll-fade: 46px; }
+.experimental-content.is-scrollable-down,
+.instruction-wrapper.is-scrollable-down {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+}
+.experimental-content.is-scrollable-up,
+.instruction-wrapper.is-scrollable-up {
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade));
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade));
+}
+.experimental-content.is-scrollable-up.is-scrollable-down,
+.instruction-wrapper.is-scrollable-up.is-scrollable-down {
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade),
+                                        #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000 var(--scroll-fade),
+                                #000 calc(100% - var(--scroll-fade)), rgba(0, 0, 0, 0));
+}
+
+/* Pinned regions: never shrink, never scroll away. EXACTLY THREE — the header
+   strip, the forward action, and the logo footer (see THE LOGO FOOTER RULE
+   below, which is what makes the third one correct rather than the ~90px tax it
+   used to be). */
+.experimental-header,
+.screen-card > .button-row,
+.screen-card > .logo-section {
+    flex: 0 0 auto;
+}
+
+/* =============================================================================
+   THE LOGO FOOTER RULE  (Julian, 2026-08-13, change_requests_round2 item 9)
+   =============================================================================
+   THE RULE, in one sentence: the logo footer sits at the BOTTOM OF THE WHITE
+   CARD, BELOW the divider line that separates it from the content, and it is
+   the SAME on every page that shows it.
+
+   It is A RULE, not a per-page decision, and it is enforced HERE rather than by
+   each template getting its markup right — because a per-page arrangement is
+   exactly the kind of thing a new page copies from whichever page its author
+   happened to open. Two guarantees:
+
+     * `order: 999` puts the strip LAST among the card's flex children whatever
+       order the markup is in, so a template that includes it before the button
+       row still renders it below the button row;
+     * `margin-top: auto` pushes it to the card's bottom edge when the content
+       does not fill the card, so a one-sentence page (the lab gate) reads as
+       copy with the marks along the foot rather than copy and marks clumped
+       together in the middle.
+
+   THE DIVIDER is `border-top` on `.logo-section` itself (see the logos section
+   further down), so it travels with the strip and cannot be forgotten.
+
+   WHAT A TEMPLATE MUST DO: include `_static/global/html/logo_section.html` as a
+   DIRECT CHILD OF `.screen-card`. That is the whole contract, and the include
+   says so at the top of itself.
+
+   HISTORY, because this reverses an earlier decision and the earlier reasoning
+   was sound at the time: the strip used to live inside `.experimental-content`
+   on every page but Results, because as a PINNED sibling it reserved ~90px of
+   every card and pushed the consent options below the fold at 1280x720. What
+   changed is that it is no longer a reserved band ABOVE the fold — it is the
+   last thing on the card, after the action, so a short page gets it for free and
+   a long page pushes it down with everything else. Re-measured at three
+   viewports by scripts/tests/render_check.py. If a future edit makes the strip taller,
+   MEASURE AGAIN: a layout regression here produces no error and no red test.
+
+   THE PRIORITY, and it decides future arguments rather than describing a past
+   one (Julian, 2026-08-13): THE LOGO STRIP IS EXTRA, AND MUST NOT TAKE
+   PRECEDENCE OVER IMPORTANT FEATURES. It is an institutional footer, not
+   something a participant came here to read or act on, so ON A SHORT SCREEN IT
+   GIVES WAY BEFORE PARTICIPANT-FACING CONTENT DOES — see the `max-height: 820px`
+   block further down, which shrinks the marks to the phone size.
+
+   SO WHEN VERTICAL SPACE IS SHORT AGAIN, THIS STRIP IS THE FIRST THING THAT
+   YIELDS: shrink it (or, if it ever comes to it, drop it on that breakpoint)
+   before tightening a control, and never before cutting copy a participant is
+   agreeing to. That ordering is the rule; the pixel counts are just where it
+   landed this time. What must NOT change to buy space is the strip's PLACEMENT —
+   the order, the bottom-edge push and the divider above are what Julian asked
+   for and are not the flexible part. */
+.screen-card > .logo-section {
+    order: 999;
+    margin-top: auto;
+}
+
+.experimental-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* --- reading measure --------------------------------------------------------
+   Running prose (titles + body copy) narrows to the reading measure and centres
+   as a column inside the wider card. Controls, forms, tables and widgets are
+   NOT in these selectors, so they keep the full card (band) width — never
+   clamp a control to the reading measure. */
+.header-title,
+.header-text,
+.section-title,
+.section-header,
+.section-text {
+    width: 100%;
+    max-width: var(--read-measure);
+    margin-inline: auto;
+}
+
+/* COMPONENT — reading band. INTENTION: narrow running text to a centred measure
+   inside the wide card, so lines stay legible while functional components still
+   span the card. This component only sets the measure + centres the block; the
+   opting-in FAMILY chooses the alignment (narrative centres, instructions
+   justify). Apply with class="read-band". */
+.read-band { width: 100%; max-width: var(--read-measure); margin-inline: auto; }
+
+/* SINGLE SOURCE OF TRUTH for the page-title look. INTENTION: the narrative /
+   welcome / consent page title (.header-title) and the instructions section
+   title (.instruction-block > h2) are the SAME visual element, so both draw
+   their type from this ONE rule — edit the title look here and nowhere else.
+   (Both are <h2>, so colour and letter-spacing come from the shared h1,h2,h3
+   rule above; this rule only sets the size/line-height/weight.)
+   ALIGNMENT IS A CONSTANT RULE, NOT A FAMILY CHOICE (change_requests item 8,
+   Julian 2026-08-11): IF A PAGE HAS A TITLE, THE TITLE IS CENTRED — on every
+   page, in every family. It used to be centred by .narrative-card only, so the
+   narrative pages, the instruction step titles and the end-of-experiment
+   heading disagreed with each other for no reason a participant could see.
+   The centring therefore lives HERE, on the component, and the note that used
+   to say the opposite is gone. Body copy alignment is still the family's
+   business (narrative centres, instructions justify, quiz stays left) — this
+   is about the title only. Visible knock-on when this shipped: the Quiz,
+   Results and demographics titles became centred too, which is the rule
+   working. */
+.header-title {
+    margin: 0;
+    font-size: clamp(23px, 2.4vw, 31px);
+    line-height: 1.22;
+    font-weight: 680;
+    text-align: center;
+}
+
+.header-text {
+    margin-block: 0;
+    color: var(--ink-mute);
+    font-size: 0.94em;
+}
+
+.section-header {
+    margin-block: 24px 12px;
+    font-size: clamp(18px, 1.5vw, 21px);
+    color: var(--ink);
+}
+
+.section-title {
+    margin-block: 24px 12px;
+    font-size: clamp(18px, 1.5vw, 21px);
+    font-weight: 650;
+    color: var(--ink);
+}
+
+/* NOT JUSTIFIED. Justification belongs to the instructions family and to the
+   reading band only (`instructions.css` justifies `.instruction-block > p/ul/ol`
+   itself); it was here as a global default, so a one- or two-line sentence on a
+   narrative or task page — the lab gate's single line, the task screen's
+   prompt — came out with stretched word spacing. Narrative pages centre this
+   text (`.narrative-card` below); everything else inherits the card's
+   flush-left. */
+.section-text {
+    margin-block: 0;
+}
+
+/* An "eyebrow": small, quiet, uppercase context line above a title. It lives
+   inside .experimental-header, which spans the card and stays top-LEFT.
+   ALIGNMENT: on a page whose content is held to a reading band, the eyebrow
+   follows that band (see the family rules below) rather than the card's padding
+   edge. Julian, 2026-08-11: with the frame now a constant 1200px the eyebrow sat
+   ~180px away from the copy it introduces and read as stranded in the margin.
+   (NB the reference build leaves it at the card edge — its narrative cards are
+   the same 1200px frame, so this is a deliberate departure, not a port.)
+   On a FULL-WIDTH page — a task screen, a results table — there is no band to
+   follow, so the eyebrow keeps the card edge, which is why this is scoped to
+   the families that have one. */
+.eyebrow {
+    font-size: 0.74em;
+    font-weight: 650;
+    letter-spacing: .085em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+}
+/* Narrative family: the whole HEADER STRIP takes the band, so the eyebrow AND
+   the title sit on the same left edge as the copy below them.
+   Why the strip and not the eyebrow itself: `--read-measure` is `68ch`, and
+   `ch` resolves against the ELEMENT's own font — the eyebrow is 0.74em, so
+   capping it at 68ch gave a band ~360px wide and pushed it further from the
+   copy, not closer (measured 2026-08-11). The strip inherits the card's font,
+   so its 68ch is the same 68ch the body copy uses.
+   The extra `--scroll-gutter` of width and matching padding line the strip up
+   with the CONTENT region, which reserves that gutter for its scrollbar on both
+   edges; without it the strip's band would sit a gutter-width outside the copy's. */
+.narrative-card .experimental-header {
+    width: 100%;
+    max-width: calc(var(--read-measure) + 2 * var(--scroll-gutter));
+    margin-inline: auto;
+    padding-inline: var(--scroll-gutter);
+}
+
+/* COMPONENT — panel. INTENTION: a quiet grey card for secondary information
+   (privacy statements, callouts, reminders), full width of its column by
+   default. */
+.panel {
+    background: var(--sunken);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: clamp(14px, 2.4vw, 20px);
+}
+
+/* COMPONENT — hug panel (variant of .panel). INTENTION: a highlight panel that
+   SHRINKS to fit its content and sits centred, instead of stretching to the band
+   (a full-width grey block looks heavy behind a one-line reminder).
+   `display:table` shrink-wraps the content; `margin-inline:auto` centres it
+   regardless of the parent's text-align. Opt in with class="panel panel--hug". */
+.panel--hug { display: table; max-width: var(--read-measure); margin-inline: auto; }
+
+/* COMPONENT — warning panel (variant of .panel). INTENTION: a panel that says
+   SOMETHING MAY GO WRONG AND YOU MUST ACT, as opposed to the quiet grey .panel,
+   which says "here is some secondary information". The two are different
+   intentions and so are two classes, not one class with a colour override.
+   Opt in with class="panel panel--warning" (composes with panel--hug).
+
+   Its only user today is the non-SEPA bank warning on outro/Results.html —
+   "speak to the experimenter before leaving to ensure payment will be
+   successful" — which shipped in the grey panel and therefore looked like a
+   footnote (Julian, 2026-08-13, change_requests_round2 item 4). It is the last
+   chance to fix a payment that will otherwise fail, and it has to look like it.
+
+   Colour comes from --danger, the same token the error panel and the warning
+   modal use, so a study that retunes the palette retunes this too. The tint is
+   a light wash rather than a solid fill: solid --danger behind body copy fails
+   contrast at this text size, and the panel must stay READABLE, not just
+   alarming. The left bar is what carries the alarm at a glance. */
+.panel--warning {
+    background: #fdeaec;
+    border-color: var(--danger);
+    box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.hint { color: var(--ink-mute); font-size: 0.86em; }
+
+/* COMPONENT — template note. INTENTION: a muted italic aside addressed to the
+   STUDY AUTHOR, not the participant — "this is shipped example content,
+   replace it" (the Stag Hunt instructions use it). Ink from the tokens, never
+   a hardcoded grey, so it follows a palette change like everything else. A
+   real study should end up with no remaining users of this class.
+   Specimen in _static/global/html/template.html. */
+.template-note {
+    font-size: 14px;
+    color: var(--ink-mute);
+    font-style: italic;
+}
+
+/* FAMILY — narrative card. INTENTION: narrative screens (welcome, consent, the
+   agreement and part/block-start screens) CENTRE their script — the page title,
+   the sentences and the panels are centred and held to the reading band — while
+   the header strip stays full-width top-LEFT. Instructions are the JUSTIFIED
+   family; quiz is the LEFT-aligned form family; task/results are unchanged.
+   Opt in with class="screen-card narrative-card". */
+.narrative-card .experimental-content { text-align: center; }
+/* (The title's centring is no longer here: it is the constant rule on
+   .header-title itself — see item 8 above. The eyebrow above it stays left.) */
+.narrative-card .section-text { max-width: var(--read-measure); margin-inline: auto; text-align: center; }
+/* Option groups keep the uniform band width (see the mc-option component) and
+   centre as a block; each option row stays left-aligned inside. */
+.narrative-card .stacked-form { width: 100%; max-width: var(--read-measure); margin-inline: auto; text-align: left; }
+
+/* --- reserved height (no-jump pattern) --------------------------------------
+   For anything that appears or disappears while a page is on screen, reserve
+   its box permanently and toggle .is-visible, so nothing below it shifts when
+   it clears. Hide with `visibility` (space kept), NOT `display`/`hidden` (space
+   collapses). Used live by the instructions Page counter (instructions.js
+   toggles the counter's visibility rather than removing it). */
+.reserve-height { visibility: hidden; }
+.reserve-height.is-visible { visibility: visible; }
+
+/* --- submit veil ------------------------------------------------------------
+   Opaque full-page cover dropped the instant a script auto-fills a form and
+   submits it (e.g. the DEBUG skip-quiz control), so the participant never sees
+   controls being set before navigation completes. Matches the page background
+   so it reads as a plain loading frame.
+   Painted ONLY by global.js's submitFormBehindVeil() — the single shared
+   implementation. Do not hand-roll another overlay in a page script; route the
+   auto-fill through that helper instead. */
+.submit-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--page-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-mute);
+    font-size: .95em;
+}
+
+/* --- buttons ----------------------------------------------------------------
+   The primary forward button is horizontally centred and pushed to the FOOT of
+   the card (margin-top: auto), so the card's default height is filled: content
+   sits up top, the action near the bottom. Scoped to the card's OWN row, so a
+   button-row nested inside a widget keeps its tight rhythm. */
+.button-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+}
+
+.screen-card > .button-row { margin-top: auto; padding-top: 24px; }
+
+.next-button,
+button.next-button,
+input.next-button {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    font-weight: 620;
+    font-size: 1em;
+    line-height: 1;
+    color: #fff;
+    background: var(--accent);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.85em 2em;
+    cursor: pointer;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color .16s ease, transform .12s ease, box-shadow .16s ease;
+    box-shadow: 0 1px 2px rgba(16, 32, 52, .12);
+}
+
+.next-button:hover { background: var(--accent-hover); box-shadow: var(--shadow-lift); }
+.next-button:active { transform: translateY(1px); }
+
+/* Secondary action (e.g. "Back" on the instruction pager). Same geometry as the
+   primary so the pair sits evenly; quieter so the forward action leads. */
+.next-button.ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border-color: var(--line-strong);
+    box-shadow: none;
+}
+.next-button.ghost:hover { background: var(--sunken); color: var(--ink); box-shadow: none; }
+
+.next-button:disabled { opacity: .42; cursor: default; }
+.next-button:disabled:hover { background: var(--accent); box-shadow: none; }
+.next-button.ghost:disabled:hover { background: transparent; }
+
+/* COMPONENT — exit-button. INTENTION: an IRREVERSIBLE way off a page, offered
+   as the quieter of two options. Used by the entry screen-out page's "end the
+   study and go back to Prolific" link, where the action we actually want — go
+   and switch device — has no control at all, and this one closes the door.
+   Same geometry as the shared ghost button so it still reads as a real control.
+
+   NB deliberately NOT .next-button, and NOT .next-button.ghost: global.js's
+   Enter handler clicks the first .next-button on the page, and an irreversible
+   exit must never be one stray keystroke away. Same reasoning as
+   .modal-dismiss-button below. It is an <a href>, so it also has to set the
+   things a link does not inherit from a button (display, text-decoration). */
+.exit-button {
+    display: inline-block;
+    font: inherit;
+    font-weight: 620;
+    font-size: 1em;
+    line-height: 1;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.85em 2em;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.exit-button:hover { background: var(--sunken); color: var(--ink); }
+
+/* --- forms ------------------------------------------------------------------ */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* COMPONENT — stacked form. INTENTION: a column of labels and controls that
+   fills its band, so a group of option cards reads as one block of equal-width
+   rows rather than as ragged tags sized by their own text.
+   `align-items: stretch` (the default, stated explicitly because it is
+   load-bearing) is what makes that true: with `flex-start` every child
+   shrink-wrapped, so on the consent page an option card came out roughly half
+   the width of the privacy panel directly above it. The quiz family already
+   overrode this to stretch (quiz.css), which is why quiz options looked right
+   and consent options did not — one behaviour now, defined here. */
+.stacked-form {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.stacked-form input[type="text"] {
+    width: 100%;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+input[type="text"], input[type="number"], select, textarea {
+    font: inherit;
+    padding: .7em .85em;
+    box-sizing: border-box;
+    color: var(--ink);
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+    outline: none;
+}
+
+/* Validation errors. .otree-form-errors is oTree's own banner — style it too, or
+   an unstyled framework box drops into an otherwise designed page. */
+.errors, .otree-form-errors {
+    color: var(--danger);
+    background: #fdeff1;
+    border: 1px solid #f3c6cd;
+    border-radius: var(--r-md);
+    padding: .8em 1em;
+    margin: 0;
+    font-size: .94em;
+}
+
+/* --- range sliders: touch-sized, one consistent look ------------------------
+   Generous 30px thumb so the control is comfortably draggable with a thumb on a
+   phone. Hand-rolled so it looks the same on every browser. */
+input[type="range"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    margin: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: pan-y;
+}
+input[type="range"]:active { cursor: grabbing; }
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line-strong);
+}
+input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line-strong);
+}
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 30px;
+    height: 30px;
+    margin-top: -12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(16, 32, 52, 0.22);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+input[type="range"]::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(16, 32, 52, 0.22);
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.06); }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
+
+/* --- focus: always visible, never removed (accessibility) ------------------- */
+:focus-visible {
+    outline: 3px solid var(--accent-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* --- ONE focus indicator per option card, and it is the CARD ------------------
+   (improvement_suggestions item 2, Julian 2026-08-12: "drop the INNER one".)
+
+   An option card is one control as far as a participant is concerned, so it
+   gets ONE ring. Two rules used to fire on the same keystroke — the card's
+   `:focus-within` treatment (border + 3px ring, further down this file) and the
+   global `:focus-visible` outline on the radio INSIDE it — which drew a ring
+   inside a ring. The card ring is the more legible of the two, especially at
+   phone size, so the inner outline is suppressed here and the card ring is the
+   single indicator.
+
+   THIS IS A SUPPRESSION WITH A REPLACEMENT, NOT A REMOVAL. Never delete a focus
+   outline without one: the rule immediately below (.mc-option:focus-within) is
+   what a keyboard user actually sees, it is asserted by
+   scripts/tests/render_check.py's focus leg, and if that rule is ever dropped this one
+   must go with it.
+
+   THE BOOTSTRAP RESET STAYS. oTree loads bootstrap5 before this file, and it
+   ships `.form-check-input:focus { outline: 0; box-shadow: 0 0 0 .25rem
+   rgba(13,110,253,.25) }`. The outline part no longer matters (we want none
+   anyway), but the box-shadow does: without the reset a focused radio wears
+   Bootstrap's #0d6efd glow, which is neither of this design's colours and
+   reintroduces the doubled look it was just rid of. The `:checked` inset dot is
+   more specific and is untouched. */
+.form-check-input:focus-visible,
+.mc-option input:focus-visible,
+.form-check input:focus-visible {
+    outline: none;
+}
+/* Scoped to Bootstrap's own class ONLY, deliberately: `.mc-option input:focus`
+   would sit at the same specificity as the `:checked` inset-dot rule below and
+   is one reorder away from erasing the selected dot of a focused option. */
+.form-check-input:focus { box-shadow: none; }
+
+/* Testing-only skip buttons (rendered only when settings.DEBUG). Deliberately
+   muted/dashed so they read as tooling, not part of the experiment UI. */
+.debug-tools {
+    text-align: center;
+}
+
+.skip-button {
+    display: inline-block;
+    border: 1px dashed var(--ink-mute);
+    background: transparent;
+    color: var(--ink-mute);
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.skip-button:hover {
+    color: var(--ink-soft);
+    border-color: var(--ink-soft);
+}
+
+/* --- logos: quiet, at the foot of the card ----------------------------------
+   Sizing lives HERE, not as inline height attributes on the <img> tags in
+   logo_section.html — an inline style beats any stylesheet rule, so a logo sized
+   in the markup cannot be re-tuned from the design system. */
+.logo-section { margin-top: 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+/* WRAPS, and no image may exceed the row. The marks are sized by HEIGHT, so
+   their widths follow their aspect ratios: at 375px the two shipped logos came
+   to 221px + 108px + gap = 347px in a ~333px column, which overflowed the card's
+   scroll region SIDEWAYS and cost ~15px of it to a horizontal scrollbar
+   (measured 2026-08-11). Wrapping stacks them instead; `max-width: 100%` means a
+   single wide mark shrinks rather than overflowing. */
+.logo-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px 26px;
+}
+
+/* COMPONENT — THE LOGO BOX. INTENTION: any institution's mark, of ANY aspect
+   ratio, lands in the SAME bounding box, undistorted and uncropped.
+   ============================================================================
+   THE BUG THIS REPLACES (Julian, 2026-08-15). These marks used to be sized by
+   HEIGHT ALONE (`height: 40px; width: auto`), which is only a box if every
+   study ships the shape we do. Width then follows the aspect ratio, so:
+     * a wide banner renders 276px across and a SQUARE mark 40px across — the
+       same "size" by one measure and wildly different visual weight;
+     * an EXTREME banner overshoots the row, hits `max-width` and is scaled
+       down by WIDTH — so its height silently drops below the 40px everything
+       else is aligned to, and the strip looks broken rather than tidy.
+   We had just made the marks swappable by filename (see logo_section.html);
+   that is half a promise if dropping in a differently-shaped file wrecks the
+   strip.
+
+   THE FIX: constrain BOTH dimensions and let the image choose which one binds.
+   `height/width: auto` plus `max-height`/`max-width` is the only combination
+   that fits a replaced element inside a box while preserving its ratio — the
+   browser scales by whichever limit binds first. `object-fit: contain` cannot
+   fire while both are auto and is here as a GUARD: if a future edit ever sets
+   a fixed width or height, the mark still fits rather than stretching.
+
+   THE BOX IS DERIVED FROM THE SHIPPED MARKS, so adopting it changes nothing
+   about how this study looks (measured 2026-08-15):
+       university_logo.jpg  1360x197 (6.90:1) -> 276.1px wide at 40px high
+       lab_logo.jpg          589x175 (3.37:1) -> 134.6px wide at 40px high
+   280px clears the widest by 4px, so both shipped marks render exactly as
+   before and only foreign shapes are affected. The box keeps ONE ratio (7:1)
+   at every breakpoint, so a mark that fits on a laptop fits on a phone.
+
+   WHAT THE BOX DOES NOT DO, stated so nobody expects it: a square mark still
+   occupies 40x40 inside a 280x40 box. Equalising the visual WEIGHT of a square
+   and a banner would require cropping or distorting one of them, which is
+   exactly what `contain` exists to prevent. What is guaranteed is that every
+   mark FITS, keeps its shape, and never exceeds the 40px height the row aligns
+   on.
+
+   `min(..., 100%)` KEEPS THE ORIGINAL OVERFLOW GUARD. The 100% term is not
+   redundant with the box: on a column narrower than the box (a 320px phone), it
+   is what stops a mark widening the card. Removing it re-opens the measured
+   2026-08-11 sideways-overflow bug described above the row. */
+:root {
+    --logo-box-h: 40px;
+    --logo-box-w: 280px;          /* 7:1 — see THE BOX IS DERIVED, above */
+    --welcome-logo-box-h: 44px;
+    --welcome-logo-box-w: 308px;  /* the same 7:1 box at the header's height */
+}
+.logo-row img {
+    height: auto;
+    width: auto;
+    max-height: var(--logo-box-h);
+    max-width: min(var(--logo-box-w), 100%);
+    object-fit: contain;
+    opacity: .62;
+}
+
+/* The welcome header's inline lab mark (lab gate page). The mark itself is
+   institution-neutral by filename and alt text — see logo_section.html.
+   IT WRAPS, for the same reason the footer row does: the title and the mark sit
+   on one flex line, and a foreign banner mark at the box's full width would
+   otherwise push the row sideways out of the card on a phone. Wrapping drops
+   the mark under the title instead. Shipped marks never reach that point (the
+   pair measures ~275px in a ~333px column at 375px), so nothing moves today. */
+.welcome-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.welcome-header-row img {
+    height: auto;
+    width: auto;
+    max-height: var(--welcome-logo-box-h);
+    max-width: min(var(--welcome-logo-box-w), 100%);
+    object-fit: contain;
+}
+/* The title INSIDE this row sizes to its words. It is an .header-title, which
+   carries `width: 100%; max-width: var(--read-measure); margin-inline: auto` so
+   that a page title holds the reading band — correct for a title that owns its
+   line, wrong for one paired with a logo: it claimed the whole measure and shoved
+   the mark to the far edge of the card, so "Welcome to" and the lab mark read
+   as two unrelated things. */
+.welcome-header-row .header-title { width: auto; max-width: none; margin-inline: 0; }
+
+/* --- responsive: phone breakpoint -------------------------------------------
+   A PHONE SCROLLS THE PAGE, NOT A BOX INSIDE THE CARD (improvement_suggestions
+   item 1, Julian 2026-08-12). Below 520px the card-scroll model is switched off
+   completely: the card's height cap comes off, both scroll regions go back to
+   normal flow, and the browser's own scrollbar takes over. The consequences are
+   the point, not side effects:
+
+     * NEXT COMES AFTER THE CONTENT, in document order and on screen, so it
+       cannot be reached without passing the options above it. On the consent
+       page at 375x667 the choice was 125px below the fold of a pinned layout,
+       which is the one shape this page must not have.
+     * The page scrolls the way a phone user expects, with the system scrollbar
+       and momentum, instead of a nested region with its own bar.
+     * The scroll AFFORDANCES (fade, edge shadow, pulsing V) all disappear here
+       by construction: they are bound to a region that overflows, and nothing
+       overflows any more. That is correct — they exist to say "this box has
+       more inside it", and on a phone there is no box, just a page.
+
+   THE GUTTER COUPLING, easy to miss: `scrollbar-gutter: stable both-edges` only
+   reserves space on a SCROLL CONTAINER, so turning overflow off also removes
+   the gutters the header strips were offset by. The eyebrow rules for the
+   narrative and instructions families subtract those same gutters, so both must
+   be zeroed here or the eyebrow ends up one or two gutters right of the copy it
+   introduces (measured by the eyebrow leg in scripts/tests/render_check.py, which is
+   what catches it).
+
+   The card KEEPS its min-height, so a one-line page still fills the screen
+   rather than collapsing to a stub. */
+@media (max-width: 520px) {
+    .button-row { justify-content: stretch; }
+    .button-row .next-button { flex: 1; text-align: center; }
+    /* THE BOX SHRINKS AS A BOX, keeping its 7:1 ratio (32px x 224px), so a
+       mark that fits on a laptop fits here too. Retuning the token rather
+       than the img rule keeps ONE definition of the box — see THE LOGO BOX.
+       224px is what the widest shipped mark needs at 32px (220.9px). */
+    :root { --logo-box-h: 32px; --logo-box-w: 224px; }
+    .logo-row { gap: 18px; }
+
+    .screen-card { max-height: none; }
+    /* A card that now EXCEEDS the viewport must not be centred by the old
+       rule: `align-items: center` on an overflowing flex item pushes its top
+       above the container's start edge, where it cannot be scrolled back to.
+       `safe center` centres a card that fits and falls back to start-aligning
+       one that does not; browsers without `safe` keep the flex-start line
+       above it, which is the correct behaviour for them for the same reason. */
+    .experimental-screen {
+        align-items: flex-start;
+        align-items: safe center;
+    }
+    .experimental-content {
+        overflow: visible;
+        /* the padding/negative-margin pair existed to stop `overflow-y: auto`
+           clipping a focus ring; with nothing clipping, it only adds width. */
+        padding: 0;
+        margin: 0;
+    }
+    /* No scroll container, no reserved gutter — so the header strip must not
+       offset itself by one any more (see THE GUTTER COUPLING above).
+       The INSTRUCTIONS page's twin of this pair lives in instructions.css, and
+       has to: that file loads after this one, so its `.instruction-wrapper`
+       overflow rule would otherwise win over anything written here (a media
+       query adds no specificity — only order decides). */
+    .narrative-card .experimental-header {
+        max-width: 100%;
+        padding-inline: 0;
+    }
+}
+
+/* --- SHORT VIEWPORTS: tighten the rhythm, not the content -------------------
+   Every value in the card's vertical rhythm is driven by vw (3vw padding, 2.6vw
+   gaps), so a WIDE BUT SHORT screen — a 1280x720 laptop, the single most common
+   participant display — gets a desktop's generous spacing inside a card that is
+   only 634px tall. Measured 2026-08-10: on that screen the consent options sat
+   entirely below the fold, so a participant could reach Next without ever seeing
+   the choice they were consenting to.
+
+   This block buys back ~60px of visible content on a 720px-tall screen by
+   tightening spacing ONLY — no font size, no copy, no component changes, so
+   nothing about how the page reads changes. Keyed on height, so a tall desktop
+   is untouched. */
+@media (max-height: 820px) {
+    .screen-card {
+        padding: 18px clamp(18px, 4.5vw, 48px);
+        gap: 16px;
+    }
+    .screen-card > .button-row { padding-top: 14px; }
+    .experimental-header { gap: 8px; }
+    .experimental-content { gap: 12px; }
+    .panel { padding: 14px 16px; }
+    .logo-section { margin-top: 0; padding-top: 8px; }
+
+    /* THE CONSENT CHOICE MUST CLEAR THE FOLD WHOLE — BOTH OPTIONS, NOT ONE.
+       (Julian, 2026-08-13.) Measured at 1280x720 before this block: the DECLINE
+       option ran 484..550 while the scroll region ended at 514, so exactly half
+       of it (30px of 66px) was visible and a participant saw a full "I consent"
+       card above a sliced one. The fold falling BETWEEN two options is worse
+       than it falling below both: it reads as a complete list.
+
+       WHY IT REGRESSED, and why the fix is here rather than there: THE LOGO
+       FOOTER RULE (above) pins the strip as a card-level band, which is what
+       Julian asked for and is not in question — this block pays for it out of
+       SPACING instead, the same trade base.css already makes for the card and
+       results.css makes for the payment summary. Nothing about the copy, the
+       font sizes or the components changes.
+
+       THE SELECTOR IS EVERY `.stacked-form` OPTION ROW, AND THAT IS THE RULE,
+       NOT A LEAK (Julian, 2026-08-14): on a short viewport, option rows
+       tighten to this rhythm on EVERY page that stacks them — consent, the
+       quiz, demographics, and whatever a study adds. One component, one rule,
+       everywhere: a component that tightens on short viewports on one page
+       but not another is exactly the mixing-and-matching THE LOGO FOOTER RULE
+       exists to prevent, wearing a different class.
+
+       AN EARLIER SCOPING INTENT WAS ABANDONED HERE, ON PURPOSE — recorded so
+       it cannot read as an oversight. When this block landed (2026-08-13) its
+       comment claimed it was "the consent group only", on the reasoning that
+       one page's shortfall must not silently retune every choice in the
+       study — but the quiz and demographics stack their options in
+       `.stacked-form` directly (no "different wrapper" ever existed), so the
+       rule reached them from day one. The discrepancy surfaced through a
+       geometry-baseline diff, not by design; measured and screenshotted on
+       both pages, the shared rhythm was judged neutral-to-better (rows stay
+       over the 44px touch floor that `min-height` guarantees, nothing
+       cramped, more content above the fold), and Julian RATIFIED the shipped
+       behaviour rather than restoring the scope. See the 2026-08-14 entry in
+       DECISIONS.md. Do not re-scope this to one page without a new decision.
+
+       THE TOUCH TARGET SURVIVES, which is the constraint that decides how far
+       this can go: .85em -> .5em block padding leaves each row 52px tall,
+       comfortably over the 44px Apple/WCAG minimum that `min-height` guarantees
+       anyway.
+
+       WHAT IS LEFT, MEASURED (2026-08-13) — because the next person to trip
+       this will be adding a sentence to the consent copy, not reading CSS:
+
+         headroom below the last option today ............  7px @ 1280x720
+                                                          182px @ 1512x1200
+                                                          111px @ 375x667
+         option rows to the 44px touch floor ............. +16px  (the floor;
+                                                    below it min-height wins and
+                                                    further padding buys nothing)
+         logo marks 32px -> 24px ......................... +8px
+         panel padding 14px -> 10px ...................... +8px
+         ------------------------------------------------------------------
+         realistically available in total ................ ~32px
+         cost of ONE more line of consent copy ........... ~31px
+
+       SO THE FOLD ABSORBS ABOUT ONE EXTRA LINE, and then it is out. Two things
+       follow. Do NOT set the inter-option gap to 0 to find another 6px: the two
+       options would touch and read as one block, which is the last thing a
+       consent choice may do. And when the budget runs out, STOP TIGHTENING —
+       shorten the copy, or accept that the card scrolls. The scroll affordance
+       is real and is asserted (conditionally, both ways, in
+       scripts/tests/render_check.py), and the guarantee that actually stops somebody
+       consenting blind is elsewhere: the radio ships un-pre-checked and an
+       untouched submit is REJECTED. The fold is a courtesy, not the control. */
+    .stacked-form .mc-option,
+    .stacked-form .form-check { padding-block: .5em; }
+    .stacked-form .mc-option + .mc-option,
+    .stacked-form .form-check + .form-check { margin-top: 6px; }
+    /* AND THE STRIP YIELDS — both levers, deliberately, not whichever one
+       reached the number first (Julian, 2026-08-13). It gets the phone
+       breakpoint's smaller marks for the same reason it gets them on a narrow
+       screen, and the reason is a PRIORITY, not a pixel count: the logo strip is
+       EXTRA and must not take precedence over important features, so on a short
+       screen it gives way before participant-facing content does. The full
+       statement is at THE LOGO FOOTER RULE above; if vertical space is ever
+       short again, this strip is the first thing that should shrink. The RULE
+       itself (placement, order, divider) is untouched — only the mark height. */
+    /* THE BOX SHRINKS AS A BOX, keeping its 7:1 ratio (32px x 224px), so a
+       mark that fits on a laptop fits here too. Retuning the token rather
+       than the img rule keeps ONE definition of the box — see THE LOGO BOX.
+       224px is what the widest shipped mark needs at 32px (220.9px). */
+    :root { --logo-box-h: 32px; --logo-box-w: 224px; }
+}
+
+/* --- respect reduced-motion preference -------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
+
+/* ============================================================================
+   DESIGN SYSTEM — shared components
+   ----------------------------------------------------------------------------
+   CASCADE PRINCIPLE: the rules that make screens consistent live HERE, centrally.
+   A page may override them, but only as a deliberate rule in that page's own CSS
+   carrying an "EXCEPTION:" comment that says why (e.g. an EXCEPTION comment on the
+   task screen that lifts the chart cap), never by quietly duplicating a value. If
+   you find yourself copying a rule, move it here instead. Read this file
+   top-to-bottom before adding a page override.
+   ============================================================================ */
+
+/* --- three-section card anatomy ---------------------------------------------
+   Every screen card is one of three stacked regions, in this order:
+     .experimental-header  — title + intro line (top)
+     .experimental-content — the substance, vertically centred, grows to fill
+     .button-row           — the single forward action, centred at the FOOT
+   These already exist above; the aliases below let a card name its regions
+   explicitly when the semantic classes don't fit. Same flex behaviour. */
+.card-top    { display: flex; flex-direction: column; gap: 12px; }
+.card-body   { flex: 1 1 auto; display: flex; flex-direction: column;
+               gap: 16px; justify-content: center; }
+.card-foot   { margin-top: auto; padding-top: 24px; }
+
+/* --- mc-option: the shared multiple-choice option card ----------------------
+   ONE component for every single-choice answer in the study — the comprehension
+   quiz answers AND the welcome-page consent options both render as these, so
+   they look and behave identically. A full-width selectable card wrapping one
+   radio/checkbox.
+
+   NAMING. `.mc-option` is the canonical class; use it in any hand-authored
+   choice markup. oTree's formfield helper emits Bootstrap `.form-check` markup
+   that we CANNOT add a class to, so `.form-check` is aliased to the same rules
+   here — treat the two as the same component. Without this alias every
+   oTree-rendered radio in the study (consent, quiz, agreement) falls back to a
+   bare unstyled Bootstrap control.
+
+   GAP. Options in a group are separated by --mc-gap via an adjacent-sibling
+   margin, so adjacent cards never touch WHATEVER container oTree wraps them in.
+   Reuse this component for future MC questions and the gap comes for free.
+
+   Markup (hand-authored):
+     <div class="mc-options">
+       <label class="mc-option">
+         <input type="radio" name="q1" value="a">
+         <span class="mc-option-body">Option A text</span>
+       </label>
+     </div>
+   Markup (oTree): {{ formfield 'field' }} with widget=widgets.RadioSelect —
+   nothing to do, the alias picks it up. */
+.mc-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mc-gap);
+    width: 100%;
+    max-width: 560px;   /* a control band, NOT the reading measure */
+    margin-inline: auto;
+}
+
+.mc-option, .form-check {
+    display: flex;
+    align-items: center;
+    gap: .7em;
+    margin: 0;
+    /* symmetric internal padding: top/bottom equal to the sides */
+    padding: .85em;
+    /* comfortable touch target: guarantee >=44px tall even at small font scales
+       (Apple/WCAG minimum). Content stays vertically centred via align-items. */
+    min-height: 44px;
+    /* positioning context for the label hit-area overlay (see below) */
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: border-color .14s ease, background-color .14s ease, box-shadow .14s ease;
+}
+/* separate stacked options in the same group (works in any oTree wrapper) */
+.mc-option + .mc-option, .form-check + .form-check { margin-top: var(--mc-gap); }
+
+.mc-option:hover, .form-check:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Selected state (no JS). */
+.mc-option--selected,
+.mc-option:has(input:checked),
+.form-check:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Hand-rolled radio/checkbox, so the control looks the same on every browser. */
+.mc-option input[type="radio"],
+.mc-option input[type="checkbox"],
+.form-check input[type="radio"],
+.form-check input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 auto;
+    width: 1.15em;
+    height: 1.15em;
+    margin: 0;
+    border: 2px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: border-color .14s ease, box-shadow .14s ease;
+}
+.mc-option input[type="checkbox"], .form-check input[type="checkbox"] { border-radius: 5px; }
+.mc-option input:checked, .form-check input:checked {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 4px var(--accent);
+}
+
+.mc-option label, .mc-option .form-check-label, .mc-option-body,
+.form-check label, .form-check .form-check-label {
+    margin: 0;
+    cursor: pointer;
+    flex: 1;
+    color: var(--ink);
+}
+
+/* FULL-CARD HIT AREA. INTENTION: oTree emits each option as a .form-check DIV
+   holding an <input> and a bound <label>, and we style that DIV as a padded,
+   pointer-cursor card — so it LOOKS entirely clickable, but only the input and
+   the label element actually toggle the choice; the padding and card edges are
+   dead space. On touch that reads as lag (the first tap misses). We cannot add
+   JS or change the emitted markup, so the BOUND LABEL grows a transparent
+   pseudo-element covering the whole card (inset:0): a tap ANYWHERE on the card —
+   padding, far edge, corner — now lands on the label and selects the option.
+   The overlay MUST sit on the label, not on the card: a ::after on the card
+   itself intercepts the click instead of forwarding it. The input is lifted
+   above the overlay so the radio dot stays directly clickable and keyboard
+   tab/space are unaffected. */
+.mc-option label::after,
+.mc-option .form-check-label::after,
+.mc-option .mc-option-body::after,
+.form-check label::after,
+.form-check .form-check-label::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+}
+.mc-option input, .form-check input { position: relative; z-index: 1; }
+
+/* Keyboard focus: a visible ring on the whole card when the control is focused,
+   so tab focus is obvious. Sits after :has(input:checked) so a focused option
+   reads clearly. */
+.mc-option:focus-within, .form-check:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* --- mc-scale: the horizontal variant --------------------------------------
+   ESCAPE HATCH for a many-point rating scale (a 0–10 Likert / Dohmen risk item).
+   Because .form-check above is a full-width card, an 11-point
+   RadioSelectHorizontal would otherwise render as ELEVEN stacked giant cards.
+   Wrap such a field in .mc-scale and the options become compact side-by-side
+   cells instead. oTree emits .form-check.form-check-inline for horizontal
+   widgets, so both selectors are covered.
+
+   Markup:
+     <div class="mc-scale">{{ formfield 'risk_item' }}</div> */
+.mc-scale .controls,
+.mc-scale > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+}
+.mc-scale .form-check,
+.mc-scale .form-check-inline {
+    flex: 1 1 auto;
+    min-width: 2.6em;
+    flex-direction: column;
+    align-items: center;
+    gap: .35em;
+    padding: .5em .35em;
+    min-height: 0;
+    text-align: center;
+}
+/* the stacked-card gap rule above must not apply to a horizontal row */
+.mc-scale .form-check + .form-check { margin-top: 0; }
+.mc-scale .form-check label,
+.mc-scale .form-check .form-check-label { flex: 0 0 auto; text-align: center; }
+
+/* --- anchored popover -------------------------------------------------------
+   A small help panel anchored to a trigger (e.g. a "?"), shown on hover/focus.
+   CSS-only; the panel is positioned relative to .popover-anchor and reserves no
+   layout space (absolute), so it never shifts the page.
+
+   Markup:
+     <span class="popover-anchor" tabindex="0">?
+       <span class="popover-panel" role="tooltip">Explanatory text…</span>
+     </span>
+*/
+.popover-anchor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    color: var(--color-primary);
+    font-size: 0.8em;
+    cursor: help;
+    user-select: none;
+}
+.popover-panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 280px;
+    padding: 10px 12px;
+    background: var(--color-heading);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;             /* reserve nothing; no page shift */
+    transition: opacity 0.12s ease;
+    z-index: 50;
+}
+.popover-panel::after {            /* little arrow */
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--color-heading);
+}
+.popover-anchor:hover .popover-panel,
+.popover-anchor:focus .popover-panel,
+.popover-anchor:focus-within .popover-panel {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- COMPONENT: the scroll cue, a wide low pulsing V --------------------------
+   THE FOURTH LAYER of the scroll affordance (change_requests item 4, Julian
+   2026-08-11), and it JOINS the other three rather than replacing any of them:
+   the styled scrollbar, the CSS-only edge shadow and the content fade all stay.
+   Julian's rule: anything that makes it obvious there is more text below is
+   worth having.
+
+   DRAWN, NOT TYPED. Two rounded bars, one per arm — no glyph, so it cannot come
+   out as a tofu box in a font that lacks a chevron (that is what happened to the
+   results page's ▸). Bars rather than the usual rotated-square-with-two-borders
+   trick because that trick CANNOT make this shape: flattening a rotated square
+   enough to be wide and low also squashes its borders, and the V comes out as a
+   hairline (measured 2026-08-11 — Julian's "too small and too thin"). Two
+   explicit bars keep a constant 4px stroke at any width and any shallowness.
+   Geometry: 96px wide, 16px tall — wide and low, as asked.
+
+   WHERE IT IS DRAWN, and why NOT inside the scroll region: the region carries
+   the content fade as a CSS MASK, and a mask fades EVERYTHING the element
+   paints, so a cue drawn there would be faded away exactly where it is needed.
+   It is therefore drawn on the element that FOLLOWS the scroller.
+
+   IT MUST NEVER LAND ON A LINE OF TEXT (fixed 2026-08-11 after Julian saw it
+   painted across the results page's "Total €79.50" row, which reads as a
+   rendering fault, not as a cue). Its own strip is the ALWAYS-EMPTY band around
+   the top edge of that following element: the card's flex gap above the edge
+   (>=16px) and the row's own padding-top below it (>=14px on the shortest
+   viewport; .instruction-controls carries a matching padding-top for the same
+   reason). `bottom: 100%` + `translateY(50%)` centres each bar's box exactly on
+   that edge, so the V spans edge-8px .. edge+8px and both halves are in
+   reserved whitespace. It is measured off the rendered pixels in
+   scripts/tests/render_check.py: with the cue suppressed, its band must be blank card.
+
+   NO CUE ON A CARD WITH NO BUTTON ROW (the lab results page). The only band
+   available there is the logo strip's top rule, and a V drawn across a
+   horizontal rule looks like the very glitch this rule exists to avoid; those
+   pages keep the other three layers.
+
+   It is bound to the .is-scrollable-down class global.js already maintains, so
+   it appears only while there is more below and disappears at the end of the
+   scroll. No JavaScript of its own; with scripts blocked no class is ever set
+   and the other three layers carry the affordance alone. The pulse sits under
+   the file's global prefers-reduced-motion rule, which kills every animation. */
+.experimental-content.is-scrollable-down ~ .button-row,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls {
+    position: relative;
+}
+
+.experimental-content.is-scrollable-down ~ .button-row::before,
+.experimental-content.is-scrollable-down ~ .button-row::after,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::before,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 51px;                 /* arm length: hypotenuse of 48 x 16 */
+    height: 4px;                 /* constant stroke, whatever the shape */
+    border-radius: 999px;
+    background: var(--ink-mute);
+    pointer-events: none;        /* never intercept a click meant for a button */
+    animation: scroll-cue-pulse 2.6s ease-in-out infinite;
+}
+
+/* left arm: down-right; right arm: down-left. They meet on the centre line,
+   8px below the edge, with their outer ends 8px above it. */
+.experimental-content.is-scrollable-down ~ .button-row::before,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::before {
+    margin-left: -50px;
+    transform: translateY(50%) rotate(18.4deg);
+}
+
+.experimental-content.is-scrollable-down ~ .button-row::after,
+.instruction-wrapper.is-scrollable-down ~ .instruction-controls::after {
+    margin-left: -1px;
+    transform: translateY(50%) rotate(-18.4deg);
+}
+
+@keyframes scroll-cue-pulse {
+    0%, 100% { opacity: .30; }
+    50%      { opacity: .95; }
+}
+
+/* --- COMPONENT: round-of-total progress strip --------------------------------
+   The task screens' one progress indicator (change_requests item 7): a text
+   line above a slim bar, both fed by the SAME server-side numbers
+   (main.progress_vars), so they cannot disagree. Ported from the reference
+   build's task screen and simplified to "Round X of Y" — this template has no
+   blocks/parts. Lives here, not in a page stylesheet, because any page that
+   needs to say where the participant is should use this one component. */
+.progress-strip { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.progress-count {
+    font-size: clamp(17px, 1.5vw, 20px);
+    font-weight: 650;
+    color: var(--ink);
+    letter-spacing: -.01em;
+}
+
+.progress-track {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: width .3s ease;
+}
+
+/* --- COMPONENT: warning modal ------------------------------------------------
+   ALL WARNINGS ARE CENTRED, SCREEN-DIMMING MODALS (change_requests item 9,
+   Julian 2026-08-11) — never a banner that pushes the page down under the
+   participant. These rules used to live in quiz.css and serve the lab's
+   quiz-failure dialogs only; they are the shared component now, and
+   global.js's warning-modal helper builds oTree's validation errors into
+   exactly this chrome on every page. An overlay, so revealing it moves nothing
+   underneath (the stability rule).
+
+   DELIBERATELY NOT SHARED: the tab monitor's full-screen red overlay
+   (tabmonitor.css). That is an ENFORCEMENT warning covering the whole viewport
+   on purpose, not a validation message, and Julian confirmed it stays as it is.
+
+   [hidden] must win over the flex display. */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(16, 32, 52, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.modal-backdrop[hidden] { display: none; }
+
+.modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lift);
+    max-width: 34rem;
+    width: 100%;
+    padding: 28px 32px;
+    text-align: center;
+}
+
+.modal-title {
+    color: var(--ink);
+    margin: 0 0 12px;
+    font-size: 1.15em;
+    font-weight: 680;
+}
+
+/* A validation failure is the one modal that reads as an error, so its title
+   takes the danger ink (the reference build does the same). */
+.modal-card--warning .modal-title { color: var(--danger); }
+
+.modal-text {
+    margin: 0 0 20px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Secondary (dismiss) action: quieter than the primary, but clearly a real
+   control — not the dashed debug styling. Matches the shared .ghost button so
+   the modal's two actions read as one pair.
+   NB: deliberately NOT .next-button — global.js's Enter handler targets the
+   first .next-button, and dismissing must never steal Enter from a page's own
+   submit while the modal is closed. */
+.modal-dismiss-button {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    font: inherit;
+    font-weight: 620;
+    line-height: 1;
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 0.85em 2em;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.modal-dismiss-button:hover {
+    background: var(--sunken);
+    border-color: var(--line-strong);
+    color: var(--ink);
+}
+
+/* The warning modal's single OK: it looks primary, but it is NOT .next-button —
+   see the note above. While the modal is open global.js disables the page's own
+   submits, so Enter reaches the modal's own handler and dismisses it. */
+.modal-ok-button {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    font: inherit;
+    font-weight: 620;
+    line-height: 1;
+    color: #fff;
+    background: var(--accent);
+    border: 1px solid transparent;
+    padding: 0.85em 2em;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(16, 32, 52, .12);
+    transition: background-color .16s ease;
+}
+
+.modal-ok-button:hover { background: var(--accent-hover); }
+
+/* (The old rule that lived here — "a logo strip that is a direct child of the
+   card, the results page only" — is gone: being a direct child of the card is
+   now THE arrangement on every page, not the results page's exception. See THE
+   LOGO FOOTER RULE near the top of this file, which carries the flex, the
+   order and the bottom-edge push in one place.) */
+
+/* Pilot feedback textarea: a control, so it keeps the full card width (never
+   clamped to the reading measure). */
+.feedback-textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--color-text);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+
+/* === instructions.css === */
+/* Instruction pager. Class names are load-bearing: _static/global/js/instructions.js
+   pages through .instruction-block and writes #instruction-counter. */
+
+/* FAMILY — instructions (JUSTIFIED reading band). INTENTION: the ONLY justified
+   text family. The instruction column is a comfortable centred content band —
+   wide enough for worked-example tables and figures to breathe — inside which the
+   RUNNING TEXT (heading, paragraphs, lists, callout) narrows further to the
+   shared reading measure (--read-measure, base.css) and is JUSTIFIED, so step
+   title and body copy share one centred column. CENTERING CAVEAT: only running
+   text narrows — the payoff-matrix table, any figures and the Back/Next pager
+   keep their full (band) width. Only this page uses .instructions. */
+/* THE BAND IS ON THE TEXT, NOT ON THE SCROLLER (change_requests item 6, Julian
+   2026-08-11). This column used to carry `max-width: 720px; margin-inline:
+   auto`, which made the SCROLLING ELEMENT 720px wide inside a 1200px card — so
+   the wheel did nothing over the ~230px of card on either side of the reading
+   band, which is exactly the catchment complaint. The cap moved down onto
+   .instruction-block (the text), where a reading measure belongs; this column
+   and .instruction-wrapper inside it now span the full card, so the scroll
+   gesture is caught anywhere over the card and the native scrollbar sits at the
+   card's right edge (accepted, Julian). The band width itself is unchanged. */
+.instructions {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2.6vw, 24px);
+    width: 100%;
+}
+
+/* THE BAND IS THE READING MEASURE. ONE definition, on the card, for every
+   consumer on this page (Julian, 2026-08-13, round-2 item 16).
+   =============================================================================
+   It used to be a flat `720px`, which made this page carry TWO widths for one
+   concept: the band (720px, on `.instruction-block`) and the reading measure
+   (`--read-measure`, `68ch`, on each running-text element inside it). The text
+   was therefore capped TWICE and landed on whichever bound — 720px in practice
+   — while anything given only the band, such as the Back/Next pager, landed on
+   720px, and anything given only the measure landed on ~726px. That is the
+   one-concept-two-implementations pattern in CLAUDE.md, and it is what made the
+   pager alignment fiddly: matching the second constraint to the first meant
+   copying a number, and `68ch` resolves against each element's OWN font, so the
+   copy was wrong by 3px per side and no stylesheet reading would show it.
+
+   MEASURED BEFORE COLLAPSING THEM (headless Chromium, 2026-08-13):
+     `.instructions`          1082px @1280 and @1512, 743px @900, 305px @375
+                              — i.e. the full card content width, NOT the band
+     the reading measure      726.119px for the instruction text (68ch @19px)
+     the band                 720px, and it is what actually bound the text
+   So adopting the measure changes line length by **+6.1px, about +0.85%** —
+   roughly half a character. Small enough to take, which is the route chosen.
+
+   THREE CONSUMERS NOW SHARE THIS ONE VALUE and cannot drift: the slide text and
+   the pager (the single rule below), and the header strip, whose max-width is
+   `band + 4 gutters` so the EYEBROW lands exactly on the slide text's edge.
+   Changing the type scale moves all three together. Both alignments are pinned
+   by measured render checks (the eyebrow leg and leg W), so a future change
+   that breaks either fails there rather than drifting quietly. */
+.screen-card:has(.instructions) { --instructions-band: var(--read-measure); }
+/* The header strip takes the same band as the slide body, so the eyebrow lines
+   up with the text it introduces.
+   RE-DERIVED 2026-08-11 for the full-width scroller (item 6). The text band is
+   now centred inside a wrapper that spans the whole card, with TWO nested
+   scroll gutters between the card's padding edge and the wrapper's content box
+   (.experimental-content reserves one on each side, .instruction-wrapper
+   another). So:
+     * padding-inline = 2 gutters — the distance from the strip's own box edge
+       to the copy when the strip is as wide as the card (phones);
+     * max-width = band + 4 gutters — the band plus BOTH gutters on BOTH sides,
+       so on a wide screen the centred strip's padded edge lands exactly on the
+       centred band's edge.
+   The two regimes cross over at the same width (card inner = band + 4 gutters),
+   which is why one pair of values holds at every viewport. Measured by
+   scripts/tests/render_check.py's eyebrow check, which fails loudly at >2px. */
+.screen-card:has(.instructions) .experimental-header {
+    width: 100%;
+    max-width: calc(var(--instructions-band, 720px) + 4 * var(--scroll-gutter));
+    margin-inline: auto;
+    padding-inline: calc(2 * var(--scroll-gutter));
+}
+
+/* --- scroll chain EXCEPTION (instructions page only) -------------------------
+   base.css makes .experimental-content the scroll region and pins the card's
+   .button-row. The instructions page has no .button-row: its Back/Next pager
+   (.instruction-controls) lives INSIDE the content, so under the shared rule it
+   would scroll away with a long slide.
+
+   Fix: pass the available height down the chain so the SLIDE BODY becomes the
+   scroller and the pager stays pinned beneath it. Every link needs
+   `min-height: 0`, because a flex child defaults to min-height:auto and refuses
+   to shrink below its content; miss one link and the page silently stops
+   scrolling and overflows instead.
+
+   THE CHAIN IS ONLY TWO LINKS, and that is not an oversight. The DOM is
+       .experimental-content > .instructions > .instruction-wrapper
+   with no form element in between: oTree wraps the whole PAGE in
+   <form class="otree-form">, and instructing.html deliberately writes no form
+   of its own. (A nested <form method="post"> start tag used to sit there — the
+   HTML5 parsing spec DROPS it, so it never reached the DOM; it was removed
+   2026-08-13 so the markup matches this chain.) If an element is ever
+   introduced between these links, it needs `min-height: 0` adding here. */
+.instructions { flex: 1 1 auto; min-height: 0; }
+
+.instruction-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    /* MUST stay 0 — see the scroll-chain note above. NOTE there is deliberately
+       NO min-height floor here any more. The old floor (and the matching inline
+       min-height that instructions.js used to set from each slide's scrollHeight)
+       existed to stop the controls jumping between slides of different lengths.
+       The flex fill now does that job perfectly: the wrapper always expands to
+       all remaining space, so the pager sits at a constant position whatever the
+       slide contains. Re-introducing a floor here would stop the wrapper
+       shrinking and silently break scrolling on short viewports. */
+    min-height: 0;
+    overflow-y: auto;
+    /* room so a :focus-visible ring inside a slide is not sliced by the
+       scroll edge (overflow-y:auto clips horizontally too). The negative margin
+       cancels it again — which only works while this element has NO explicit
+       `width`: with `width: 100%` the box cannot widen, so the negative left
+       margin just shifts the whole slide 6px off the card's centre line (the
+       same defect measured on .experimental-content, base.css). */
+    padding: 6px;
+    margin: -6px;
+}
+
+/* THE INSTRUCTIONS COLUMN — where this page's text column begins and ends,
+   defined ONCE and shared by everything that must line up with it.
+   =============================================================================
+   `.instruction-block` is the slide's box; `.instruction-controls` is the
+   Back/counter/Next pager beneath it. THEY ARE IN ONE SELECTOR LIST ON PURPOSE
+   (Julian, 2026-08-13, round-2 items 12 + 16): Back and Next used to sit on the
+   edges of the CARD while the text sat in this column, so the pager floated
+   well outside the text it pages through. They now take the column's edges from
+   THE SAME RULE, reading THE SAME token, so they cannot be given two numbers
+   that agree today and drift on the next type-scale change. That is the
+   one-concept-one-definition rule the dashboard's step list follows, applied to
+   a width.
+
+   THE SECOND CAP IS GONE, and its absence is the point. The running text used
+   to carry `max-width: var(--read-measure)` of its own, on top of this box —
+   two constraints for one concept, which is what made the pager hard to align
+   (see the note on --instructions-band above, and the measured numbers there).
+   The band now IS the measure, so the text simply fills this box. DO NOT
+   re-add a max-width to the text elements, to `.instruction-controls`, or to
+   `.instruction-block p`: the column is decided here.
+
+   WHAT STILL DIFFERS INSIDE, deliberately: an element that sets its OWN
+   font-size — the shipped template note is `font-size: 14px` inline — is
+   unaffected by this box and simply fills it too. Tables, figures and the
+   payoff matrix also fill it; they used to get a band 6px wider than the text,
+   which no longer exists as a distinction because the two values collapsed.
+
+   WHY NOT A SINGLE WRAPPER ELEMENT CONTAINING BOTH — asked for, and it does not
+   fit this page (reported to Julian, 2026-08-13). Such a wrapper would have to
+   contain the running text and the pager, and those two are deliberately in
+   DIFFERENT boxes: the text lives inside `.instruction-wrapper`, which is the
+   SCROLLER and is deliberately the full width of the card so the scroll
+   catchment is the whole card, while the pager is deliberately OUTSIDE it so it
+   stays pinned as the slide scrolls. A wrapper around both would narrow the
+   scroll catchment and unpin the pager. Nothing was duplicated to avoid that:
+   the column is defined once as a RULE rather than once as an ELEMENT. */
+.instruction-block,
+.instruction-controls {
+    width: 100%;
+    max-width: var(--instructions-band);
+    margin-inline: auto;
+}
+.instruction-block { display: none; }
+.instruction-block:first-of-type { display: block; }
+
+/* Body copy is justified; direct children only, so nested widget text is left
+   as authored. */
+.instruction-block > p,
+.instruction-block > ul,
+.instruction-block > ol { text-align: justify; }
+
+/* Per-step heading = the page title. Its TYPE is defined once in base.css (the
+   shared .header-title, .instruction-block > h2 rule); only its layout lives
+   here. inline margin auto keeps it in the centred reading measure, and
+   text-align centres the title to match the centred .header-title on the
+   welcome / consent / narrative pages. (SUPERSEDES the older flush-left rule
+   recorded in _ai/pilot_snapshot (local only: _ai/ is gitignored): because the
+   two titles are visually identical
+   they now align identically. The BODY copy below stays justified.) */
+.instruction-block > h2 {
+    margin: 0 auto .6em;
+    text-align: center;
+}
+
+.instruction-block > h3 {
+    margin: 0 auto .5em;
+    font-size: clamp(19px, 1.9vw, 23px);
+    font-weight: 660;
+}
+
+
+/* Skim emphasis inside instructions: a touch heavier than body <strong> so the
+   load-bearing phrases catch the eye, still the same ink (no colour shouting). */
+.instruction-block strong { font-weight: 680; }
+
+.instruction-block > ul,
+.instruction-block > ol {
+    /* inline margin auto keeps the list within the centred reading measure */
+    margin: 0 auto 1em;
+    padding-left: 1.25em;
+}
+.instruction-block li + li { margin-top: .55em; }
+
+/* Callout for the key numbers a participant must carry forward. */
+.instruction-block > .panel { margin: 0 auto 1em; }
+
+/* Figures inside the instructions (worked-example plots and diagrams). */
+.instruction-figure {
+    margin: 0 0 1em;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.instruction-figure figure {
+    margin: 0;
+    flex: 1 1 240px;
+    min-width: 200px;
+    background: var(--sunken);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 10px;
+}
+.instruction-figure figcaption {
+    font-size: .8em;
+    color: var(--ink-mute);
+    text-align: center;
+    margin-top: 6px;
+}
+.instruction-figure svg { display: block; width: 100%; height: auto; }
+
+/* COMPONENT — payoff matrix. INTENTION: a worked-example game/points table
+   inside the instructions (the shipped Stag Hunt uses it; any two-way payoff
+   or outcome table can). Centred in the reading band, tabular numerals, header
+   cells on the sunken ground. `.axis` marks the who-chooses labels;
+   `.your-payoff` highlights the participant's own number inside a cell.
+   Colours come from the design tokens (base.css), not hardcoded hex — a table
+   that hardcodes its greys drifts away from the rest of the study the first
+   time the palette is touched. Moved here from a <style> block in
+   intro/instructions_text.html (2026-08-13): content files carry no styling
+   (CLAUDE.md), and that block was also re-injected inside the quiz's re-read
+   dialog. Specimen in _static/global/html/template.html. */
+.payoff-matrix {
+    margin: 12px auto;
+    border-collapse: collapse;
+    font-size: .92em;
+}
+.payoff-matrix th,
+.payoff-matrix td {
+    border: 1px solid var(--line-strong);
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 92px;
+}
+.payoff-matrix thead th,
+.payoff-matrix tbody th {
+    background: var(--sunken);
+    font-weight: 600;
+    color: var(--ink);
+}
+.payoff-matrix td {
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+}
+.payoff-matrix .axis {
+    font-style: italic;
+    color: var(--ink-mute);
+}
+.your-payoff {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* The step counter: quiet chrome, not body copy. It sits BETWEEN the two pager
+   buttons (change_requests item 3) instead of on a row of its own above them,
+   which saved ~40px of card height and makes the pager read as one control.
+   It is a flex item of .instruction-controls now, so it no longer needs the
+   full-width/own-row treatment it used to have.
+   instructions.js hides it with `visibility` (never `display`) on the prequiz
+   step, so its box — and therefore the position of both buttons — never
+   moves (stability rule). */
+.instruction-progress {
+    flex: 0 1 auto;
+    font-size: .82em;
+    color: var(--ink-mute);
+    text-align: center;
+    padding-inline: 8px;
+    white-space: nowrap;
+}
+
+/* Back far left, counter in the middle, Next far right — the pager reads as
+   movement through the sequence rather than as a pair of equal choices.
+   Pinned.
+
+   IT SPANS THE READING MEASURE, NOT THE CARD (Julian, 2026-08-13,
+   change_requests_round2 item 12). `justify-content: space-between` puts the
+   two buttons on the edges of whatever box it is given, and that box used to be
+   the full card — while the instructions text is held to `--read-measure`. So
+   Back and Next floated well outside the column of text they page through, and
+   the pager read as chrome belonging to the card rather than as the control for
+   that column.
+   ITS WIDTH IS NOT SET HERE. The row's edges are the INSTRUCTIONS COLUMN's
+   edges, and that column is defined ONCE, further up this file, in the same
+   rule as `.instruction-block` — see THE INSTRUCTIONS COLUMN. Do not add a
+   max-width to this rule: two places deciding one width is exactly what that
+   note exists to prevent, and is the bug this replaced.
+
+   The counter sits between them as the flex row's middle item, so it stays
+   centred in the narrower span with nothing extra. All of it is asserted from
+   rendered geometry at three viewports by scripts/tests/render_check.py leg W, never
+   from this stylesheet.
+   The phone breakpoint below is unaffected: at <=520px both this and the text
+   are the full width of the card anyway. */
+.instruction-controls {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    /* RESERVED STRIP for the scroll cue (base.css): the V is centred on this
+       row's TOP EDGE, so it needs empty space on both sides of that edge — the
+       column gap above it, and this padding below it. Permanent, not applied
+       only while scrolling, because a padding that appeared and disappeared
+       with the cue would move the pager under the participant. */
+    padding-top: 12px;
+}
+
+/* The DEBUG-only skip control is a sibling of the pager inside .instructions,
+   so it needs pinning too or it would be squeezed by the flex fill above. */
+.instructions > .debug-tools { flex: 0 0 auto; }
+
+@media (max-width: 520px) {
+    /* The two buttons share what the counter between them does not need. */
+    .instruction-controls .next-button { flex: 1 1 0; padding-inline: .8em; }
+    .instruction-controls { gap: 8px; }
+    .instruction-progress { padding-inline: 2px; font-size: .78em; }
+
+    /* THE PHONE MODEL: the page scrolls, not a box inside the card
+       (improvement_suggestions item 1 — the shared half is in base.css's phone
+       breakpoint, which explains the whole decision).
+       IT HAS TO BE REPEATED HERE, not merely written there: this file loads
+       AFTER base.css, so `.instruction-wrapper { overflow-y: auto }` above wins
+       over an identical-specificity rule in base.css whatever the media query
+       says. Miss this and the instructions page keeps its inner scroller on a
+       phone while every other page has let go of it — which is exactly how it
+       failed the eyebrow check on the first attempt (the wrapper kept its
+       reserved scrollbar gutter, so the copy sat 10px right of the eyebrow).
+       The pager follows the slide in document order, so with the wrapper in
+       normal flow Next lands after the text, which is the point. */
+    .instruction-wrapper {
+        overflow: visible;
+        padding: 0;
+        margin: 0;
+    }
+    /* No scroll container, no reserved gutters: the strip lines up with the
+       copy directly (base.css, THE GUTTER COUPLING). */
+    .screen-card:has(.instructions) .experimental-header {
+        max-width: 100%;
+        padding-inline: 0;
+    }
+}
+
+/* === results.css === */
+/* Outro results */
+
+/* --- the payment receipt (change_requests item 11) ---------------------------
+   Ported from the reference build's payment screen: a compact block holding a
+   thank-you line, the headline earnings figure and the composition as
+   label/amount rows. Deliberately NARROW (a receipt, not a full-width panel)
+   and CENTRED in the card, which is where this template differs from the
+   reference — Julian asked for the summary block centred.
+   THE FIGURES ARE REAL: every row is a value from Results.vars_for_template,
+   i.e. from what compute_final_payoff actually paid. Nothing here is arithmetic
+   done in the template, so the breakdown cannot drift from the payment. */
+.payment-summary {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2vw, 18px);
+    width: 100%;
+    max-width: 340px;
+    margin-inline: auto;
+    text-align: left;
+}
+
+.payment-greeting { margin: 0; text-align: center; color: var(--ink-soft); }
+
+/* headline earnings figure */
+.payout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: var(--accent-soft);
+    border: 1px solid #cddcfb;
+    border-radius: var(--r-lg);
+    padding: clamp(18px, 3vw, 26px);
+}
+
+.payout-label {
+    font-size: .8em;
+    font-weight: 650;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.payout-total {
+    font-size: clamp(34px, 5vw, 46px);
+    font-weight: 720;
+    line-height: 1.05;
+    color: var(--ink);
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* the breakdown lines */
+.payout-lines { display: flex; flex-direction: column; gap: 0; }
+
+.payout-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: .62em 0;
+    border-bottom: 1px solid var(--line);
+    font-size: .95em;
+}
+
+.payout-line:last-child { border-bottom: 0; }
+
+.payout-line.total {
+    font-weight: 680;
+    color: var(--ink);
+    border-top: 2px solid var(--line-strong);
+}
+
+.payout-line .amount {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 620;
+}
+
+/* The notes under the receipt (processing time, the SEPA warning) and the line
+   that introduces the per-round table. Centred with the receipt. */
+.results-notes { text-align: center; }
+.results-lead { margin: 0 0 4px; }
+
+/* --- SHORT VIEWPORTS: get the WHOLE receipt above the fold -------------------
+   Measured 2026-08-11 at 1280x720 (the commonest participant display): the
+   receipt's "Total" row — the line that proves the breakdown adds up — ended
+   20px below the fold, so it was cut and dimmed by the scroll fade. The whole
+   point of this page is that a participant reads what they earned, so the
+   rhythm tightens on a short screen exactly as base.css does for the card:
+   SPACING ONLY, no copy and no component changes. Buys ~48px, which is enough
+   to clear the fold at both 720p and on a phone. The headline figure stays
+   large — it is the number that matters most. */
+@media (max-height: 820px) {
+    .payment-summary { gap: 10px; }
+    .payout { padding: 12px; }
+    .payout-total { font-size: clamp(30px, 4vw, 36px); }
+    .payout-line { padding: .45em 0; }
+    .results-notes { font-size: .94em; }
+}
+
+/* Wide tables scroll inside their own container rather than being clamped to the
+   reading measure or forcing the page to scroll sideways (house convention). */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* COMPONENT — per-round payoff table. The look is ported from the exp_pilots
+   pilot (Julian, 2026-08-13, change_requests_round2 item 8; reference kept at
+   _ai/ref_exp_pilots/_static/global/css/results.css, local only: _ai/ is
+   gitignored). PORTED BY REASON, NOT BY
+   PASTE — each rule below is here for the effect it produces, and the pilot's
+   coconut/allocation columns and its win / no-win vocabulary are deliberately
+   NOT imported, because this table is Round + Payoff and has no win state.
+
+   What actually makes it read as tidy, in rough order of how much it does:
+
+   1. TABULAR NUMERALS on the body cells. Proportional digits make a column of
+      money jitter left and right by a fraction of a character per row; tabular
+      figures put every digit on the same advance width, so the column aligns
+      down the page. This is most of the improvement and it is invisible until
+      you look at two builds side by side.
+   2. THE HEADER IS QUIET, NOT BOXED. Uppercase, letter-spaced, muted ink, and a
+      STRONGER bottom border than the body rows carry — so the header is read as
+      a boundary rather than as a filled band competing with the data. The old
+      rules boxed every cell in #ddd and filled the header with a background,
+      which draws a grid the reader has to look through.
+   3. HORIZONTAL RULES ONLY, and the LAST ROW DROPS ITS BORDER, so the table
+      ends on the card instead of on a stray line.
+   4. PAID ROUNDS GET TWO SIGNALS: an accent-soft row wash AND an inset left bar
+      (box-shadow inset 3px 0 0). The wash alone is easy to lose when scanning a
+      long list; the bar gives the eye a hard edge to run down. Weight is no
+      longer used for this — bold digits defeat point 1 by changing their
+      widths.
+
+   The table is wrapped in .table-scroll (above) so a wider table scrolls inside
+   itself instead of widening the page. UNCHANGED BY THIS ITEM: the accordion
+   (.results-toggle / .results-arrow / .results-collapsible) — Julian was
+   explicit that it stays, and the pilot has no equivalent to copy from. */
+.results-table {
+    width: 100%;
+    max-width: 700px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-size: .92em;
+}
+
+.results-table th,
+.results-table td {
+    padding: .62em .8em;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.results-table th {
+    font-weight: 650;
+    font-size: .88em;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border-bottom: 1px solid var(--line-strong);
+}
+
+.results-table td {
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+}
+
+.results-table tr:last-child td { border-bottom: 0; }
+
+/* The paid rounds, findable in a long list: wash + inset bar (see 4 above). */
+.results-table tbody tr.selected-row td { background: var(--accent-soft); }
+.results-table tbody tr.selected-row td:first-child {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* COMPONENT — table tag. A pill, ported from the pilot's .tag. The pilot used
+   it for won / no-win; this table's one state is PAID, so that is the one
+   modifier defined. A pill rather than the word alone because the round number
+   and its status then read as one cell instead of a sentence. */
+.results-table .tag {
+    display: inline-block;
+    padding: .1em .55em;
+    border-radius: 999px;
+    font-size: .78em;
+    font-weight: 620;
+    letter-spacing: .02em;
+    vertical-align: 1px;
+    margin-left: .35em;
+}
+.results-table .tag.paid-tag { background: var(--accent); color: #fff; }
+
+.results-section {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.results-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--color-heading);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-weight: 700;
+}
+
+/* Disclosure caret, drawn with borders so it needs no glyph from the font (the
+   character it replaced, ▸ U+25B8, is absent from Roboto and rendered as a tofu
+   box). Same size and same 90° rotation as before, so the control behaves
+   identically. */
+.results-arrow {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid currentColor;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.results-arrow.open {
+    transform: rotate(90deg);
+}
+
+.results-collapsible {
+    margin-top: 8px;
+}
+
+.results-collapsible.is-hidden {
+    display: none;
+}
+
+
+/* === quiz.css === */
+/* Comprehension quiz. oTree renders each field as a <p> label followed by a div
+   of .form-check options; base.css styles those options as the shared mc-option
+   card, so this file only handles the per-question grouping. */
+
+/* FAMILY — quiz (LEFT-aligned form in a CENTRED column). INTENTION: hold the
+   whole quiz to the shared reading measure (--read-measure, base.css) and centre
+   that column in the wide card, but keep the questions and their band-width
+   options LEFT-aligned. Centring question text over radio rows reads oddly and
+   leaves the option rows ragged on both edges, so the quiz is neither the
+   narrative family (centred) nor the instructions family (justified) — that left
+   bias is its one page-specific behaviour. Only the quiz page carries
+   .quiz-card. */
+.quiz-card > .experimental-header,
+.quiz-card > .button-row {
+    width: 100%;
+    max-width: var(--read-measure);
+    margin-inline: auto;
+}
+
+/* THE SCROLL CATCHMENT IS THE WHOLE CARD HERE TOO (change_requests item 6,
+   applied to the quiz on 2026-08-11 for the same reason as the instructions
+   page). The content region used to be capped at the reading measure, so it was
+   also the SCROLLING element — and the wheel did nothing over the card either
+   side of the questions. The cap moved down onto .quiz-block, which is the
+   text; the questions and their option cards are exactly as wide as before, the
+   region that scrolls is the card, and the scrollbar sits at the card's edge.
+   NB there is deliberately no `width: 100%` on .experimental-content — see the
+   measured note on that rule in base.css. */
+.quiz-block {
+    width: 100%;
+    max-width: var(--read-measure);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 3vw, 28px);
+}
+
+.quiz-block .stacked-form {
+    width: 100%;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 3vw, 28px);
+    align-items: stretch;
+}
+
+/* the question text */
+.quiz-block .stacked-form > p {
+    margin: 0 0 10px;
+    font-weight: 620;
+    color: var(--ink);
+    max-width: var(--read-measure);
+    text-align: left;
+}
+
+/* each question's options (the div oTree emits after the <p>) */
+.quiz-block .stacked-form > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+
+/* Number the questions without needing any markup change: oTree emits the label
+   as a bare <p>, so the counter rides on that. */
+.quiz-block .stacked-form { counter-reset: q; }
+.quiz-block .stacked-form > p { counter-increment: q; }
+.quiz-block .stacked-form > p::before {
+    content: counter(q);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6em;
+    height: 1.6em;
+    margin-right: .6em;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: .78em;
+    font-weight: 700;
+    vertical-align: 2px;
+}
+
+
+/* --- quiz-failure modals -----------------------------------------------------
+   THE MODAL CHROME NOW LIVES IN base.css (.modal-backdrop / .modal-card /
+   .modal-title / .modal-text / .modal-actions / .modal-dismiss-button), where
+   it is the shared warning-modal component every page uses — see
+   "COMPONENT: warning modal" there. It was moved out of this file on
+   2026-08-11 (change_requests item 9); the lab's re-read offer and the
+   "raise your hand" notice pick it up unchanged. Do not re-declare it here. */
+
+/* --- the at-will re-read dialog (ONLINE ONLY) ---------------------------------
+   change_requests item 17. The button lives in the quiz's own .button-row and
+   opens a dialog containing the REAL instructions file. The LAB deliberately
+   gets neither (see intro.quiz.vars_for_template): there, re-reading is offered
+   only after a failed attempt, and after that the participant raises a hand. */
+
+/* Ghost-styled, and NOT .next-button — that class is what global.js's Enter
+   handler looks for, and Enter must keep submitting the quiz. */
+.quiz-reread-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    font-weight: 620;
+    font-size: 1em;
+    line-height: 1;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.85em 2em;
+    cursor: pointer;
+    transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+
+.quiz-reread-btn:hover { background: var(--sunken); color: var(--ink); }
+
+/* The dialog is the shared modal chrome, widened: it holds a whole document,
+   not a sentence. Height-capped so the card can never grow past the viewport;
+   the BODY inside it is what scrolls. */
+.reread-backdrop .modal-card.reread-card {
+    position: relative;
+    max-width: min(1140px, 92vw);
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+    padding: 24px clamp(18px, 3vw, 32px);
+}
+
+.reread-title { text-align: center; margin: 0; }
+
+/* The scrolling document. min-height:0 is the same load-bearing line as every
+   other scroll region in this design (a flex child defaults to min-height:auto
+   and refuses to shrink, so the region silently never scrolls). */
+.reread-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable both-edges;
+    padding-right: 4px;
+}
+
+.reread-body::-webkit-scrollbar { width: var(--scroll-gutter); }
+.reread-body::-webkit-scrollbar-track { background: var(--sunken); border-radius: 999px; }
+.reread-body::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 2px solid var(--card-bg);
+    border-radius: 999px;
+}
+
+/* instructions.css hides every block but the first (that is the pager). Inside
+   this dialog there is no pager: every block is shown, stacked, with a rule
+   between them so the document reads as one continuous set of instructions. */
+.reread-body .instruction-block { display: block; }
+.reread-body .instruction-block + .instruction-block {
+    margin-top: 1.2em;
+    padding-top: 1.2em;
+    border-top: 1px solid var(--line);
+}
+
+/* The X. A real button in the corner, kept clear of the title. */
+.reread-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-mute);
+    font: inherit;
+    font-size: 1.4em;
+    line-height: 1;
+    padding: 2px 10px 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: color .14s ease, background-color .14s ease;
+}
+
+.reread-close:hover { color: var(--ink); background: var(--sunken); }
+
+/* === demographics.css === */
+/* Scoped styling for the demographics page.
+
+   REWRITTEN 2026-08-11 (change_requests item 10). Every input on that page is
+   now rendered by oTree's formfield tag rather than by hand, so the markup this
+   file has to style changed: each field arrives as
+       <div class="mb-3 _formfield">
+         <label class="col-form-label" for="id_<name>">…</label>
+         <div class="controls"> …the input, or a stack of .form-check cards… </div>
+       </div>
+   The option cards, focus rings and error styling come from base.css's shared
+   components; this file only sets the page's own rhythm. The old rules for the
+   hand-built `.radio-group` / `.other-option` markup are gone with that markup. */
+.demographics-section {
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    margin: 0;
+}
+
+.demographics-section .stacked-form,
+.demographics-section .stacked-form * {
+    text-align: left;
+}
+
+/* STRETCH, not flex-start: base.css's .stacked-form stretches its children on
+   purpose (with flex-start every option card shrink-wraps to its own text and
+   a group comes out ragged — measured on the consent page). Stated here
+   because this file used to override it. */
+.demographics-section .stacked-form {
+    gap: 12px;
+    align-items: stretch;
+    /* Centred as a block under the (now always centred) page title — see the
+       constant title rule in base.css, change_requests item 8. The COLUMN is
+       centred; everything inside it stays left-aligned, which is how a form
+       should read. */
+    margin-inline: auto;
+}
+
+/* One field = one labelled block. oTree's Bootstrap margin class is replaced by
+   the column gap above, so the spacing is the design system's, not Bootstrap's. */
+.demographics-section ._formfield { margin: 0; width: 100%; }
+
+.demographics-section .col-form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--color-heading);
+    font-size: 20px;
+}
+
+/* The radio group inside a field: the shared .form-check cards, stacked. */
+.demographics-section .controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mc-gap);
+    align-items: stretch;
+}
+
+/* A short numeric answer does not need a full-width box. */
+.demographics-section #id_age {
+    max-width: 90px;
+    width: 100%;
+}
+
+/* oTree's own per-field error text, under the control it belongs to. */
+.demographics-section .form-control-errors {
+    margin-top: 6px;
+    color: var(--danger);
+    font-size: .9em;
+}
+
+
+/* ---- preview-only styles ---- */
+body.preview-long .instruction-block,
+body.preview-pdf .instruction-block {
+    display: block !important;
+}
+body.preview-long .preview-screen,
+body.preview-pdf .preview-screen {
+    margin-bottom: 24px;
+}
+
+/* matrix panel */
+.preview-matrix-wrap {
+    max-width: 1100px;
+    margin: 24px auto 8px;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+}
+.preview-matrix-wrap h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #333;
+}
+.preview-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    color: #333;
+}
+.preview-matrix-table th,
+.preview-matrix-table td {
+    border: 1px solid #e5e7eb;
+    padding: 6px 10px;
+    text-align: left;
+}
+.preview-matrix-table thead th {
+    background: #f5f7fa;
+}
+.preview-matrix-table tbody th {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+/* treatment dropdown (long view) */
+.preview-treatment-bar {
+    max-width: 1100px;
+    margin: 12px auto 24px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+.preview-treatment-bar label {
+    font-weight: 600;
+    color: #333;
+}
+.preview-treatment-bar select {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+/* placeholder pill for unfilled variables */
+.preview-var {
+    display: inline-block;
+    color: #006080;
+    background: rgba(0, 140, 186, 0.08);
+    padding: 0 4px;
+    border-radius: 4px;
+    font-feature-settings: "tnum";
+}
+
+/* floating switcher (interactive) */
+.preview-switcher {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    backdrop-filter: blur(4px);
+    font-size: 14px;
+    max-width: 240px;
+}
+.preview-switcher .preview-switcher-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+.preview-switcher button {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    color: #333;
+}
+.preview-switcher button.active {
+    background: #008cba;
+    color: #fff;
+    border-color: #007bb5;
+}
+.preview-switcher .preview-switcher-secondary {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+.preview-switcher .preview-switcher-secondary button {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    padding: 5px 8px;
+}
+
+/* matrix overlay (interactive) */
+.preview-matrix-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 24px;
+}
+.preview-matrix-overlay.is-visible {
+    display: flex;
+}
+.preview-matrix-overlay-inner {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+}
+.preview-matrix-overlay-inner h3 {
+    margin: 0 0 12px;
+}
+.preview-matrix-overlay-close {
+    margin-top: 16px;
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* interactive screen visibility */
+body.preview-interactive .preview-screen { display: none; }
+body.preview-interactive .preview-screen.is-active { display: flex; }
+
+/* setup screen styling */
+.preview-setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+    margin-top: 12px;
+}
+.preview-setup-form fieldset {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: left;
+    min-width: 280px;
+}
+.preview-setup-form legend {
+    font-weight: 600;
+    padding: 0 6px;
+    color: #333;
+}
+.preview-setup-form label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* keep card buttons inert-looking when disabled */
+.preview-long .next-button[disabled],
+.preview-pdf .next-button[disabled] {
+    opacity: 0.55;
+    cursor: default;
+}
+
+/* PDF media tweaks */
+@media print {
+    .preview-treatment-bar, .preview-switcher,
+    .preview-matrix-overlay { display: none !important; }
+    .preview-screen { page-break-inside: avoid; margin-bottom: 16px; }
+    body { background: #fff; }
+}
+</style></head><body class="preview-interactive"><div class="preview-switcher" aria-label="Preview controls"><div class="preview-switcher-title">Treatment</div><button data-treatment="0">Row player</button><button data-treatment="1">Column player</button><div class="preview-switcher-secondary"><button id="preview-reset" type="button" title="Return to setup screen">Reset</button><button id="preview-matrix-toggle" type="button">Show matrix</button></div></div><div id="preview-matrix-overlay" class="preview-matrix-overlay"><div class="preview-matrix-overlay-inner"><h3>Treatment matrix</h3><table id="preview-matrix-overlay-table" class="preview-matrix-table"><thead><tr><th>Variable</th><th>Row player</th><th>Column player</th></tr></thead><tbody><tr><th>treatment</th><td>row</td><td>column</td></tr><tr><th>stag_payoff</th><td>4</td><td>4</td></tr><tr><th>hare_payoff</th><td>2</td><td>2</td></tr><tr><th>stag_alone</th><td>0</td><td>0</td></tr><tr><th>num_experimental_rounds</th><td>10</td><td>10</td></tr><tr><th>showup</th><td>€2.50</td><td>€2.50</td></tr><tr><th>quiz_bonus</th><td>€5.00</td><td>€5.00</td></tr></tbody></table><button type="button" class="preview-matrix-overlay-close">Close</button></div></div><section class="experimental-screen preview-screen preview-setup-screen" ><div class="screen-card"><div class="experimental-header"><h2 class="header-title">Preview setup</h2><p class="header-text"></p></div><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><p style="font-size:17px;color:#555;">This is a preview of the instructions. Pick a treatment to begin; you can switch at any time from the panel in the top-right corner.</p><div class="preview-matrix-wrap" style="margin:8px 0 0;"><h3>Treatment matrix</h3><table id="preview-matrix-setup-table" class="preview-matrix-table"><thead><tr><th>Variable</th><th>Row player</th><th>Column player</th></tr></thead><tbody><tr><th>treatment</th><td>row</td><td>column</td></tr><tr><th>stag_payoff</th><td>4</td><td>4</td></tr><tr><th>hare_payoff</th><td>2</td><td>2</td></tr><tr><th>stag_alone</th><td>0</td><td>0</td></tr><tr><th>num_experimental_rounds</th><td>10</td><td>10</td></tr><tr><th>showup</th><td>€2.50</td><td>€2.50</td></tr><tr><th>quiz_bonus</th><td>€5.00</td><td>€5.00</td></tr></tbody></table></div><form class="preview-setup-form" onsubmit="return false;"><fieldset><legend>Start with treatment</legend><label><input type="radio" name="preview-treatment-pick" value="0" checked> Row player</label><label><input type="radio" name="preview-treatment-pick" value="1"> Column player</label></fieldset><button type="button" id="preview-begin" class="next-button" style="margin-top:4px;">Begin</button></form></div></div></div></div></section><section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+    
+    <h2>Instructions</h2>
+    <p class="template-note">
+        Template note: this oTree starter ships with a worked Stag Hunt
+        example to demonstrate variable substitution and treatment-conditional
+        content — replace this file (and the matching wiring in
+        <code>intro/__init__.py</code>) with your own experiment.
+    </p>
+    <p>
+        In this study you will play a simple two-person game
+        called the <strong>Stag Hunt</strong> with another participant in
+        this room. You will play <span class="preview-var" data-var="num_experimental_rounds">‹num_experimental_rounds›</span> rounds in total.
+    </p>
+    
+    <p>
+        Your final payment will be the sum of your earnings from the rounds,
+        plus a show-up fee of <span class="preview-var" data-var="showup">‹showup›</span> and a bonus of <span class="preview-var" data-var="quiz_bonus">‹quiz_bonus›</span>
+        if you answer every quiz question on the instructions correctly on
+        your first attempt.
+    </p>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+    <h2>The game</h2>
+    <p>
+        In each round you and your partner independently choose one of two
+        actions: <strong>Stag</strong> or <strong>Hare</strong>. You make
+        your choice without knowing what your partner picked.
+    </p>
+    <p>
+        Hunting a stag is only successful if <em>both</em> of you go for it.
+        Hunting a hare always succeeds on your own, but the catch is smaller.
+    </p>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+    <h2>Your role</h2>
+    <span class="preview-cond" data-cond-var="treatment"><span class="preview-cond-branch" data-cond-val="row">
+    <p>
+        You have been assigned the role of <strong>row player</strong> for
+        the entire experiment. On the payoff matrix on the next page, your
+        choice selects the <strong>row</strong>, and your partner's choice
+        selects the <strong>column</strong>.
+    </p>
+    <p>
+        In each cell of the matrix the two numbers are written as
+        (<span class="your-payoff">your payoff</span>, partner's payoff).
+        Your earnings are always the <strong>first</strong> number in the cell.
+    </p>
+    </span><span class="preview-cond-branch" data-cond-val="column">
+    <p>
+        You have been assigned the role of <strong>column player</strong> for
+        the entire experiment. On the payoff matrix on the next page, your
+        choice selects the <strong>column</strong>, and your partner's choice
+        selects the <strong>row</strong>.
+    </p>
+    <p>
+        In each cell of the matrix the two numbers are written as
+        (partner's payoff, <span class="your-payoff">your payoff</span>).
+        Your earnings are always the <strong>second</strong> number in the cell.
+    </p>
+    </span></span>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+    <h2>The payoff matrix</h2>
+    <p>The table below shows the points each player earns for every combination of choices.</p>
+    <table class="payoff-matrix">
+        <thead>
+            <tr>
+                <th></th>
+                <th></th>
+                <th colspan="2" class="axis">Column player chooses</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                <th>Stag</th>
+                <th>Hare</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th rowspan="2" class="axis">Row player<br>chooses</th>
+                <th>Stag</th>
+                <td>(<span class="preview-var" data-var="stag_payoff">‹stag_payoff›</span>, <span class="preview-var" data-var="stag_payoff">‹stag_payoff›</span>)</td>
+                <td>(<span class="preview-var" data-var="stag_alone">‹stag_alone›</span>, <span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span>)</td>
+            </tr>
+            <tr>
+                <th>Hare</th>
+                <td>(<span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span>, <span class="preview-var" data-var="stag_alone">‹stag_alone›</span>)</td>
+                <td>(<span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span>, <span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span>)</td>
+            </tr>
+        </tbody>
+    </table>
+    <span class="preview-cond" data-cond-var="treatment"><span class="preview-cond-branch" data-cond-val="row">
+    <p>
+        Reminder: you are the row player. Your payoff is the
+        <strong>first</strong> number in the cell selected by your row and
+        your partner's column.
+    </p>
+    </span><span class="preview-cond-branch" data-cond-val="column">
+    <p>
+        Reminder: you are the column player. Your payoff is the
+        <strong>second</strong> number in the cell selected by your partner's
+        row and your column.
+    </p>
+    </span></span>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+    <h2>What this means in practice</h2>
+    <ul>
+        <li>If <strong>both</strong> of you choose Stag, you each earn <span class="preview-var" data-var="stag_payoff">‹stag_payoff›</span> points.</li>
+        <li>If <strong>both</strong> of you choose Hare, you each earn <span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span> points.</li>
+        <li>If you choose Stag but your partner chooses Hare, the Stag-chooser earns <span class="preview-var" data-var="stag_alone">‹stag_alone›</span> and the Hare-chooser earns <span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span>.</li>
+    </ul>
+    <p>
+        So Stag pays more <em>if</em> you coordinate, but Hare is a safer choice
+        that pays the same regardless of what your partner does.
+    </p>
+    
+    <div class="panel">
+        <strong>Remember:</strong> Stag pays <span class="preview-var" data-var="stag_payoff">‹stag_payoff›</span> points only when
+        <em>both</em> of you choose it. Hare always pays <span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span>.
+    </div>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+    <h2>Rounds and pairing</h2>
+    <p>
+        You will play <span class="preview-var" data-var="num_experimental_rounds">‹num_experimental_rounds›</span> rounds. Your role
+        (<span class="preview-cond" data-cond-var="treatment"><span class="preview-cond-branch" data-cond-val="row">row player</span><span class="preview-cond-branch" data-cond-val="column">column player</span></span>)
+        stays the same throughout the experiment. After each round you will
+        see your choice, your partner's choice, and your earnings for that round.
+    </p>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block prequiz-block">
+    <h2>Before the quiz</h2>
+    {% if is_reread_pass %}
+    <p>
+        You will next see the quiz again.
+    </p>
+    {% else %}
+    <p>
+        You will next see a quiz. If you get all questions on the instructions
+        correct on the first attempt you get <strong><span class="preview-var" data-var="quiz_bonus">‹quiz_bonus›</span></strong>.
+    </p>
+    {% endif %}
+    <p>
+        Would you like to reread the instructions first?
+    </p>
+</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
+<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-header"><h2 class="header-title">Quiz</h2><p class="header-text">Answer the questions below before starting the experiment.</p></div><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="quiz-block"><div class="stacked-form"><p>Did you read and understand the instructions?</p><div><div class="form-check"><input type="radio" name="quiz1" value="YES" disabled><label>YES</label></div><div class="form-check"><input type="radio" name="quiz1" value="NO" disabled><label>NO</label></div></div><p>What is ice when it melts?</p><div><div class="form-check"><input type="radio" name="quiz2" value="Metal" disabled><label>Metal</label></div><div class="form-check"><input type="radio" name="quiz2" value="Water" disabled><label>Water</label></div><div class="form-check"><input type="radio" name="quiz2" value="Nothing" disabled><label>Nothing</label></div></div></div></div><div class="button-row"><input type="submit" value="Next" class="next-button" disabled></div></div></div></div></div></section><script>
+(function () {
+    var data = {"treatments": ["Row player", "Column player"], "values": {"treatment": ["row", "column"], "stag_payoff": ["4", "4"], "hare_payoff": ["2", "2"], "stag_alone": ["0", "0"], "num_experimental_rounds": ["10", "10"], "showup": ["€2.50", "€2.50"], "quiz_bonus": ["€5.00", "€5.00"]}, "pdf_treatment": "Row player"};
+    var currentTreatment = 0;
+
+    function applyTreatment(idx) {
+        currentTreatment = idx;
+        document.querySelectorAll('.preview-var').forEach(function (el) {
+            var v = el.dataset.var;
+            var row = data.values[v];
+            var val = row && idx < row.length ? row[idx] : undefined;
+            if (val !== undefined && val !== null && String(val).length > 0) {
+                el.textContent = String(val);
+                el.classList.remove('is-empty');
+            } else {
+                el.textContent = '‹' + v + '›';
+                el.classList.add('is-empty');
+            }
+        });
+        document.querySelectorAll('.preview-cond').forEach(function (el) {
+            var v = el.dataset.condVar;
+            var row = data.values[v];
+            var cur = row && idx < row.length ? String(row[idx]) : '';
+            var matched = false;
+            el.querySelectorAll('.preview-cond-branch').forEach(function (br) {
+                if (!matched && String(br.dataset.condVal) === cur) {
+                    br.style.display = '';
+                    matched = true;
+                } else {
+                    br.style.display = 'none';
+                }
+            });
+            if (!matched) {
+                var first = el.querySelector('.preview-cond-branch');
+                if (first) first.style.display = '';
+            }
+        });
+        document.querySelectorAll('.preview-switcher [data-treatment]').forEach(function (btn) {
+            btn.classList.toggle('active', Number(btn.dataset.treatment) === idx);
+        });
+    }
+
+    var screens = [];
+    var currentScreen = 0;
+
+    function showScreen(i) {
+        if (i < 0 || i >= screens.length) return;
+        currentScreen = i;
+        screens.forEach(function (s, j) {
+            s.classList.toggle('is-active', j === i);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetToSetup() {
+        showScreen(0);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        screens = Array.prototype.slice.call(
+            document.querySelectorAll('.preview-screen')
+        );
+
+        // Switcher buttons
+        document.querySelectorAll('.preview-switcher [data-treatment]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                applyTreatment(Number(btn.dataset.treatment));
+            });
+        });
+
+        var resetBtn = document.getElementById('preview-reset');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetToSetup);
+        }
+
+        // Matrix toggle
+        var matrixToggle = document.getElementById('preview-matrix-toggle');
+        var overlay = document.getElementById('preview-matrix-overlay');
+        if (matrixToggle && overlay) {
+            matrixToggle.addEventListener('click', function () {
+                overlay.classList.add('is-visible');
+            });
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) overlay.classList.remove('is-visible');
+            });
+            var closeBtn = overlay.querySelector('.preview-matrix-overlay-close');
+            if (closeBtn) closeBtn.addEventListener('click', function () {
+                overlay.classList.remove('is-visible');
+            });
+        }
+
+        // Setup screen: pick treatment + begin
+        var beginBtn = document.getElementById('preview-begin');
+        if (beginBtn) {
+            beginBtn.addEventListener('click', function () {
+                var picked = document.querySelector(
+                    '.preview-setup-form input[name="preview-treatment-pick"]:checked'
+                );
+                if (picked) applyTreatment(Number(picked.value));
+                showScreen(1);
+            });
+        }
+
+        // Back/Next buttons inside each card
+        document.querySelectorAll('.preview-screen').forEach(function (screen, idx) {
+            var prev = screen.querySelector('.preview-nav-prev');
+            var next = screen.querySelector('.preview-nav-next');
+            if (prev) {
+                prev.addEventListener('click', function () {
+                    if (currentScreen <= 1) {
+                        // first instruction or setup -> nothing
+                        return;
+                    }
+                    showScreen(currentScreen - 1);
+                });
+            }
+            if (next) {
+                next.addEventListener('click', function () {
+                    if (currentScreen < screens.length - 1) {
+                        showScreen(currentScreen + 1);
+                    }
+                });
+            }
+        });
+
+        // Keyboard arrows
+        document.addEventListener('keydown', function (e) {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].indexOf(
+                    (e.target.tagName || '').toUpperCase()) !== -1) return;
+            if (e.key === 'ArrowLeft') {
+                if (currentScreen > 1) showScreen(currentScreen - 1);
+            } else if (e.key === 'ArrowRight') {
+                if (currentScreen < screens.length - 1) showScreen(currentScreen + 1);
+            }
+        });
+
+        applyTreatment(0);
+        showScreen(0);
+    });
+})();
+</script></body></html>

@@ -148,19 +148,13 @@
       <div class="section-header">
         <h2>Lab and online from one codebase</h2>
       </div>
-      <p>
-        A single setting switches the study between a lab session and an online Prolific study.
-        The experiment itself is unchanged; only the recruitment plumbing differs — participant IDs
-        and completion codes online, bank details and demographics in the lab. Entry is handled as
-        well: the room entry page carries the study's own look, and a participant arriving from a
-        lab seat link or a Prolific link passes straight through it without seeing it, while a bare
-        link still shows a button.
-      </p>
-      <p>
-        Earnings are tracked in a single ledger however a participant was recruited, and each way of finishing
-        the study returns its own completion code, so those groups remain distinguishable in the
-        data afterwards.
-      </p>
+      <ul>
+        <li><strong>One setting</strong> — switches the study between a lab session and an online Prolific study.</li>
+        <li><strong>The experiment is unchanged</strong> — only the recruitment plumbing differs: participant IDs and completion codes online, bank details and demographics in the lab.</li>
+        <li><strong>Entry is handled too</strong> — the room entry page carries the study's own look; a lab seat or Prolific link passes straight through it unseen, a bare link still shows a button.</li>
+        <li><strong>A single earnings ledger</strong> — however the participant was recruited.</li>
+        <li><strong>A completion code per route</strong> — each way of finishing returns its own, so those groups stay distinguishable in the data.</li>
+      </ul>
     </section>
 
     <section id="running-for-real">
@@ -193,24 +187,15 @@
     <section id="instructions-preview">
       <div class="section-header">
         <h2>Previewing instructions</h2>
+        <div class="btn-group">
+          <a href="otree-instructions-interactive.html" role="button" target="_blank" rel="noopener noreferrer">See example</a>
+        </div>
       </div>
       <p>
-        Iterating on instruction copy without spinning up the full oTree server is awkward, so
-        the template ships with a preview generator. Running
-        <code>previews/generate_instructions_preview.py</code> produces three self-contained
-        files in <code>previews/</code> — CSS and JavaScript are inlined, so each one can be
-        emailed or attached without external dependencies.
-      </p>
-      <ul>
-        <li><strong>instructions_preview_long.html</strong> — every instruction block stacked vertically in its normal card chrome, with a treatment dropdown at the top.</li>
-        <li><strong>instructions_preview_interactive.html</strong> — a single page that mimics the live participant experience, with Back/Next navigation, floating treatment-switcher buttons in the top-right, and a setup screen for picking the starting treatment.</li>
-        <li><strong>instructions_preview.pdf</strong> — the long view rendered to PDF for printing or sharing with coauthors who prefer paper.</li>
-      </ul>
-      <p>
-        Variables and <code>{% if treatment %}</code> conditional blocks render dynamically in
-        the HTML versions; the PDF preserves variable names as literal placeholders. The script
-        opens a tkinter popup for entering treatment × variable values, and falls back to a
-        JSON config file for headless use.
+        Working on instruction copy inside a running server is awkward, so the template ships a
+        preview generator that renders your instructions as standalone files — an interactive page
+        you click through like a participant, and <code>instructions_preview.pdf</code> to send a
+        coauthor for comment.
       </p>
     </section>
 
