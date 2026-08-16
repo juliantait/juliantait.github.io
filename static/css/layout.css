@@ -336,3 +336,21 @@ ul.education-list li i {
 .course-meta:not(:only-child) {
   margin-left: auto;
 }
+
+/* Meta line built from several self-contained items: the line wraps between
+   items, each item stays whole on one line. */
+.course-meta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  white-space: normal;
+}
+
+.course-meta-item {
+  white-space: nowrap;
+}
+
+.course-meta-item:not(:last-child)::after {
+  content: " ·";
+}
