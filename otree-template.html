@@ -167,24 +167,19 @@
 
       <h3>Running on Prolific</h3>
       <ul>
-        <li><strong>A participant flow, built and styled</strong> — the four apps in order, waiting for your instructions and your game.</li>
-        <li><strong>A styled entry page</strong> — the room entry page carries the study's own look; a Prolific link passes straight through it unseen, a bare link still shows a button.</li>
+        <li><strong>Straight in from the Prolific link</strong> — an arrival carrying a Prolific ID passes the entry gate without seeing it, and lands in the study itself.</li>
         <li><strong>Participant ID capture</strong> — the Prolific ID is recorded on arrival.</li>
         <li><strong>Three screening layers</strong> — comprehension, device, and tab-switching, on by default, each reporting a readable verdict.</li>
-        <li><strong>Earnings tracking</strong> — what the participant has earned is kept in a single ledger.</li>
-        <li><strong>An adaptable payment rule</strong> — a working default that pays up to N randomly chosen rounds, replaced with your own if your study pays differently.</li>
+        <li><strong>Earnings tracking</strong> — what the participant has earned is kept in a single ledger, under a payment rule that pays up to N randomly chosen rounds by default and can be replaced with your own.</li>
         <li><strong>A completion code per route</strong> — each way of finishing returns its own, so those groups stay distinguishable in the data.</li>
+        <li><strong>Ready to deploy</strong> — a Dockerfile that runs on <strong>Railway</strong> or <strong>TreeHost</strong>.</li>
       </ul>
 
       <h3>Running in the lab</h3>
       <ul>
-        <li><strong>A participant flow, built and styled</strong> — the four apps in order, waiting for your instructions and your game.</li>
-        <li><strong>A styled entry page</strong> — the room entry page carries the study's own look; a lab seat passes straight through it unseen, a bare link still shows a button.</li>
-        <li><strong>A comprehension quiz</strong> — attempts are uncapped, and a participant who keeps struggling gets a one-time pass back through the instructions and then a dismissible notice to raise their hand; the only cost is the quiz bonus.</li>
-        <li><strong>Bank details</strong> — collected in the outro app, so the session can be paid later.</li>
-        <li><strong>A demographic questionnaire</strong> — asked in the outro app alongside the debrief.</li>
-        <li><strong>Earnings tracking</strong> — what the participant has earned is kept in a single ledger.</li>
-        <li><strong>An adaptable payment rule</strong> — a working default that pays up to N randomly chosen rounds, replaced with your own if your study pays differently.</li>
+        <li><strong>Straight in from the seat link</strong> — an arrival carrying a seat's ID passes the entry gate without seeing it, and lands in the study itself.</li>
+        <li><strong>Bank details and demographics</strong> — collected in the outro app alongside the debrief, so the session can be paid afterwards.</li>
+        <li><strong>Earnings tracking</strong> — what the participant has earned is kept in a single ledger, under a payment rule that pays up to N randomly chosen rounds by default and can be replaced with your own.</li>
       </ul>
 
       <div class="section-header monitor-header">
@@ -202,39 +197,6 @@
         <iframe src="otree-preview-monitor.html" title="experimenter monitor page preview"></iframe>
         <figcaption><strong>monitor</strong> page — a lab session in progress, one row per participant</figcaption>
       </figure>
-    </section>
-
-    <section id="deploying-online">
-      <div class="section-header">
-        <h2>Deploying online</h2>
-      </div>
-      <p>
-        Running online takes some additional setup, and the template ships a Dockerfile ready to
-        deploy — on <strong>Railway</strong> or on <strong>TreeHost</strong>.
-      </p>
-    </section>
-
-    <section id="running-for-real">
-      <div class="section-header">
-        <h2>Running it for real</h2>
-      </div>
-      <p>
-        A Prolific study gets three layers of screening, already in place and on by default — a lab
-        session screens nobody out, and its quiz works differently:
-      </p>
-      <ul>
-        <li><strong>Comprehension screening</strong> — removes a participant who still cannot pass the quiz once their attempts are used up.</li>
-        <li><strong>Device screening</strong> — keeps out phones, or whatever device types the study disallows.</li>
-        <li><strong>Tab-switching screening</strong> — watches for the participant leaving the tab, and can either just record it or remove them.</li>
-      </ul>
-      <p>
-        The template is built to be deployed, not only run locally — a boot guard that wipes
-        existing data on neither the hosted Postgres database nor the local file one, and a
-        pre-deploy check that boots the new build against a copy of the live database, since a fresh
-        install cannot reveal a broken upgrade. Layout is confirmed by measured browser checks
-        rather than by eye, and the repository records why each decision was made, so a later reader
-        can tell a deliberate choice from an accident.
-      </p>
     </section>
 
     <section id="instructions-preview">
