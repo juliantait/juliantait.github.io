@@ -343,14 +343,10 @@ ul.education-list li i {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 6px;
+  gap: 0 16px;
   white-space: normal;
 }
 
 .course-meta-item {
   white-space: nowrap;
-}
-
-.course-meta-item:not(:last-child)::after {
-  content: " ·";
 }
