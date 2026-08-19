@@ -228,74 +228,100 @@ a { color: var(--accent); }
 .experimental-screen {
     display: flex;
     justify-content: center;   /* horizontal centring */
-    align-items: center;       /* vertical centring of a short card */
-    /* Fill the viewport so a card that does not need to scroll sits centred both
-       ways. min-height (not height) means a card TALLER than the viewport simply
-       grows the page: it stays fully reachable and scrolls downward, rather than
-       being clipped. */
+    /* THE CARD TOP IS ANCHORED, NOT CENTRED, YET SYMMETRIC AT REST (Julian,
+       2026-08-18). The card&#x27;s top edge must sit at the SAME position on every
+       page — a viewport-centred card moves its top up and down as content height
+       changes, which is exactly the jump he does not want. So the card is aligned
+       to the START of the shell (top-anchored) in ALL THREE modes, at a top
+       offset of --card-margin below the viewport top. Because the resting floor
+       is `--card-min = 100dvh − 2·--card-margin`, a resting card fills the middle
+       and leaves the SAME margin below it as above (top = bottom = --card-margin)
+       — symmetric, so at rest it reads as centred — while a card TALLER than the
+       floor grows DOWNWARD from that fixed top and the whole page scrolls, top
+       unmoved. One token, --card-margin, sets both the offset here and the floor,
+       so the anchor is a viewport FRACTION and the two cannot drift.
+       `safe center` is gone from here on purpose — it was the vertical centring
+       that moved the top. */
+    align-items: flex-start;
+    /* Fill the viewport so a resting card sits in a full-height frame; min-height
+       (not height) means a card TALLER than the viewport simply grows the page
+       downward from the anchored top: it stays fully reachable and the page
+       scrolls, rather than being clipped. */
     min-height: 100vh;
-    /* EQUAL MARGINS. One symmetric gutter on all four sides, so the grey band
-       above the card matches the band beside it. The middle term is 3vw — the
-       SAME as the card&#x27;s own 94vw side gutter ((100 − 94)/2 = 3vw) — so when the
-       card is width-limited the top gap equals each side gap exactly. Vertical
-       centring then keeps top = bottom on a short card. */
-    padding: clamp(16px, 3vw, 40px);
+    /* VERTICAL padding = --card-margin, so the top offset equals the resting
+       bottom margin (symmetry) and tracks the viewport. HORIZONTAL padding is the
+       3vw side gutter — the SAME as the card&#x27;s own 94vw side gutter
+       ((100 − 94)/2 = 3vw) — so a width-limited card sits in an even side band. */
+    padding: var(--card-margin) clamp(16px, 3vw, 40px);
     background: var(--page-bg);
 }
 
 /* COMPONENT — card frame. INTENTION: the single white card every page sits in.
-   ONE card width for EVERY page; only its height responds to content. Long-form
-   text stays readable because running text carries its own reading band;
-   functional components (tables, widgets) span the card&#x27;s inner width.
+   ONE card width for EVERY page; its height responds to content. Long-form text
+   stays readable because running text carries its own reading band; functional
+   components (tables, widgets) span the card&#x27;s inner width.
 
-   HEIGHT: A FLOOR *AND* A CEILING. The card is never shorter than --card-min
-   (so a one-line page does not look stubby) and never taller than --card-max
-   (so the page background always frames it — the white edge must never touch the
-   top or bottom of the screen). Between the two it sizes to its content. Past
-   the ceiling the card does NOT grow: the middle region scrolls inside it (see
-   .experimental-content), which is why this element is a flex column.
+   HEIGHT — MODE 1, THE DEFAULT: A FLOOR, AND NO CEILING (2026-08-18 scroll-model
+   overhaul; see DECISIONS.md &quot;The scroll model is three modes&quot; and
+   _ai/scroll_model/). The card is never shorter than --card-min, so a one-line
+   page still fills the screen and does not collapse to a stub. There is NO
+   max-height: a card taller than the floor simply grows with its content and the
+   WHOLE BROWSER VIEWPORT scrolls — header, copy and logo footer together — with
+   the forward / decision control at the natural bottom. This is the SAFE default:
+   it is exactly what renders if no page script runs, so nothing a participant
+   needs can be hidden by a fit-check that fails silently (CLAUDE.md&#x27;s warning).
 
-   dvh with a vh fallback: on mobile `vh` ignores the retracting URL bar, so a
-   88vh card can still overflow the visible area on a phone. Browsers that do not
-   know `dvh` drop the second declaration and keep the first. */
+   THE OTHER TWO MODES DO NOT LIVE ON THIS RULE, on purpose:
+     * MODE 2 (single-page fit) is progressive enhancement layered ON TOP of
+       Mode 1 by the `.single-page-fit` class global.js adds — font + spacing
+       only, never a ceiling. See THE SINGLE-PAGE FIT below.
+     * MODE 3 (inner-card scroll) is the DORMANT opt-in `.inner-scroll` further
+       down — it, and ONLY it, restores the max-height ceiling and the inner
+       scroll region. The results page uses it; any page may re-enable it. */
 :root {
-    /* THE FLOOR IS DERIVED FROM THE TASK SCREEN (change_requests item 5,
-       2026-08-11). A card shorter than the game screen makes the frame jump
-       between pages, which is what Julian saw: measured at 1280x720, short
-       pages (lab gate, Prolific ID, game screen) sat at the 75vh floor = 540px
-       while tall pages (consent, quiz, results) sat at the 88vh cap = 634px —
-       a 94px jump every time the participant moved between them.
-       HOW THE NUMBER IS DERIVED, so it stays stable rather than following
-       whatever the placeholder task screen happens to contain today:
-       scripts/tests/render_check.py renders the task pages with the floor DISABLED and
-       records their NATURAL height (geometry.json -&gt; card_min_derivation). For
-       this template that is ~300px at 1280x720 — far BELOW the tall pages — so
-       the binding constraint is &quot;never shorter than the tall pages&quot; and the
-       derived floor rounds up to the ceiling: one constant card height, no
-       jumping. A real study re-derives --card-derived from ITS task screen;
-       the render check FAILS if the task screen ever grows past the floor,
-       which is the signal to re-derive rather than let the jumping return.
-       THE min() IS LOAD-BEARING. A floor expressed in px alone would, on a
-       short window, exceed the ceiling — and CSS lets min-height beat
-       max-height, so the card would grow past 88vh, touch the top and bottom
-       of the screen and start scrolling the page. Taking the min with
-       --card-max means the ceiling always wins on a short window and the card
-       simply sits at the cap with its content region scrolling, which is what
-       short windows already do. */
-    --card-derived: 88vh;
-    --card-max: 88vh;
-    --card-min: min(var(--card-derived), var(--card-max));
+    /* --card-margin — THE RESTING MARGIN (Julian, 2026-08-18). A PROPORTIONAL,
+       viewport-scaled band that sits above AND below the card at rest, so the
+       resting card looks CENTRED (equal top and bottom) even though it is
+       top-ANCHORED. It is ONE token feeding two things — the resting floor below
+       and the shell&#x27;s top offset (see .experimental-screen) — so the two cannot
+       drift and the anchor point is a fraction of the viewport, not a fixed pixel
+       count. dvh so it tracks the real visible height on mobile (a bare vh
+       ignores the retracting URL bar); the vh here is the fallback for browsers
+       without dvh, overridden below. ~6dvh reproduces the old 88vh resting card. */
+    --card-margin: 6vh;
+    /* --card-min — THE RESTING FLOOR, AND IT IS A FIXED FRAME, NOT A SHRINK-WRAP.
+       = the viewport MINUS the two resting margins, so at rest the card fills the
+       middle band exactly and its top margin equals its bottom margin (symmetric,
+       reads as centred). Because it is a `min-height` (see .screen-card), a card
+       whose content is SHORTER than this stays pinned at --card-min and NEVER
+       hugs its content — the content fills or centres INSIDE the fixed frame — so
+       two short pages with different amounts of content show the identical card
+       with no jump between them. Only content TALLER than --card-min grows the
+       card, DOWNWARD past the bottom margin, and the whole page scrolls while the
+       anchored top stays put (Mode 1). There is NO max-height on the default card
+       — see .screen-card. */
+    --card-min: calc(100vh - 2 * var(--card-margin));
+    /* --inner-scroll-max — MODE 3&#x27;S CEILING, equal to the resting floor. With the
+       min and the max coinciding an `.inner-scroll` card (the results page) is a
+       FIXED --card-min frame whose overflow scrolls INSIDE the card. Used ONLY by
+       `.inner-scroll` (see `.inner-scroll .experimental-content`), never by the
+       default card. */
+    --inner-scroll-max: var(--card-min);
     /* The width a scroll region reserves for its scrollbar on EACH edge
        (`scrollbar-gutter: stable both-edges`). It must equal the
        ::-webkit-scrollbar width below; anything that needs to line up with the
        content INSIDE a scroll region reads it from here. */
     --scroll-gutter: 10px;
+    /* --single-page-font-floor — MODE 2&#x27;S LEGIBILITY FLOOR. The smallest body
+       font the single-page fit may shrink to before it GIVES UP and falls back
+       to Mode 1 whole-window scroll. Tied to the base scale (base font is
+       clamp(16px..19px)); ~15px is a narrow band down from it, still readable. */
+    --single-page-font-floor: 15px;
 }
 .screen-card {
     width: 100%;
     max-width: min(94vw, 1200px);
     min-height: var(--card-min);
-    max-height: var(--card-max);
     margin-inline: auto;
     background: var(--card-bg);
     border: 1px solid var(--line);
@@ -308,50 +334,43 @@ a { color: var(--accent); }
     /* Flush-left is the default; the narrative family (below) opts into
        centring, and the card itself is never centre-aligned by default. */
     text-align: left;
-    /* DO NOT add transform / filter / backdrop-filter / contain to this rule.
-       Any of them makes the card a containing block for position:fixed, which
-       would trap the tab-monitor&#x27;s full-screen overlay inside the card. */
+    /* DO NOT add transform / filter / backdrop-filter / contain / zoom to this
+       rule — nor to the single-page-fit scaling below. Any of them makes the
+       card a containing block for position:fixed, which would trap the
+       tab-monitor&#x27;s full-screen overlay inside the card. This is WHY Mode 2
+       scales with font-size and spacing tokens and never with transform/zoom. */
 }
 @supports (height: 1dvh) {
-    :root { --card-max: 88dvh; }
+    /* The dvh forms; --inner-scroll-max references --card-min, so it follows. */
+    :root {
+        --card-margin: 6dvh;
+        --card-min: calc(100dvh - 2 * var(--card-margin));
+    }
 }
 
-/* THE SCROLL REGION — ON A WIDE SCREEN. The header strip and the button row are
-   PINNED (they are flex:0 0 auto siblings) and only this middle region scrolls.
+/* THE CONTENT REGION — MODE 1 (THE DEFAULT): PLAIN DOCUMENT FLOW, NO INNER
+   SCROLL. The header strip and the button row are still flex siblings, but with
+   no max-height on the card there is nothing to scroll INSIDE: the region grows
+   with its content, the card grows with the region, and the WHOLE BROWSER
+   VIEWPORT scrolls — so the forward / decision control sits at the natural
+   bottom of the content and is reached by scrolling PAST it, never pinned beside
+   it. That is the property this template wants everywhere now, for the reason it
+   already wanted it on a phone: a pinned action on a screen where the choice is
+   below the cut is the &quot;reach the action before seeing what you are agreeing to&quot;
+   shape, which consent and the agreement page must never have.
 
-   THE INTENTION, STATED HONESTLY (rewritten 2026-08-12, improvement_suggestions
-   item 1). This used to read &quot;so the forward action is always on screen&quot;. That
-   is TRUE ON A WIDE SCREEN and is why the pattern exists: a participant on a
-   laptop never has to hunt for Next. IT IS DELIBERATELY NOT TRUE ON A PHONE.
-   Below 520px the card-scroll model is switched off entirely (see the phone
-   breakpoint further down): the card grows, the PAGE scrolls, and Next sits
-   after the content in document order — so on a phone the forward action is
-   reached BY scrolling past the content rather than being pinned beside it.
+   THE INNER-SCROLL MODEL IS NOT GONE — it is the DORMANT `.inner-scroll` opt-in
+   below (Mode 3), which the results page uses and any page may re-enable. Its
+   scroll region, its `min-height: 0` load-bearing line and all four affordance
+   layers live there, scoped to `.inner-scroll .experimental-content`, with their
+   reasoning preserved. On a Mode-1 page the region never overflows (the card
+   grows instead), so global.js never sets the `.is-scrollable-*` classes and the
+   fade/cue simply never fire — no script, no phantom shadow.
 
-   Why the difference is on purpose, and not a compromise: at 375x667 the
-   consent page&#x27;s copy is ~750px in a ~415px region, so no arrangement of a
-   pinned layout puts the consent options above the fold — the one thing this
-   template may not do is trim consent copy. A pinned Next on a screen where the
-   choice is below the cut is the &quot;reach the action before seeing what you are
-   agreeing to&quot; shape, which is worse than scrolling. Phone participants also
-   expect to scroll a page rather than a box inside it. So: pinned action on a
-   wide screen, natural document flow on a narrow one, and the property claimed
-   here holds exactly where it is claimed.
-
-   `min-height: 0` IS LOAD-BEARING. A flex child&#x27;s default min-height is `auto`,
-   which refuses to shrink below its content — without this line the region
-   silently never scrolls and the card grows past its max-height instead. This is
-   the single most common way this pattern fails; do not remove it.
-
-   `safe center` keeps the short-page vertical centring while guaranteeing that
-   overflowing content is never cut off at the TOP (plain `center` makes the
-   overflow above the box unreachable). Browsers without `safe` keep plain
-   `center`, which is correct for them because they only reach this rule when the
-   content is short enough not to overflow anyway.
-
-   The padding is not decoration: `overflow-y: auto` also clips horizontally, and
-   a :focus-visible ring is 3px + 2px offset. Without room the focus outline on
-   the first/last option card would be sliced off by the scroll edge. */
+   `safe center` keeps a SHORT page&#x27;s content vertically centred in the region
+   (the region fills the card&#x27;s --card-min floor); a tall page just flows from
+   the top. Browsers without `safe` keep plain `center`, correct for them because
+   a Mode-1 card grows rather than clipping. */
 .experimental-content {
     /* NO `width: 100%` HERE, and that is deliberate. As a flex item of the card
        this region already stretches to the card&#x27;s content width; adding
@@ -365,15 +384,45 @@ a { color: var(--accent); }
     flex-direction: column;
     gap: 16px;
     flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
     justify-content: center;
     justify-content: safe center;
+    /* The symmetric padding/negative-margin pair holds a :focus-visible ring&#x27;s
+       gutter open without shifting anything (it nets to zero). Kept from the
+       inner-scroll era because it costs nothing and keeps the band-centring math
+       identical whether or not a page opts into inner scroll. */
     padding: 8px;
-    margin: -8px;           /* cancel the focus-ring gutter so nothing shifts */
+    margin: -8px;
     scroll-padding-block: 8px;
+}
 
-    /* SCROLL AFFORDANCE — THREE LAYERS. Measured 2026-08-10: the background
+/* ===========================================================================
+   MODE 3 — INNER-CARD SCROLL. THE DORMANT OPT-IN. (2026-08-18 scroll overhaul.)
+   ---------------------------------------------------------------------------
+   `.inner-scroll` on a `.screen-card` restores the OLD model: the card is capped
+   at --inner-scroll-max and its MIDDLE region scrolls inside it while the header
+   and the footer stay pinned. It is retained for ONE live user — the results
+   page (outro/Results.html), whose round-payment detail is collapsed by default
+   so the collapsed state fits one page and expanding it scrolls INSIDE the white
+   card — and documented as a reusable opt-in any page can turn back on. The
+   reasoning below is the reasoning that used to sit on the unconditional rule;
+   it is preserved because it is still true wherever this mode is used.
+
+   `min-height: 0` IS LOAD-BEARING. A flex child&#x27;s default min-height is `auto`,
+   which refuses to shrink below its content — without this line the region
+   silently never scrolls and the card grows past its max-height instead. This is
+   the single most common way this pattern fails; do not remove it.
+
+   The padding/margin pair is not decoration here either: `overflow-y: auto` also
+   clips horizontally, and a :focus-visible ring is 3px + 2px offset, so without
+   the gutter the focus outline on the first/last option card would be sliced off
+   by the scroll edge. It is inherited from the default rule above (same value),
+   so it does not need repeating. */
+.screen-card.inner-scroll { max-height: var(--inner-scroll-max); }
+.inner-scroll .experimental-content {
+    min-height: 0;
+    overflow-y: auto;
+
+    /* SCROLL AFFORDANCE — FOUR LAYERS. Measured 2026-08-10: the background
        gradients alone (layer 2) were far too quiet to read as &quot;there is more
        below&quot;, and a background can only ever paint BEHIND the text, so a
        partially visible line was still sliced cleanly through the glyphs and
@@ -394,7 +443,8 @@ a { color: var(--accent); }
        3. A CONTENT FADE (the .is-scrollable-* rules below), applied as a MASK
           so it fades the text itself. It is driven by global.js, which knows
           the scroll position, so the LAST line is never faded — the fade means
-          &quot;there is more&quot;, always. */
+          &quot;there is more&quot;, always.
+       4. THE WIDE LOW PULSING V (the scroll-cue component further down). */
     scrollbar-gutter: stable both-edges;
     /* THE MASKING GRADIENTS MUST BE FULLY OPAQUE FOR AT LEAST THE SHADOW&#x27;S
        HEIGHT (16px). They are 30px tall and solid to 60% of that = 18px, then
@@ -403,17 +453,55 @@ a { color: var(--accent); }
        scroll — a phantom band across a card that fits, which is worse than no
        affordance at all (measured on the lab gate and the instructions page,
        2026-08-11).
-       NB 2026-08-11 (2): the `/*` that opens this comment was MISSING, so CSS
-       error recovery swallowed everything from here to the end of the
-       `background` declaration below — layer 2 was silently absent from every
-       page. A comment that does not open is not a comment; it is a deleted
-       rule. */
+       NB the `/*` that opens this comment was once MISSING, so CSS error
+       recovery swallowed everything to the end of the `background` declaration
+       below — layer 2 was silently absent from every page. A comment that does
+       not open is not a comment; it is a deleted rule. */
     background:
         linear-gradient(var(--card-bg) 60%, rgba(255, 255, 255, 0)) top / 100% 30px no-repeat local,
         linear-gradient(rgba(255, 255, 255, 0), var(--card-bg) 40%) bottom / 100% 30px no-repeat local,
         radial-gradient(farthest-side at 50% 0, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) top / 100% 16px no-repeat scroll,
         radial-gradient(farthest-side at 50% 100%, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) bottom / 100% 16px no-repeat scroll;
 }
+
+/* ===========================================================================
+   MODE 2 — SINGLE-PAGE FIT. PROGRESSIVE ENHANCEMENT, DESKTOP, TWO PAGES.
+   ---------------------------------------------------------------------------
+   COMPONENT — single-page fit. INTENTION: fit all of a short-ish page&#x27;s content
+   in ONE viewport with no scroll, by tightening spacing and reducing the body
+   font within a narrow band — used on exactly the consent welcome page
+   (before/welcome+consent.html) and the tab-monitor agreement
+   (before/tab_monitor_agree.html), and only on desktop.
+
+   A page opts in by marking its `.screen-card` `data-single-page`. global.js&#x27;s
+   `initSinglePageFit` then MEASURES and, on a desktop only, adds
+   `.single-page-fit` and sets `--single-page-font` to the largest body font
+   (from the base scale DOWN TO --single-page-font-floor) at which the whole card
+   fits one viewport. If it fits at or above the floor: one centred screen, no
+   scroll. If even the floor will not fit, the JS GIVES UP — removes the class —
+   and the page is plain Mode 1 whole-window scroll.
+
+   SCALES WITH FONT-SIZE AND SPACING ONLY — never transform/zoom/filter, each of
+   which would make the card a containing block and trap the tab-monitor overlay
+   inside it (see the .screen-card warning). Dropping the card&#x27;s font shrinks
+   every em-based pad/gap with it; this block tightens the few fixed px/vw rhythms
+   on top of that. `font-size` is set from the JS-provided custom property so the
+   value the fit chose is data, not a hard-coded step.
+
+   THE DECISION CONTROLS ARE NEVER PINNED: accept / decline / acknowledge stay at
+   the end of the content (the ordinary foot button row), so a participant cannot
+   reach the choice without passing the reading, and cannot miss that there is
+   more. Phones never run this (always Mode 1); with no JS the class is never
+   added, so the SAFE Mode-1 default always shows through.
+   Specimen in _static/global/html/template.html. */
+.screen-card.single-page-fit {
+    font-size: var(--single-page-font, 1rem);
+    gap: clamp(10px, 1.6vw, 18px);
+}
+.screen-card.single-page-fit .experimental-header { gap: 8px; }
+.screen-card.single-page-fit .experimental-content { gap: 10px; }
+.screen-card.single-page-fit &gt; .button-row { padding-top: 14px; }
+.screen-card.single-page-fit .panel { padding: clamp(10px, 1.8vw, 16px); }
 
 /* Layer 1 — the scrollbar itself. WebKit/Blink ignores scrollbar-width when a
    ::-webkit-scrollbar rule exists, and painting one explicitly is what stops
@@ -704,6 +792,31 @@ a { color: var(--accent); }
     box-shadow: inset 3px 0 0 var(--danger);
 }
 
+/* COMPONENT — elicitation box. INTENTION: the SHARED FRAME every elicitation
+   sits in, so a slider, an allocation, a rating or any other ACTIVE input
+   region looks the same and reads as &quot;here is where you answer&quot; — visual
+   separation of the response from the surrounding prose, as a CONVENTION rather
+   than styling local to one control. The next agent adding an elicitation drops
+   the control inside `&lt;div class=&quot;elicitation&quot;&gt;…&lt;/div&gt;` and it is framed
+   automatically; the control itself (e.g. .slider-elicit) carries only its own
+   internal look.
+
+   DISTINCT FROM .panel ON PURPOSE, and it must stay two classes not one. .panel
+   is the quiet grey box for SECONDARY INFORMATION (a note, a reminder); this
+   frames an ACTIVE INPUT the participant acts on. So it is the raised WHITE
+   surface with a stronger border and a soft lift — it stands forward off the
+   card as the thing to interact with, where the panel sits back into it. Do not
+   collapse them by tinting a panel: the intention differs, so the class does.
+   Specimen in _static/global/html/template.html (the slider elicitation is its
+   first user). */
+.elicitation {
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(16px, 2.6vw, 22px);
+}
+
 .hint { color: var(--ink-mute); font-size: 0.86em; }
 
 /* COMPONENT — template note. INTENTION: a muted italic aside addressed to the
@@ -776,6 +889,131 @@ a { color: var(--accent); }
 }
 
 .screen-card &gt; .button-row { margin-top: auto; padding-top: 24px; }
+
+/* COMPONENT — THE ROOM ENTRY GATE  (Julian, 2026-08-18)
+   =============================================================================
+   INTENTION: vertically centre the content on oTree&#x27;s room-entry interstitial
+   (`_templates/room_welcome.html`, wired via `welcome_page` on settings.ROOMS),
+   instead of foot-anchoring its one button the way every in-app page does.
+
+   WHY THIS PAGE IS AN EXCEPTION, AND WHY IT IS *NOT* THE SAME EXCEPTION AS ANY
+   OTHER. The default card layout (above) does two things a normal page wants:
+   it holds the `--card-min` floor so the frame never jumps between screens, and
+   it pushes the forward action to the FOOT (`.screen-card &gt; .button-row`,
+   `margin-top: auto`) so content sits up top and the action sits near the
+   bottom. That reads well when the card is FULL — a consent page, the quiz, the
+   task. The room gate is the degenerate case: one line of copy and a Start
+   button. Foot-anchoring the button there leaves the copy stranded at the top
+   and the button alone at the bottom with a wide dead band between them
+   (measured ~270px in the downstream study this mirrors). So the gate KEEPS the
+   floor — visual consistency with every other screen is the whole reason not to
+   just shrink the card — but CENTRES its header+content+button as a group within
+   that floor rather than splitting them to the two edges. (The header is the
+   study&#x27;s styled `Welcome` — eyebrow + title — added 2026-08-18; the group it
+   centres is those three, top to bottom.)
+
+   THIS IS ITS OWN CLASS ON PURPOSE. It does NOT reuse or extend `.narrative-card`
+   (which only decides HORIZONTAL text treatment — the gate still composes that
+   for its centred copy), nor any other page&#x27;s exception. One class silently
+   governing two unrelated screens is exactly the trap: a future tweak aimed at
+   some other short page would quietly move the FIRST screen every participant
+   sees. `.room-gate` names one screen and one screen only; do not reach for it
+   from anywhere else, and if another short page ever wants centring, give it its
+   own class rather than sharing this one.
+
+   HOW IT CENTRES, with the footer still at the foot. The card is a flex column.
+   TWO auto margins, BOTH OWNED BY THIS BLOCK, share the free space equally: a
+   `margin-top: auto` on `.experimental-header` (the FIRST element of the group)
+   and a `margin-bottom: auto` on the button row. The result is F/2 above the
+   header and F/2 between the button and the logo, so the header+content+button
+   trio is centred in the space above the footer, and that same lower margin
+   pushes the logo strip flush to the card&#x27;s bottom edge — the LOGO FOOTER RULE&#x27;s
+   outcome (order 999, divider above, at the foot) is preserved; only the
+   mechanism that pins it there changes. (The upper margin lived on
+   `.experimental-content` until 2026-08-18, when the header was added above the
+   copy; an auto margin on the content would now split the header off the top
+   instead of centring the whole group, so it moved up to the header.)
+
+   WHY THIS BLOCK PINS THE FOOTER ITSELF INSTEAD OF LEANING ON THE FOOTER RULE&#x27;S
+   OWN `margin-top: auto`. Because that margin is NOT there on the screens that
+   matter. The `@media (max-height: 820px)` block below zeroes
+   `.logo-section`&#x27;s margin-top to buy back rhythm — and a 1280x720 laptop (the
+   single most common participant display) and every phone match it. Had this
+   block used the footer&#x27;s margin as the second centring margin, only ONE auto
+   margin would survive on those screens, it would eat all the free space, and
+   the copy would sit at the BOTTOM of the card instead of centred — green on a
+   tall desktop, broken on the screen most participants actually arrive on. So
+   this block sets `.logo-section`&#x27;s margin-top to 0 in ALL viewports and does
+   its own pinning with the button&#x27;s bottom margin. Two margins, both here, no
+   dependency on a rule a media query rewrites out from under it.
+
+   For the two margins to have space to share, the content region must NOT grow
+   (it defaults to `flex: 1 1 auto`, which would eat the free space first and
+   leave the margins nothing) and the button must NOT foot-anchor (or it lands at
+   the bottom, not under its copy). Both are overridden below. This page is
+   always short by construction, so dropping the grow/scroll behaviour costs
+   nothing here.
+
+   NOTE ON ASSET LOADING — this is easy to get wrong. The gate links base.css
+   ITSELF (see the template header), NOT via css_bundle.html, so this rule only
+   reaches the page because it lives in base.css. Do not move `.room-gate` into a
+   per-page stylesheet: the gate does not load those, and the class would
+   silently do nothing, falling back to the plain foot-anchored card. And because
+   the gate&#x27;s own &lt;link&gt; carries no `?v=` cache-buster (no page context for
+   C.STATIC_VERSION), a change here is easy to miss in a version bump — verify by
+   fetching the RENDERED page. Measured by scripts/tests/render_check.py leg AR. */
+/* ZERO THE CARD&#x27;S FLEX GAP, and let explicit margins carry the header-&gt;copy and
+   copy-&gt;button rhythm instead. This is not cosmetic — it is what makes the
+   centring EXACT. The card&#x27;s `gap` is inserted BETWEEN flex items, so there is a
+   gap between the button row and the logo but NONE above the header (it is the
+   first child). That single unmirrored trailing gap rides the whole group up by
+   half its size — measured as an 8px error at the 16px laptop gap and 12px at
+   the 26px desktop gap, i.e. exactly gap/2, and it grows with the gap. With the
+   gap at 0, the two auto margins are the only vertical space, so they frame the
+   group symmetrically. (The header-&gt;copy spacing is the content&#x27;s own
+   margin-top below, and the copy-&gt;button spacing is the button row&#x27;s
+   padding-top, the same rhythm every page&#x27;s forward action already uses.) */
+.room-gate.screen-card { gap: 0; }
+/* THE UPPER HALF OF THE CENTRING lives on the HEADER, because the header is the
+   FIRST element of the centred group (eyebrow + Welcome title, added 2026-08-18
+   to restore the styled heading the .room-gate work had left off). It used to
+   sit on `.experimental-content` back when the copy was the first child; with a
+   header above the copy, an auto margin on the content would open a gap BETWEEN
+   the header and the copy and strand the header at the top instead of centring
+   the whole group. `.experimental-header` is already `flex: 0 0 auto` (it will
+   not grow), so this margin is free to take the upper share of the slack. */
+.room-gate .experimental-header { margin-top: auto; }
+.room-gate .experimental-content {
+    /* Hug the copy instead of ballooning to fill the card, so the free space
+       survives for the two auto margins to centre the group. */
+    flex: 0 0 auto;
+    /* The base rule pairs `padding: 8px` with `margin: -8px` to hold a focus-ring
+       gutter open inside the scroll region. This page never scrolls, so the
+       gutter is pointless here — and its negative BOTTOM margin would pull the
+       button up into the copy, overlapping the rhythm the button row&#x27;s
+       padding-top is meant to set. Drop both — netting to zero horizontally, as
+       the phone breakpoint already does. The TOP margin is now header-&gt;copy
+       RHYTHM (not centring — the centring auto margin moved up to the header
+       above): the card&#x27;s normal inter-block gap, so the space under the Welcome
+       title matches the header-&gt;content spacing every other screen gets from
+       that same gap. */
+    padding: 0;
+    margin: clamp(16px, 2.6vw, 26px) 0 0 0;
+}
+/* Un-foot-anchor the button (margin-top: 0) so it hugs directly under its copy —
+   the padding-top from the base rule stays as ordinary rhythm; that 24px is
+   spacing, not the dead band this fixes. `margin-bottom: auto` is the lower half
+   of the centring AND what pins the logo strip to the foot (see the block header
+   for why this block owns that pin rather than the footer rule). Higher
+   specificity than `.screen-card &gt; .button-row`. */
+.room-gate.screen-card &gt; .button-row { margin-top: 0; margin-bottom: auto; }
+/* Take the footer&#x27;s own top margin out of the centring maths in EVERY viewport,
+   so exactly two auto margins (both above) do the work. On short screens the
+   media query already sets this to 0; here we also beat the tall-screen
+   `.screen-card &gt; .logo-section { margin-top: auto }` (same specificity, this
+   rule is later). The strip still lands at the foot — the button&#x27;s bottom margin
+   puts it there. */
+.room-gate .logo-section { margin-top: 0; }
 
 .next-button,
 button.next-button,
@@ -1163,21 +1401,28 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
     :root { --logo-box-h: 32px; --logo-box-w: 224px; }
     .logo-row { gap: 18px; }
 
-    .screen-card { max-height: none; }
-    /* A card that now EXCEEDS the viewport must not be centred by the old
-       rule: `align-items: center` on an overflowing flex item pushes its top
-       above the container&#x27;s start edge, where it cannot be scrolled back to.
-       `safe center` centres a card that fits and falls back to start-aligning
-       one that does not; browsers without `safe` keep the flex-start line
-       above it, which is the correct behaviour for them for the same reason. */
-    .experimental-screen {
-        align-items: flex-start;
-        align-items: safe center;
-    }
-    .experimental-content {
+    /* THE INNER-SCROLL OPT-IN LETS GO ON A PHONE. A Mode-1 card already has no
+       ceiling and no inner scroll, so these only affect a `.inner-scroll` page
+       (the results page): on a phone it drops the cap and scrolls the PAGE like
+       everything else, rather than trapping the receipt in a box inside the card.
+       `.inner-scroll …` is needed on both because the opt-in rules out-rank the
+       bare-class defaults on specificity (a media query adds none). The
+       affordance background is cleared with it, or its local gradients would
+       paint phantom bands once the region no longer scrolls. */
+    .inner-scroll.screen-card { max-height: none; }
+    .inner-scroll .experimental-content {
         overflow: visible;
-        /* the padding/negative-margin pair existed to stop `overflow-y: auto`
-           clipping a focus ring; with nothing clipping, it only adds width. */
+        background: none;
+        scrollbar-gutter: auto;
+    }
+    /* The card top is already anchored (base `.experimental-screen`,
+       align-items: flex-start), so a phone card that exceeds the viewport grows
+       downward and the page scrolls — no per-breakpoint alignment override is
+       needed any more. */
+    .experimental-content {
+        /* the padding/negative-margin pair held a focus-ring gutter open inside
+           the (now absent) inner scroller; with nothing clipping it only adds
+           width, so drop it on a phone. */
         padding: 0;
         margin: 0;
     }
@@ -1200,6 +1445,17 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
    only 634px tall. Measured 2026-08-10: on that screen the consent options sat
    entirely below the fold, so a participant could reach Next without ever seeing
    the choice they were consenting to.
+
+   ITS ROLE UNDER THE THREE-MODE MODEL (2026-08-18): this block is NO LONGER what
+   clears the consent fold — consent and the agreement are Mode 2 single-page fit
+   on a desktop, which fits the whole choice in one viewport by tightening
+   font+spacing itself, and on a phone / on a Mode-1 fallback the choice is
+   reached by scrolling the page (bypass-proof, never pinned). What survives is
+   this block&#x27;s ORIGINAL, broader job: on any SHORT screen it tightens the
+   card&#x27;s vw-driven rhythm so a Mode-1 page needs less scrolling and a short page
+   frames its content better. It is general Mode-1 short-screen tightening now,
+   not a fold-clearing patch for a capped scroller — the capped scroller is the
+   dormant `.inner-scroll` opt-in above.
 
    This block buys back ~60px of visible content on a 720px-tall screen by
    tightening spacing ONLY — no font size, no copy, no component changes, so
@@ -1664,7 +1920,177 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
     transition: width .3s ease;
 }
 
-/* --- COMPONENT: warning modal ------------------------------------------------
+/* ===========================================================================
+   THE NOTIFICATION TIER LADDER — the study&#x27;s four ways of putting something in
+   front of a participant, numbered 0–3 by how far OUTSIDE the experiment frame
+   the message sits. ONE place, so a new pop-up is a CHOICE BETWEEN FOUR
+   DOCUMENTED BEHAVIOURS rather than a fresh invention with its own z-index and
+   its own idea of how to be dismissed (Julian, 2026-08-17; brief in
+   _ai/template_adoption_brief.md, Topic A — local only, _ai/ is gitignored).
+
+   The tier decides BEHAVIOUR (backdrop? how is it dismissed? can it move the
+   page layout?); the component keeps its own SKIN. Apply as
+   `class=&quot;popup popup--&lt;tier&gt;&quot;`, plus the component&#x27;s own skin class.
+
+     popup--anchored  (tier 0) NO backdrop. A small panel floated beside the
+                      control that opened it, absolute and out of flow, so
+                      opening it can never push the page down. Dismissed by an
+                      outside click or Escape. The page underneath stays usable.
+
+     popup--toast     (tier 1) NO backdrop, NOT dismissible by hand, absolutely
+                      positioned so it can never move layout, and it CLEARS
+                      ITSELF after a few seconds (or when the action completes).
+                      Julian calls this the SIDETONE. Announced politely
+                      (role=&quot;status&quot;) so a screen reader hears it without focus
+                      being stolen.
+
+     popup--modal     (tier 2) DIMMED BACKDROP, EXPLICIT DISMISSAL: it blocks
+                      the page until the participant acts. Escape-dismissible BY
+                      DEFAULT; a modal that must be ACKNOWLEDGED opts in to
+                      button-only dismissal with `popup--acknowledge`. It KEEPS
+                      THE STUDY&#x27;S VISUAL LANGUAGE — the card radius, the lift
+                      shadow, the shared button — because it is still the study
+                      talking, not the browser. IMPLEMENTED BY the warning-modal
+                      component below (.modal-backdrop / .modal-card); popup--modal
+                      is its ladder name, one rule block, not a second modal.
+
+     popup--takeover  (tier 3) FULL-BLEED and BLURRED, opaque backdrop, NO
+                      DISMISSAL AT ALL — it clears only when the blocking
+                      CONDITION clears, never by a button. The study has stopped
+                      and the participant cannot carry on from here. IMPLEMENTED
+                      BY .tabmon-overlay (tabmonitor.css, the red away-overlay),
+                      which predates this ladder; popup--takeover is its alias
+                      there, so tier 3 is catalogued, not rebuilt.
+
+   HOW A TIER IS CHOSEN AT THE CALL SITE — the one-line test:
+     in flow beside a control            → anchored
+     a fading acknowledgement of an act  → toast
+     must be decided before continuing   → modal
+     the study has stopped               → takeover
+   A takeover NEVER has a close control; if you need a button, it is a modal.
+   Copy is study-specific and passed in the markup (counts/prizes/rounds come
+   from config, per the no-hardcoded-quantities rule); the toast timeout is the
+   one allowed literal, an interaction timing, exposed as data-popup-timeout.
+
+   The BEHAVIOUR (open/close, ARIA, keyboard, focus trap, auto-dismiss) lives in
+   ONE place — global.js&#x27;s &quot;POPUP LADDER&quot; block — keyed off these classes and
+   data-popup-* attributes, so a study author writes MARKUP ONLY. Specimens of
+   all four are in _static/global/html/template.html (CARD 3). Tiers 2 and 3
+   already had live instances when the ladder landed; those keep their own JS
+   (the warning modal, the quiz dialogs, the tab monitor) and are brought in by
+   NAME + the shared focus trap, not rewired — the tab-switch warning modal in
+   particular is left on its own tabmonitor chrome on purpose (it owns the
+   disqualification route; see DECISIONS.md).
+   =========================================================================== */
+
+/* Every popup sits above the page and never inherits the surrounding text
+   alignment. Nothing here positions anything — each tier does that itself,
+   because &quot;does this take part in layout&quot; is exactly what separates them. */
+.popup { text-align: left; }
+.popup[hidden] { display: none; }
+
+/* --- TIER 0: ANCHORED --------------------------------------------------------
+   INTENTION (lifted verbatim from the TODO entry that commissioned it): tier 0
+   is for something the participant ASKED FOR BY CLICKING — an explainer beside a
+   figure or a label, the meaning of a term, a reminder of the exchange rate or
+   of how the bonus is worked out; content that does not interrupt, does not
+   require a decision, and can be dismissed by looking away. What does NOT belong
+   here: anything the study needs the participant to acknowledge, anything that
+   reports a rule being broken, anything time-critical.
+
+   Distinct from .popover-anchor / .popover-panel above: THAT is a CSS-only
+   hover/focus tooltip (role=&quot;tooltip&quot;), shown while hovered and gone when not.
+   THIS is CLICK-to-open and stays open until dismissed (role=&quot;dialog&quot;), which is
+   why it needs the JS in global.js. Use the popover for a passive hint, tier 0
+   for something the participant deliberately opened.
+
+   The trigger is wrapped in .popup-anchor (position: relative) and the panel is
+   absolute under it, so opening the panel never pushes the page down. */
+.popup-anchor { position: relative; display: inline-flex; }
+
+.popup-trigger {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--card-bg);
+    color: var(--ink-mute);
+    font: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color .14s ease, color .14s ease, background-color .14s ease;
+}
+.popup-trigger:hover,
+.popup-trigger[aria-expanded=&quot;true&quot;] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.popup--anchored {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    width: min(320px, 78vw);
+    padding: 12px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lift);
+    font-size: .84em;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+.popup--anchored p { margin: 0; }
+.popup--anchored p + p { margin-top: .6em; }
+
+/* --- TIER 1: TOAST (the sidetone) --------------------------------------------
+   CANNOT MOVE THE LAYOUT — that is the whole contract. Absolutely positioned
+   inside its host (which must be position: relative — use .popup-toast-host, or
+   any relatively-positioned wrapper), so it is out of flow in every state and
+   appearing or clearing shifts nothing. Centred over the control it is talking
+   about, and pointer-transparent so it can never swallow the click the
+   participant makes next. It auto-clears on a timer (global.js, default 4000ms,
+   overridable with data-popup-timeout) — never dismissed by hand. */
+.popup-toast-host { position: relative; }
+
+.popup--toast {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 60;
+    max-width: min(320px, 92%);
+    padding: .6em 1em;
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lift);
+    font-size: .84em;
+    line-height: 1.4;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .16s ease;
+}
+.popup--toast strong { color: #fff; }
+.popup--toast.is-visible { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    .popup--toast { transition: none; }
+}
+
+/* --- COMPONENT: warning modal  (TIER 2 of the ladder above) ------------------
    ALL WARNINGS ARE CENTRED, SCREEN-DIMMING MODALS (change_requests item 9,
    Julian 2026-08-11) — never a banner that pushes the page down under the
    participant. These rules used to live in quiz.css and serve the lab&#x27;s
@@ -1673,11 +2099,19 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
    exactly this chrome on every page. An overlay, so revealing it moves nothing
    underneath (the stability rule).
 
+   THIS IS TIER 2 (popup--modal) OF THE LADDER. `.popup--modal` is the ladder
+   name for exactly this backdrop; the two selectors share one rule block below
+   so there is one implementation, not two. A page adds `popup popup--modal` to
+   the backdrop and `.modal-card` (+ optional `popup--acknowledge` for button-only
+   dismissal) and gets the tier&#x27;s behaviour from global.js.
+
    DELIBERATELY NOT SHARED: the tab monitor&#x27;s full-screen red overlay
-   (tabmonitor.css). That is an ENFORCEMENT warning covering the whole viewport
-   on purpose, not a validation message, and Julian confirmed it stays as it is.
+   (tabmonitor.css). That is tier 3 (an ENFORCEMENT takeover covering the whole
+   viewport on purpose), not a validation message, and Julian confirmed it stays
+   as it is.
 
    [hidden] must win over the flex display. */
+.popup--modal,
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1689,6 +2123,7 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
     padding: 24px;
 }
 
+.popup--modal[hidden],
 .modal-backdrop[hidden] { display: none; }
 
 .modal-card {
@@ -1938,19 +2373,198 @@ tr.unmapped-row td.c-label { box-shadow: inset 4px 0 0 var(--dash-unmapped); }
 .c-instr { width: 10%; white-space: nowrap; }
 .c-earn { width: 10%; white-space: nowrap; }
 
-/* --- the summary strip, BELOW the table (round-2 item 7) -------------------
-   NOT a table row, deliberately and by instruction: a row of averages under a
-   column of per-participant numbers reads as one more participant. It is its
-   own strip, outside the table, and each pill is LABELLED &quot;average&quot; in words —
-   the label is the part that makes it unmistakable, not the placement. */
-.dash-summary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin: 12px 2px 0; font-size: .85rem; color: var(--ink-mute); }
-.dash-summary .sum-item { display: inline-flex; align-items: baseline; gap: 6px;
+/* =========================================================================
+   THE OVERVIEW BLOCK — the header row and the four condensed pills.
+
+   WHAT AN OPERATOR READS, IN ORDER. Supervising a live session is not analysis.
+   Over a two-second poll the questions are: is the room full → how is the
+   DESIGN filling → who has LEFT and how → what is it COSTING → how LONG is it
+   taking. Everything per-participant is already a column, so the block carries
+   only aggregates and pushes every detail to the `title` tooltip this screen
+   already uses everywhere.
+
+   THE COLOUR RULE — state it as a rule, because it is the thing a later hand
+   undoes first:
+
+     THE CONTAINER IS NEUTRAL. COLOUR BELONGS TO VALUES, AND ONLY WHERE IT
+     CARRIES A MEANING THIS SCREEN ALREADY USES ELSEWHERE.
+
+       GREEN   (#1f7a46)      completed, or money — the SAME green as the
+                              finished row tint, .spill-finished and .pill-earn
+       RED     (--danger)     ended early — the SAME red as .terminal-row and
+                              .spill-terminal
+       AMBER   (--dash-amber) stalled — the SAME amber as tr.stalled and
+                              .spill-stall
+       NEUTRAL (--ink)        a plain count with no valence: an assigned total,
+                              a duration, a count of people still going
+
+   A tinted frame and a tinted title spend the colour before the eye reaches the
+   number: by the time you read `4`, red has been used on the border, the fill
+   and the word, so the number&#x27;s redness adds nothing — and FINISHED people end
+   up sitting inside a red object. Colour that is everywhere signals nothing.
+   COROLLARY: a colour is never spent on a frame, a title, a key or a label.
+   Those are structure. A value with no valence stays neutral; do not colour it
+   to make a pill look livelier.
+
+   THE HEADLINE GETS A SHAPE, THE DECOMPOSITION GETS INK. FINISHED appears
+   twice — the session total in Participants, and split per treatment. The total
+   sits in a green CHIP; the per-treatment numerators are green TEXT. One shape,
+   so the eye lands on the total first. Two would compete and neither would lead.
+
+   ALIGNMENT: ONE MODEL, BASELINE, PLUS ONE FIXED LINE BOX. Mixing
+   `align-items: center` on a pill with `align-items: baseline` inside its value
+   groups put the tiny keys 2.08px below the pill names (measured). Type of
+   different sizes lines up on its BASELINE, not on its box centre — a box
+   centre is a property of the line box, not of the glyphs. And baseline alone
+   is not enough: a line box&#x27;s HEIGHT scales with font size, so three type sizes
+   gave three box heights and pills 32.5/34.5/38.5px tall. Hence `line-height`
+   in PIXELS on every leaf, and an explicit pill height so no single inner chip
+   can resize its family. Pinned by dashboard_render_check.
+   ========================================================================= */
+.dash-overview {
   background: var(--card-bg); border: 1px solid var(--line);
-  border-radius: 999px; padding: 4px 12px 4px 10px; box-shadow: var(--shadow); }
-.dash-summary .sum-label { text-transform: uppercase; letter-spacing: .04em;
-  font-size: .68rem; font-weight: 650; }
-.dash-summary .sum-n { font-size: .72rem; }
+  border-radius: var(--r-md); box-shadow: var(--shadow);
+  padding: 11px 14px 12px; margin-bottom: 14px;
+}
+.dash-overview .dash-top { margin-bottom: 0; }
+.ov-strip {
+  display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+  margin-top: 9px; padding-top: 10px; border-top: 1px solid var(--line);
+}
+.ov-strip:empty { display: none; }
+
+.ov {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 0 11px 0 10px; height: 32px; background: var(--sunken);
+  font-size: .8rem; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* THE FIXED LINE BOX — see ALIGNMENT above. One height for every leaf,
+   whatever its font size, so the boxes coincide instead of nesting. */
+.ov, .ov * { line-height: 20px; }
+.ov-label { font-size: .72rem; font-weight: 700; letter-spacing: .015em;
+  color: var(--ink); }
+/* A VALUE GROUP: tiny key, heavy number, optional denominator. The key is what
+   makes a bare number legible without a tooltip. */
+.ov-pair { display: inline-flex; align-items: baseline; gap: 4px; }
+.ov-pair i { font-style: normal; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .05em; font-weight: 650; color: var(--ink-mute); }
+.ov-pair em { font-style: normal; font-size: .95rem; font-weight: 700;
+  color: var(--ink); }
+.ov-pair s { text-decoration: none; }
+.ov-pair u { text-decoration: none; font-size: .95rem; font-weight: 700;
+  color: var(--ink); }
+.ov-sub, .ov-tail, .ov-unit, .ov-den {
+  font-size: .68rem; letter-spacing: .01em; color: var(--ink-mute); }
+.ov-tail { padding-left: 8px; border-left: 1px solid var(--line-strong); }
+
+/* TREATMENTS. The NUMERATORS are completions, so they take the green; the
+   DENOMINATORS are the balance — a plain count, no valence — so they stay
+   neutral ink and the two side by side read as the comparison they are. */
+.ov-treat .ov-pair em { color: #1f7a46; }
+.ov-treat .ov-pair s { color: var(--ink-mute); opacity: .55; }
+
+/* PARTICIPANTS. Neutral pill; the buckets carry the colour. The wide sibling
+   gap lives HERE, on the one pill with a NESTED item to tell from its siblings
+   — 12px between buckets against 4px inside the nest. */
+.ov-people { gap: 12px; }
+/* IN PROGRESS, WITH STALLED NESTED INSIDE IT. Stalled is a CONDITION on a
+   subset of the people still going, not a fourth outcome; rendering it as a
+   sibling number is exactly the ambiguity this arrangement removes (it used to
+   sit on the header line beside &quot;10 in progress&quot; and read as a third parallel
+   total). THREE CUES carry the containment, cheap and redundant:
+     1. PARENTHESES — the universal &quot;this qualifies the thing before it&quot;, and
+        unlike an arrow or a bracket glyph they cannot come out as tofu;
+     2. PROXIMITY — 4px to its parent against 12px between siblings, so the eye
+        groups it before it reads it;
+     3. COLOUR — amber, which on this screen already means STALLED and nothing
+        else, against the neutral ink of the count it sits inside.
+   The tooltip says &quot;of which&quot; in words, so the glance and the reading agree. */
+.ov-nest { display: inline-flex; align-items: baseline; gap: 4px;
+  font-size: .68rem; color: var(--ink-soft); }
+.ov-nest em { font-style: normal; font-size: .95rem; font-weight: 700;
+  color: var(--ink); }
+.ov-stall { color: var(--dash-amber); font-weight: 650; }
+.ov-chip { display: inline-flex; align-items: baseline; gap: 4px;
+  background: #eaf6ef; border: 1px solid #bfe3cd; border-radius: 999px;
+  padding: 0 9px; color: #1f7a46; font-size: .68rem; }
+/* The chip&#x27;s border adds 2px, so its inner line box is 2px shorter and it lands
+   exactly on the pill&#x27;s 20px line — otherwise this one element makes the
+   Participants pill taller than its three siblings. */
+.ov-chip, .ov-chip * { line-height: 18px; }
+.ov-chip em { font-style: normal; font-size: .95rem; font-weight: 700;
+  color: #1f7a46; }
+.ov-early { font-size: .68rem; color: var(--danger); }
+.ov-early em { font-style: normal; font-size: .95rem; font-weight: 700;
+  color: var(--danger); }
+
+/* EARNINGS. Money takes the same green .pill-earn already uses. */
+.ov-earn .ov-pair em { color: #1f7a46; }
+/* TIME. Durations have no valence, so they stay neutral. Each figure carries
+   its OWN denominator: the two averages are over DIFFERENT populations. */
+.ov-den { opacity: .85; }
+
+/* THE UNDECLARED-CODE ALARM ROW. Below the strip, full width, hidden when
+   empty. It was a chip inside the Participants pill and cost 95px of a 1366px
+   strip, pushing the fourth pill onto a second line — an alarm should not be
+   what breaks the layout, and it should not compete for width with routine
+   counts. Its own row is both louder and cheaper. */
+.ov-alert {
+  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  margin-top: 8px; padding: 7px 11px; font-size: .76rem;
+  color: var(--ink-soft); background: #fdeaec;
+  border: 1px solid #eab5bd; border-left: 4px solid var(--danger);
+  border-radius: var(--r-sm);
+}
+.ov-alert:empty { display: none; }
+.ov-alert code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  monospace; font-size: .92em; color: var(--danger); }
+.ov-alert b { color: var(--danger); }
+.ov-flag { font-size: .66rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 999px; background: var(--danger); color: #fff;
+  letter-spacing: .01em; }
+
+/* =========================================================================
+   THE HEADER ROW. It read as a run-on line — title, a bare grey code and three
+   counts at one weight with one gap — so nothing said which part was the study,
+   which was the identifier and which was the census. Two clusters now:
+
+     [ title | SESSION &lt;code&gt; · 👤 x of y arrived ]      [ view control · updated ]
+
+   THE SESSION CODE IS AN IDENTIFIER, SO IT IS SET LIKE ONE: a quiet uppercase
+   key, then the code in a monospace chip. Monospace because a session code is
+   read character by character and sometimes typed, and proportional type
+   invites misreading rn/m and 1/l. SYSTEM monospace only — base.css&#x27;s
+   no-network constraint forbids a webfont and every platform ships one of
+   these.
+   THE SEPARATOR is the same U+00B7 the census already uses between its own
+   segments, so the row has ONE separator vocabulary rather than a mix of dots,
+   pipes and bare spaces.
+   ========================================================================= */
+.dash-top { gap: 10px; }
+.hdr-rule { align-self: stretch; width: 1px; min-height: 1.1em;
+  background: var(--line-strong); margin: 0 2px; }
+.hdr-session { display: inline-flex; align-items: baseline; gap: 6px; }
+.hdr-key { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em;
+  font-weight: 650; color: var(--ink-mute); }
+.hdr-code {
+  font-family: ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas,
+               &quot;Liberation Mono&quot;, monospace;
+  font-size: .78rem; font-weight: 650; color: var(--ink);
+  background: var(--sunken); border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm); padding: 2px 7px; letter-spacing: .02em;
+}
+.hdr-dot { color: var(--ink-mute); margin: 0 -3px; }
+.dash-counts b { color: var(--ink); font-weight: 700;
+  font-variant-numeric: tabular-nums; }
+/* THE TWO CLUSTERS, actually separated. The view control is a VIEW control, not
+   part of the census — glued to the arrival count it made the left half read as
+   one run-on line again. `margin-left: auto` on the control opens the gap; the
+   status must then give up its own auto margin, or the two would split the free
+   space between them and strand the control mid-row. */
+.dash-top .dash-controls { margin-left: auto; }
+.dash-top .dash-status { margin-left: 0; }
 
 /* The header&#x27;s threshold affordance (item 17): quiet, but obviously hoverable,
    and focusable so it is reachable without a mouse. */
@@ -1992,20 +2606,190 @@ tr.unmapped-row td.c-label { box-shadow: inset 4px 0 0 var(--dash-unmapped); }
   color: var(--dash-amber); }
 .spill-unmapped { background: #f5f1fd; border-color: var(--dash-unmapped);
   color: var(--dash-unmapped); }
+/* WAITING FOR: outlined ACCENT BLUE — informational, not wrong. See stateHTML. */
+.spill-waiting { background: var(--card-bg); border-color: var(--accent);
+  color: var(--accent); }
 
 /* The two colours base.css has no token for: an operator-screen amber and the
    unrecognised-app violet. Declared as tokens rather than inlined so the row
    background and the text stay one decision. */
 :root { --dash-amber: #b45309; --dash-unmapped: #6b21a8; }
+
+/* =========================================================================
+   THE QUIZ-MISTAKES PANEL (on-demand, opened from the Quiz header&#x27;s ⓘ).
+   INTENTION: show what people got wrong in the comprehension quiz and what
+   they answered instead — first attempt only, first pass vs re-read pass kept
+   apart, worst item first. This is the approved mock (_ai/quiz_mistakes_mock
+   .html) reproduced in the dashboard&#x27;s OWN tokens: the sunken/line/card
+   surfaces, --shadow-lift, the danger red for wrong and --ok green for
+   correct, and the unplaced-app violet (--dash-unmapped) for the re-read pass
+   and the excluded-junk note — the same violet this screen already means
+   &quot;not a participant behaviour&quot; by. The handful of tints below (the wrong/
+   correct chip fills, the rate-bar track) are the mock&#x27;s, carried over so the
+   panel reads as one control room with the table. Escape-dismissible, the
+   convention for generic modals here. Only the panel styles live here; the
+   trigger reuses .th-info above.
+   ========================================================================= */
+.qm-overlay { position: fixed; inset: 0; z-index: 50; display: none;
+  background: rgba(16, 32, 52, .28); padding: 24px; overflow: auto; }
+.qm-overlay.open { display: block; }
+.qm-panel { max-width: 1080px; margin: 0 auto; background: var(--card-bg);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--shadow-lift); overflow: hidden; }
+.qm-head { display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 20px; border-bottom: 1px solid var(--line-strong);
+  background: var(--sunken); }
+.qm-head h2 { margin: 0 0 3px; font-size: 1.05rem; }
+.qm-head .pop { font-size: .82rem; color: var(--ink-mute); }
+.qm-head .pop b { color: var(--ink-soft); }
+.qm-head .spacer { margin-left: auto; }
+.qm-asof { font-size: .74rem; color: var(--ink-mute); white-space: nowrap; }
+.qm-btn { font: inherit; font-size: .8rem; font-weight: 650; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--card-bg);
+  color: var(--ink-soft); border-radius: 999px; padding: 3px 12px; }
+.qm-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qm-close { border: none; background: transparent; font-size: 1.3rem;
+  line-height: 1; color: var(--ink-mute); cursor: pointer; padding: 0 2px; }
+.qm-close:hover { color: var(--accent); }
+.qm-body { padding: 16px 20px 20px; }
+.qm-msg { padding: 24px; text-align: center; color: var(--ink-mute); }
+.qm-err { border: 1px solid var(--danger); background: #fdeaec;
+  color: var(--danger); border-radius: var(--r-sm); padding: 10px 14px;
+  font-size: .86rem; margin-bottom: 12px; }
+.qm-excluded { display: flex; gap: 10px; align-items: flex-start;
+  background: #f5f1fd; border: 1px solid #e2d6f7;
+  border-left: 4px solid var(--dash-unmapped); border-radius: var(--r-sm);
+  padding: 9px 12px; margin-bottom: 18px; font-size: .84rem;
+  color: var(--ink-soft); }
+.qm-excluded b { color: var(--dash-unmapped); }
+.qm-section-label { font-size: .76rem; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--ink-mute); font-weight: 650;
+  margin: 4px 2px 10px; }
+.item-card { border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--card-bg); box-shadow: var(--shadow); margin-bottom: 12px;
+  overflow: hidden; }
+.item-card.missed { border-color: #eab5bd; }
+.item-card &gt; .prompt { padding: 10px 14px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.item-card &gt; .prompt .qno { font-size: .72rem; font-weight: 650;
+  color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+.item-card &gt; .prompt .qtext { color: var(--ink); font-weight: 650;
+  font-size: .95rem; }
+.badge-missed { font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--danger); background: #fdeaec;
+  border: 1px solid #eab5bd; border-radius: 999px; padding: 1px 8px; }
+.passes { display: grid; grid-template-columns: 1fr 1fr; }
+.pass { padding: 12px 14px; }
+.pass + .pass { border-left: 1px solid var(--line); }
+.pass &gt; .phdr { display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 9px; }
+.pass &gt; .phdr .name { font-size: .74rem; text-transform: uppercase;
+  letter-spacing: .04em; font-weight: 650; color: var(--ink-soft); }
+.pass &gt; .phdr .n { font-size: .72rem; color: var(--ink-mute); }
+.pass.reread &gt; .phdr .name { color: var(--dash-unmapped); }
+.rate { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.rate .bar { flex: 1; height: 7px; border-radius: 999px; background: #f0dfe2;
+  overflow: hidden; }
+.rate .bar &gt; i { display: block; height: 100%; background: var(--ok); }
+.rate.bad .bar &gt; i { background: var(--danger); }
+.rate .txt { font-size: .78rem; font-weight: 650; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.opt-none { font-size: .8rem; color: var(--ink-mute); font-style: italic; }
+.opts { display: flex; flex-direction: column; gap: 5px; }
+.opt { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px;
+  align-items: center; }
+.opt .lbl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.opt .mark { flex: none; width: 15px; text-align: center; font-weight: 700;
+  font-size: .82rem; }
+.opt .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: .82rem; color: var(--ink); }
+.opt .cnt { font-size: .78rem; font-weight: 650; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.opt .track { grid-column: 1 / -1; height: 5px; border-radius: 999px;
+  background: var(--sunken); overflow: hidden; }
+.opt .track &gt; i { display: block; height: 100%; }
+.opt.correct .mark { color: var(--ok); }
+.opt.correct .track &gt; i { background: var(--ok); }
+.opt.wrong .mark { color: var(--danger); }
+.opt.wrong .txt { color: var(--danger); }
+.opt.wrong .track &gt; i { background: var(--danger); }
+.pp-scroll { overflow-x: auto; border: 1px solid var(--line);
+  border-radius: var(--r-md); box-shadow: var(--shadow);
+  background: var(--card-bg); }
+table.pp { border-collapse: collapse; width: 100%; min-width: 720px; }
+table.pp th { text-align: left; font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--ink-mute); background: var(--sunken);
+  padding: 7px 9px; border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap; }
+table.pp th.qh { text-align: center; cursor: help; }
+table.pp td { padding: 6px 9px; border-bottom: 1px solid var(--line);
+  vertical-align: middle; font-size: .84rem; }
+table.pp td.name { font-weight: 650; color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.pp td.pass-tag { font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .03em; color: var(--ink-mute); white-space: nowrap; }
+table.pp td.pass-tag.reread { color: var(--dash-unmapped); font-weight: 650; }
+table.pp td.cell { text-align: center; }
+.mk { display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; border-radius: 6px; font-size: .78rem;
+  font-weight: 700; padding: 0 5px; }
+.mk.ok { background: #eaf6ef; color: var(--ok); border: 1px solid #bfe3cd; }
+.mk.no { background: #fdeaec; color: var(--danger); border: 1px solid #eab5bd;
+  cursor: help; }
+.mk.blank { color: var(--ink-mute); }
+tr.forced-row td { background: #faf7fe; }
+tr.forced-row td.name { color: var(--dash-unmapped); }
+.forced-tag { font-size: .72rem; font-weight: 650; color: var(--dash-unmapped);
+  background: #f5f1fd; border: 1px solid #e2d6f7; border-radius: 999px;
+  padding: 1px 8px; white-space: nowrap; }
+tr.qm-unreadable td { color: var(--dash-amber); background: #fffceb; }
+.later-row td { background: var(--sunken); font-size: .8rem;
+  color: var(--ink-soft); }
+.later-row.hidden { display: none; }
+.later-wrap { display: flex; flex-direction: column; gap: 4px; padding: 2px 0; }
+.later-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.later-line .an { font-size: .72rem; font-weight: 650; color: var(--ink-mute);
+  white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px;
+  border-radius: 999px; font-size: .74rem; white-space: nowrap;
+  max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+.chip.ok { background: #eaf6ef; color: #1f7a46; border: 1px solid #bfe3cd; }
+.chip.no { background: #fdeaec; color: var(--danger); border: 1px solid #eab5bd; }
+.expander { font: inherit; font-size: .74rem; font-weight: 650; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--card-bg);
+  color: var(--ink-mute); border-radius: 999px; padding: 0 8px;
+  line-height: 1.6; }
+.expander:hover { border-color: var(--accent); color: var(--accent); }
+.qm-legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 2px 14px;
+  font-size: .76rem; color: var(--ink-mute); }
+.qm-legend span { display: inline-flex; align-items: center; gap: 5px; }
+@media (max-width: 720px) { .passes { grid-template-columns: 1fr; }
+  .pass + .pass { border-left: none; border-top: 1px solid var(--line); } }
 &lt;/style&gt;&lt;/head&gt;
 &lt;body&gt;
-&lt;div class=&quot;dash-top&quot;&gt;
-  &lt;h1&gt;Lab session (CREED)&lt;/h1&gt;
-  &lt;span class=&quot;session-code&quot;&gt;session demo1234&lt;/span&gt;
-  &lt;span class=&quot;dash-counts&quot; id=&quot;counts&quot;&gt;19 participants · 👤 18 of 19 arrived · 3 finished · 0 ended early · 2 stalled&lt;/span&gt;
-  &lt;label class=&quot;dash-controls&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;hide-entry&quot;&gt;
-    hide not-arrived rows&lt;/label&gt;
-  &lt;span class=&quot;dash-status&quot; id=&quot;status&quot;&gt;updated 10:42:18 AM&lt;/span&gt;
+&lt;!-- THE OVERVIEW BLOCK: the header row, then the four condensed pills, then
+     the alarm row. One section about who is here and how it is going. --&gt;
+&lt;div class=&quot;dash-overview&quot; id=&quot;overview&quot;&gt;
+  &lt;div class=&quot;dash-top&quot;&gt;
+    &lt;h1&gt;Lab session (CREED)&lt;/h1&gt;
+    &lt;span class=&quot;hdr-rule&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;hdr-session&quot;&gt;&lt;span class=&quot;hdr-key&quot;&gt;Session&lt;/span&gt;
+      &lt;code class=&quot;hdr-code&quot;&gt;demo1234&lt;/code&gt;&lt;/span&gt;
+    &lt;span class=&quot;hdr-dot&quot;&gt;·&lt;/span&gt;
+    &lt;span class=&quot;dash-counts&quot; id=&quot;counts&quot;&gt;👤 &lt;b&gt;17&lt;/b&gt; of &lt;b&gt;18&lt;/b&gt; arrived&lt;/span&gt;
+    &lt;label class=&quot;dash-controls&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;hide-entry&quot;&gt;
+      hide not-arrived rows&lt;/label&gt;
+    &lt;span class=&quot;dash-status&quot; id=&quot;status&quot;&gt;updated 10:42:18 AM&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;ov-strip&quot; id=&quot;ov-strip&quot;&gt;&lt;span class=&quot;ov ov-treat&quot; title=&quot;Treatment cells. Each pair is FINISHED of ASSIGNED, so the denominators side by side are the balance the assigner maintains (least-filled cell on arrival, random tie-break) and the numerators are completion. Assigned minus finished is NOT still going: it also holds anyone who abandoned or was ejected after the instructions. Names come from settings.TREATMENT_CELLS, so this can never show a treatment the code does not have.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Treatments&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;row&lt;/i&gt;&lt;em&gt;2&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;8&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;column&lt;/i&gt;&lt;em&gt;1&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;7&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;3 unassigned&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-people&quot; title=&quot;THE STATE OF PEOPLE — the three buckets that partition everyone who has ARRIVED (the x of y above).
+IN PROGRESS 14, OF WHICH STALLED 2 — too long in one phase against that phase threshold. A CONDITION on people who are still going, NOT a fourth outcome, which is why it is nested inside the in-progress number rather than set beside it.
+FINISHED 3
+ENDED EARLY 0
+   turned away at entry — 0
+   ejected after starting — 0
+   unclassified — 0
+NOT SHOWN, deliberately: an &amp;quot;abandoned&amp;quot; count. Exit code 0 means &amp;quot;never reached an ending&amp;quot; and is what everyone is initialised to, so live it cannot tell somebody working right now from somebody who closed the tab — they are inside IN PROGRESS.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Participants&lt;/b&gt;&lt;span class=&quot;ov-nest&quot;&gt;&lt;em&gt;14&lt;/em&gt; in progress&lt;span class=&quot;ov-stall&quot;&gt;(2 stalled)&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov-chip&quot;&gt;&lt;em&gt;3&lt;/em&gt; finished&lt;/span&gt;&lt;span class=&quot;ov-early&quot;&gt;&lt;em&gt;0&lt;/em&gt; ended early&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-earn&quot; title=&quot;Earnings over the FINISHED participants — the average and the total, both read off the ONE figure summed on the server from the same earnings the rows show, so neither can disagree with the per-row cells. Earnings do not exist until the results page computes them, so this population is forced by the data.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Earnings&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;avg&lt;/i&gt;&lt;em&gt;16.25&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;48.75&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;ov-unit&quot;&gt;EUR&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;of 3&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-time&quot; title=&quot;TWO AVERAGES, TWO DIFFERENT POPULATIONS — each over the participants who completed THAT stage. INTRO: mean time inside the intro app, over everyone whose intro time is settled (they have a quiz_done stamp and are out of the intro) — it includes people now in the task, the questionnaire, finished, or ejected after the intro. EXPERIMENT: mean time for the whole run, first stamp to the finished stamp, over those who FINISHED the study; nothing else can have it. Both summed on the server from the same stage timestamps the rows use.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Time (avg)&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:55&lt;/em&gt;&lt;s class=&quot;ov-den&quot;&gt;of 11&lt;/s&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;experiment&lt;/i&gt;&lt;em&gt;22:18&lt;/em&gt;&lt;s class=&quot;ov-den&quot;&gt;of 3&lt;/s&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;div class=&quot;ov-alert&quot; id=&quot;ov-alert&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;table class=&quot;dash&quot;&gt;
   &lt;thead&gt;&lt;tr&gt;
@@ -2013,7 +2797,15 @@ tr.unmapped-row td.c-label { box-shadow: inset 4px 0 0 var(--dash-unmapped); }
   &lt;th class=&quot;c-timeline&quot;&gt;
     &lt;div class=&quot;tl-header&quot;&gt;&lt;span&gt;Entry&lt;/span&gt;&lt;span&gt;Instructions&lt;/span&gt;&lt;span&gt;Quiz&lt;/span&gt;&lt;span&gt;Task&lt;/span&gt;&lt;span&gt;Questionnaire&lt;/span&gt;&lt;span&gt;Done&lt;/span&gt;&lt;/div&gt;
   &lt;/th&gt;
-  &lt;th class=&quot;c-quiz&quot; title=&quot;Quiz attempts&quot;&gt;Quiz&lt;/th&gt;
+  &lt;th class=&quot;c-quiz&quot; title=&quot;Quiz attempts&quot;&gt;Quiz
+    &lt;!-- THE QUIZ-MISTAKES AFFORDANCE. Reuses the SAME `.th-info` styling the
+         State header uses for its threshold legend (quiet, hoverable,
+         focusable) — no new affordance. Inert until clicked: it issues ONE
+         fetch to /quiz_mistakes into an overlay (see the panel JS) and never
+         rides the 2-second poll. This is the only footprint on the live
+         table. --&gt;
+    &lt;span class=&quot;th-info&quot; id=&quot;quiz-mistakes-info&quot; tabindex=&quot;0&quot; role=&quot;button&quot; title=&quot;What people got wrong on the quiz — click to open&quot;&gt;ⓘ&lt;/span&gt;
+  &lt;/th&gt;
   &lt;th class=&quot;c-instr&quot; title=&quot;Whole time in the intro app, both rounds: from
 leaving the entry pages until the quiz is finished with&quot;&gt;Intro time&lt;/th&gt;
   &lt;th class=&quot;c-earn&quot;&gt;Earnings&lt;/th&gt;
@@ -2034,12 +2826,12 @@ leaving the entry pages until the quiz is finished with&quot;&gt;Intro time&lt;/
 Tune them in settings.py (DASHBOARD_STALL_SECONDS_*).&quot;&gt;ⓘ&lt;/span&gt;
   &lt;/th&gt;
 &lt;/tr&gt;&lt;/thead&gt;
-  &lt;tbody id=&quot;rows&quot;&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 01&lt;span class=&quot;page-hint&quot;&gt;Consent&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 02&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;9:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;9:41 in this phase — amber past 8:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Intro 9:41&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 03&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-progress&quot;&gt;&lt;div class=&quot;fillbar&quot; style=&quot;width:33.300000000000004%&quot;&gt;&lt;/div&gt;&lt;span&gt;1×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;5:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 04&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;2 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:24&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 05&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;6 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:52&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 06&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;9 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 3&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;6:20&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 07&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:15&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 08&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:30&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;18.50 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 09&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;6:12&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;14.00 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;span class=&quot;spill spill-nonsepa&quot; title=&quot;This participant’s IBAN is outside the SEPA area — check the transfer will work before they leave&quot;&gt;Non-SEPA&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 10&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;5 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-forced&quot; title=&quot;advanced past the quiz from the admin panel — no correct answer was ever submitted&quot;&gt;&lt;span&gt;forced&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;4:05&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 11&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-red&quot;&gt;&lt;span&gt;3×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;6:42&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 12&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;3 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:08&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;5:12 in this phase — amber past 3:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Task round 5:12&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 13&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;7 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 14&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;1:12&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 15&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;4 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;4:18&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 16&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:58&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 17&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:02&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;16.25 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;entry-only&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 18&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;span style=&quot;color:var(--ink-mute)&quot;&gt;not arrived&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;&lt;span class=&quot;code-fallback&quot;&gt;k7m2p9xr&lt;/span&gt;&lt;span class=&quot;page-hint&quot;&gt;Welcome&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;tbody id=&quot;rows&quot;&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 01&lt;span class=&quot;page-hint&quot;&gt;Consent&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 02&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;9:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;9:41 in this phase — amber past 8:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Intro 9:41&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 03&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-progress&quot;&gt;&lt;div class=&quot;fillbar&quot; style=&quot;width:33.300000000000004%&quot;&gt;&lt;/div&gt;&lt;span&gt;1×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;5:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 04&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;2 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:24&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 05&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;6 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:52&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 06&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;9 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 3&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;6:20&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 07&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:15&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 08&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:30&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;18.50 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 09&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;6:12&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;14.00 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;span class=&quot;spill spill-nonsepa&quot; title=&quot;This participant’s IBAN is outside the SEPA area — check the transfer will work before they leave&quot;&gt;Non-SEPA&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 10&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;5 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-forced&quot; title=&quot;advanced past the quiz from the admin panel — no correct answer was ever submitted&quot;&gt;&lt;span&gt;forced&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;4:05&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 11&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-red&quot;&gt;&lt;span&gt;3×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;6:42&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 12&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;3 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:08&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;5:12 in this phase — amber past 3:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Task round 5:12&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 14&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;1:12&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 15&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;4 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;4:18&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 16&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:58&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 17&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:02&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;16.25 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;entry-only&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 18&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;span style=&quot;color:var(--ink-mute)&quot;&gt;not arrived&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;&lt;span class=&quot;code-fallback&quot;&gt;k7m2p9xr&lt;/span&gt;&lt;span class=&quot;page-hint&quot;&gt;Welcome&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
 &lt;/table&gt;
-&lt;!-- THE AVERAGES, as pills under the table rather than as a final row: see
-     .dash-summary. Filled by the poll; empty until there is something to
-     average, so it never shows &quot;average: 0:00&quot; over an empty session. --&gt;
-&lt;div class=&quot;dash-summary&quot; id=&quot;summary&quot;&gt;&lt;span class=&quot;sum-item&quot; title=&quot;Mean intro time over everyone who has COMPLETED the intro app, whatever they are doing now. Anyone still inside intro is excluded: their timer is still running.&quot;&gt;&lt;span class=&quot;sum-label&quot;&gt;avg intro time&lt;/span&gt;&lt;span class=&quot;pill&quot;&gt;3:49&lt;/span&gt;&lt;span class=&quot;sum-n&quot;&gt;of 12 past intro&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;sum-item&quot; title=&quot;Mean earnings over FINISHED participants only — earnings do not exist until the results page computes them. A different denominator from the intro-time pill.&quot;&gt;&lt;span class=&quot;sum-label&quot;&gt;avg earnings&lt;/span&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;16.25 EUR&lt;/span&gt;&lt;span class=&quot;sum-n&quot;&gt;of 3 finished&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;!-- THE QUIZ-MISTAKES OVERLAY. Empty until the Quiz header&#x27;s ⓘ is clicked; the
+     panel JS fills it from one /quiz_mistakes fetch. Outside the table, so a
+     broken panel cannot touch a single row. --&gt;
+&lt;div class=&quot;qm-overlay&quot; id=&quot;qm-overlay&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
 
 &lt;/body&gt;&lt;/html&gt;"></iframe>
 </body>
