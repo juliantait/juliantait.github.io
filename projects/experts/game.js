@@ -33,15 +33,15 @@
      olsBetaHat, ssOfX, posteriorOverCandidates, readPriors, candCount, fmtSigned.
    The candidate slopes, their prior, σ and the EXPERT/NOVICE sample sizes are all
    read LIVE from the Simulation controls, so the Game always runs the design the
-   panel shows (2 states, prior 0.8 / 0.2, β₂ = 0.02 by default), with these
+   panel shows (2 states, prior 0.75 / 0.25, β₂ = 0.03 by default), with these
    fallbacks if the panel is unreadable. The belief bars, the €1 allocation bar
    and its handles are therefore built per round, one slot per candidate.
    ============================================================================ */
 (function(){
   'use strict';
 
-  var FALLBACK_BETAS  = [0, 0.02];
-  var FALLBACK_PRIORS = [0.8, 0.2];
+  var FALLBACK_BETAS  = [0, 0.03];
+  var FALLBACK_PRIORS = [0.75, 0.25];
   var MAXBELIEF = 100;                // belief bars are 0–100, independent (never auto-adjusted)
   // β-guess slider range. β is a per-year slope now, so ±0.06 covers the 0.01–0.04
   // growth arms plus a NOVICE SE either side; the axis labels are drawn from these.
@@ -97,14 +97,14 @@
   // ---- generate one fresh round ----
   function genRound(){
     var sigma = readParam('sigma', 2.5);
-    var nNov  = Math.round(readParam('nNov', 4));
-    var nExp  = Math.round(readParam('nExp', 80));
+    var nNov  = Math.round(readParam('nNov', 3));
+    var nExp  = Math.round(readParam('nExp', 30));
     var states = readStates();
 
     var isExpert = Math.random() < 0.5;        // P(expert) = P(novice) = ½
     var n = isExpert ? nExp : nNov;
 
-    // draw the true state from the prior (0.8 flat / 0.2 growing by default)
+    // draw the true state from the prior (0.75 flat / 0.25 growing by default)
     var u = Math.random(), acc = 0, trueIdx = states.betas.length - 1;
     for (var k = 0; k < states.betas.length; k++){
       acc += states.priors[k];
@@ -484,7 +484,7 @@
     revealed = false;
     scoredThisRound = false;
     gid('sec-game').classList.remove('revealed');
-    // beliefs and the €1 split both start at the prior (0.8 / 0.2 by default)
+    // beliefs and the €1 split both start at the prior (0.75 / 0.25 by default)
     beliefs = round.states.priors.map(function(p){ return p * MAXBELIEF; });
     cuts = [];
     var acc = 0;

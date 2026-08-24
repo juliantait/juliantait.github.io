@@ -5,8 +5,9 @@
 //
 //   y_i = baseline + β · x_i + ε_i,   ε_i ~ N(0, σ²),   x_i ∈ [0, 100]
 //
-// β is therefore a per-year slope: the growth arms are 1…4 per 100 years, i.e.
-// β = 0.01 … 0.04, default 0.02, against a flat state β = 0 (prior 0.8 / 0.2).
+// β is therefore a per-year slope: the pilot's two growth arms are 2 or 3 per 100
+// years, i.e. β = 0.02 / 0.03, default 0.03, against a flat state β = 0
+// (prior 0.75 / 0.25).
 // The baseline is an integer draw ~ Uniform[40, 80] per series so the dots sit at
 // realistic heights; it shifts a series bodily and leaves β̂, SE and every
 // downstream quantity untouched.
@@ -305,6 +306,48 @@ document.querySelectorAll('#seg-xmode button').forEach(b => {
   });
 });
 
+// n NOVICE / n EXPERT are now discrete toggles over only the pilot's sizes
+// (NOVICE 3/4/5, EXPERT 15/20/30). Each writes its hidden source input so the
+// rest of the engine (validate / readParam / recompute) reads it unchanged.
+function wireSizeSeg(segId, inputId) {
+  document.querySelectorAll('#' + segId + ' button').forEach(b => {
+    b.addEventListener('click', () => {
+      $(inputId).value = b.dataset.n;
+      document.querySelectorAll('#' + segId + ' button').forEach(x =>
+        x.classList.toggle('active', x === b));
+      timedRecompute();
+    });
+  });
+}
+wireSizeSeg('seg-nnov', 'nNov');
+wireSizeSeg('seg-nexp', 'nExp');
+
+// Agent-behaviour toggle: 'rational' (the unchanged truthful-Bayesian engine)
+// vs 'data' (members state a bet from the wave-1 empirical reaction model).
+document.querySelectorAll('#seg-agentmode button').forEach(b => {
+  b.addEventListener('click', () => {
+    if (agentMode === b.dataset.mode) return;
+    agentMode = b.dataset.mode;
+    document.querySelectorAll('#seg-agentmode button').forEach(x =>
+      x.classList.toggle('active', x === b));
+    applyModeUI();
+    timedRecompute();
+  });
+});
+
+// Corner-lumps toggle (data-driven only): whether stated bets get the empirical
+// point-masses at 0/50/100.
+document.querySelectorAll('#seg-corners button').forEach(b => {
+  b.addEventListener('click', () => {
+    const on = b.dataset.corner === '1';
+    if (on === cornerLumps) return;
+    cornerLumps = on;
+    document.querySelectorAll('#seg-corners button').forEach(x =>
+      x.classList.toggle('active', x === b));
+    timedRecompute();
+  });
+});
+
 // Click the circled-i to reveal an explanatory popover; click the icon again or
 // anywhere outside (or press Escape) to dismiss.
 function wireInfoPopover(btnId, popId) {
@@ -324,6 +367,8 @@ function wireInfoPopover(btnId, popId) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
 }
 wireInfoPopover('xmode-info-btn', 'xmode-popover');
+// "What this simulation is based on" — the overview popover by the mode toggle.
+wireInfoPopover('basis-info-btn', 'basis-popover');
 
 // ITEM 1: per-card "nearest" / "most likely" info popovers (dynamically rendered,
 // so handled by event delegation on the document).
@@ -415,6 +460,76 @@ function validate() {
   if (isNaN(nE)) { errs.push(`n_EXPERT 2–${WINDOW_YEARS}`); setInvalid('nExp', true); }
 
   return { errs, betas, sigma, nN, nE };
+}
+
+// ============ Data-driven (wave 1) behavioural model ============
+// Copied verbatim from _ai_build/empirical_params_wave1.json (wave-1 completers,
+// 10 participants × 24 rounds). Inlined rather than fetched so the page needs no
+// server round-trip and no _ai_build deploy. The generative rule (json README §4):
+//   bet = intercept + slope·(100·posterior_Growing) + Normal(0, residual_sd),
+//   then clamp to [0,100].
+// pooled-OLS reaction line per role; corner probabilities are the observed mass
+// exactly at 0 / 50 / 100.
+//
+// BASE-RATE NEGLECT — no separate shift is added. The json's
+// base_rate_neglect_stable_shift is mean(bet − 100·posterior) on Stable rounds; it
+// is an ALTERNATIVE way to inject the bias for a site that draws bets straight from
+// 100·posterior. Our reaction line is fit on bet ~ 100·posterior over ALL rounds,
+// so its intercept already absorbs that over-placement (on a Stable draw the low
+// posterior maps to intercept + slope·low ≈ posterior + ~17/23 pts). Adding the
+// shift on top would double-count it, exactly the trap the brief warns against.
+const WAVE1_PARAMS = {
+  wave: 'prolific_wave1_2026-08-23',
+  n_completers: 10,
+  roles: {
+    NOVICE: { slope: 1.3151, intercept: 10.7137, residualSd: 24.847,
+              corner0: 0.0333, corner50: 0.0167, corner100: 0.0333 },
+    EXPERT: { slope: 0.3967, intercept: 30.9778, residualSd: 21.396,
+              corner0: 0,      corner50: 0.0250, corner100: 0.0083 },
+  },
+};
+
+// 'rational' = current unchanged engine; 'data' = wave-1 stated bets.
+let agentMode = (() => {
+  const act = document.querySelector('#seg-agentmode button.active');
+  return act ? act.dataset.mode : 'rational';
+})();
+let cornerLumps = true;
+
+// Posterior mass on the Growing (positive-β) candidate(s) for one card's data.
+// In the pilot's two-state design this is P(Growing | data); with a 3-state grid
+// it is the total mass on β > 0.
+function pGrowingOf(betaHat, se, sortedBetas, priors) {
+  const post = posteriorOverCandidates(betaHat, se, sortedBetas, priors);
+  let p = 0;
+  for (let i = 0; i < sortedBetas.length; i++) if (sortedBetas[i] > 1e-9) p += post[i];
+  return p;
+}
+
+// One member's STATED bet (points on Growing, 0–100) under the wave-1 model.
+// Deterministic in `seed` so it is stable across ρ drags and view switches (the
+// draw only changes on a Go press). Corner lumps, when on, replace the reaction
+// draw with an exact 0/50/100 at the empirical probabilities.
+function statedBetForMember(role, pGrowing, seed) {
+  const rp = WAVE1_PARAMS.roles[role] || WAVE1_PARAMS.roles.NOVICE;
+  const rng = mulberry32(seed >>> 0);
+  if (cornerLumps) {
+    const u = rng();
+    if (u < rp.corner0) return 0;
+    if (u < rp.corner0 + rp.corner50) return 50;
+    if (u < rp.corner0 + rp.corner50 + rp.corner100) return 100;
+  }
+  const norm = makeNormal(rng);
+  const bet = rp.intercept + rp.slope * (100 * pGrowing) + rp.residualSd * norm();
+  return Math.max(0, Math.min(100, bet));
+}
+
+// Show/hide the data-driven-only elements and dim the rational-only analytic
+// panels. Called on mode change and once on load.
+function applyModeUI() {
+  const dataMode = agentMode === 'data';
+  document.body.classList.toggle('mode-data', dataMode);
+  document.querySelectorAll('.dd-only').forEach(el => { el.hidden = !dataMode; });
 }
 
 // ============ Compute / render ============
@@ -942,6 +1057,15 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
         simulateMember(rowIdx, j + 1, trueBeta, nNovice, sigma, cardBaseSeed)
       ));
     }
+    // Data-driven stated bets: each member's posterior → P(Growing) → wave-1
+    // reaction line + noise (+ corner lumps). Attached here so the ρ slider and
+    // view switches re-pool the SAME draw without resampling. seObs uses sigmaAn
+    // (the analysis σ), matching every other posterior on the page.
+    members.forEach((m, mIdx) => {
+      m.seObs = sigmaAn / Math.sqrt(ssOfX(m.x));
+      m.pGrowing = pGrowingOf(m.betaHat, m.seObs, sortedBetas, priors);
+      m.statedBet = statedBetForMember(m.role, m.pGrowing, cardBaseSeed + 500000 + rowIdx * 1000 + mIdx);
+    });
     return { rowIdx, trueBeta, members };
   });
 
@@ -1012,6 +1136,14 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
                   <div class="stat-line"><span class="lab">baseline</span><span class="val">${m.baseline}</span></div>
                   <div class="stat-line"><span class="lab">SE</span><span class="val">${seR.toFixed(4)}</span></div>
                 </div>
+                ${agentMode === 'data' ? `
+                <div class="dd-stated">
+                  <div class="dd-stated-head">wave-1 stated bet <span class="dd-sub">— ${m.role === 'EXPERT' ? 'compresses' : 'overreacts'}</span></div>
+                  <div class="dd-stated-body">
+                    <span class="dd-bet ${m.statedBet >= 50 ? 'growing' : 'stable'}">${Math.round(m.statedBet)}<span class="dd-bet-u">/100 on Growing</span></span>
+                    <span class="dd-lean">P(Growing)=${(m.pGrowing * 100).toFixed(0)}% → <b>${m.statedBet >= 50 ? 'Growing' : 'Stable'}</b></span>
+                  </div>
+                </div>` : ''}
                 <div class="pick-block">
                   <div class="pick-head pop-host">
                     <span class="pick-head-lab">pick rule</span>
@@ -1134,6 +1266,23 @@ function renderGroupDecisions(state) {
     const eq  = pooledGroupError(ms, wEqual, sortedBetas, g.trueBeta);  // equal (⅓ each)
     const beh = pooledGroupError(ms, wRho, sortedBetas, g.trueBeta);    // behavioural w∝τ^ρ
 
+    // Data-driven overlay: pool the members' STATED bets (0–100 on Growing) under
+    // the same three weightings, then decide by which side of 50 the pooled view
+    // lands. Shown alongside the rational expected error above, so the how-far-off
+    // is on screen. The rational tiles above are the "keep visible" comparison.
+    const bets = g.members.map(m => (typeof m.statedBet === 'number' ? m.statedBet : 50));
+    const trueGrowing = g.trueBeta > 1e-9;
+    const poolBet = ws => {
+      let sw = 0, swb = 0;
+      ws.forEach((w, i) => { sw += w; swb += w * bets[i]; });
+      const v = swb / sw, grow = v >= 50;
+      return { v, grow, correct: grow === trueGrowing };
+    };
+    const ddOpt = poolBet(tau), ddEq = poolBet(wEqual), ddBeh = poolBet(wRho);
+    const ddLine = r => agentMode === 'data'
+      ? `<div class="gt-dd">wave-1 pool <b>${r.v.toFixed(0)}</b>/100 → <b>${r.grow ? 'Growing' : 'Stable'}</b> <span class="gt-chip ${r.correct ? 'ok' : 'miss'}">${r.correct ? '✓ hit' : '✗ miss'}</span></div>`
+      : '';
+
     const ei = ms.findIndex(m => m.role === 'EXPERT');
     const share = ws => { const s = ws.reduce((a, b) => a + b, 0); return ei >= 0 ? ws[ei] / s : 0; };
     const expWtOpt = share(tau), expWtBeh = share(wRho);
@@ -1153,18 +1302,20 @@ function renderGroupDecisions(state) {
     box.innerHTML = `
       <div class="gcd-head">
         <span class="gcd-title">Group decision · expected error</span>
-        <span class="gcd-note">pool the 3 estimates → nearest candidate</span>
+        <span class="gcd-note">${agentMode === 'data'
+          ? 'rational expected error (top) vs wave-1 stated pool → side of 50 (this draw)'
+          : 'pool the estimates → nearest candidate'}</span>
       </div>
       <div class="gcd-tiles">
         ${tile('optimal', 'Optimal = precision', opt,
           `<div class="gt-foot"><i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub> · expert weight ${pctv(expWtOpt)}</div>
-           <div class="agg-ewt-track" title="EXPERT weight share"><span class="agg-ewt-fill" style="width:${(expWtOpt * 100).toFixed(1)}%"></span></div>`)}
+           <div class="agg-ewt-track" title="EXPERT weight share"><span class="agg-ewt-fill" style="width:${(expWtOpt * 100).toFixed(1)}%"></span></div>${ddLine(ddOpt)}`)}
         ${tile('equal', 'Equal (⅓ each)', eq,
           `<div class="gt-foot"><i class="mvar">w</i><sub>i</sub> = 1 · ignores precision ${deltaTag(eq)}</div>
-           <div class="agg-ewt-track" title="EXPERT weight share"><span class="agg-ewt-fill eqfill" style="width:33.3%"></span></div>`)}
+           <div class="agg-ewt-track" title="EXPERT weight share"><span class="agg-ewt-fill eqfill" style="width:33.3%"></span></div>${ddLine(ddEq)}`)}
         ${tile('behavioural', behaviouralName(rho), beh,
           `<div class="gt-foot">expert weight ${pctv(expWtBeh)} ${deltaTag(beh)}</div>
-           <div class="agg-ewt-track" title="EXPERT weight share under the behavioural scheme"><span class="agg-ewt-fill" style="width:${(expWtBeh * 100).toFixed(1)}%"></span></div>`)}
+           <div class="agg-ewt-track" title="EXPERT weight share under the behavioural scheme"><span class="agg-ewt-fill" style="width:${(expWtBeh * 100).toFixed(1)}%"></span></div>${ddLine(ddBeh)}`)}
       </div>`;
   });
 }
@@ -1393,7 +1544,7 @@ window.addEventListener('resize', () => {
   wireInfoPopover('rho-info-btn', 'rho-popover');
 })();
 
-window.addEventListener('load', () => recompute());
+window.addEventListener('load', () => { applyModeUI(); recompute(); });
 
 
 

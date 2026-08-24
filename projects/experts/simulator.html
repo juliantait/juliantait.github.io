@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/projects/shared/shell.css?v=13">
-<link rel="stylesheet" href="simulation.css?v=11">
-<link rel="stylesheet" href="game.css?v=10">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=14">
+<link rel="stylesheet" href="simulation.css?v=13">
+<link rel="stylesheet" href="game.css?v=11">
 </head>
 <body>
 
@@ -50,7 +50,7 @@
       <!-- ============ SECTION 1: Simulation ============ -->
         <section class="page-section">
           <h2 class="section-title">Individual-level simulation</h2>
-          <p class="sim-lead"><b>Top half — individuals.</b> Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=80 vs <b>NOVICE</b> <i class="mvar">n</i>=4). Tune the parameters below; the <b>group dynamics</b> at the bottom show how individual estimates aggregate into a group decision.</p>
+          <p class="sim-lead"><b>Top half — individuals.</b> Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=30 vs <b>NOVICE</b> <i class="mvar">n</i>=3). Tune the parameters below; the <b>group dynamics</b> at the bottom show how individual estimates aggregate into a group decision.</p>
 
         <!-- 1. Control panel -->
         <div class="card">
@@ -69,23 +69,23 @@
                     </div>
                   </div>
                   <!-- Growth arm: writes β₂ = (amount gained per 100 years) / 100,
-                       i.e. the per-year slope 0.01 … 0.04. β₂ stays the source of truth. -->
+                       i.e. the per-year slope. DISCRETE TOGGLE over exactly the two
+                       arms the pilot ran — 2 vs 3 per 100 yrs (β = 0.02 / 0.03),
+                       default 3 (0.03). β₂ stays the source of truth (readonly below). -->
                   <div class="input-group">
                     <label>growth &middot; per 100 yrs</label>
                     <div class="seg" id="seg-growth">
-                      <button data-g="1">1</button>
-                      <button class="active" data-g="2">2</button>
-                      <button data-g="3">3</button>
-                      <button data-g="4">4</button>
+                      <button data-g="2">2</button>
+                      <button class="active" data-g="3">3</button>
                     </div>
                   </div>
                 </div>
                 <div class="beta-grid">
                   <div class="input-group"><label><i class="mvar">&beta;</i><sub>1</sub></label><input id="b1" type="text" value="0"></div>
-                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.02"></div>
+                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.03" readonly title="set by the growth toggle (0.02 / 0.03)"></div>
                   <div class="input-group" id="b3-group"><label><i class="mvar">&beta;</i><sub>3</sub></label><input id="b3" type="text" value="-0.02"></div>
-                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.8"></div>
-                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.2"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.75"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.25"></div>
                   <div class="input-group" id="p3-group"><label>prior <i class="mvar">&pi;</i><sub>3</sub></label><input id="p3" type="text" value="0"></div>
                 </div>
               </div>
@@ -93,13 +93,72 @@
 
             <div class="cg-divider"></div>
 
-            <!-- Group: model / sample sizes -->
+            <!-- Group: model / sample sizes. n NOVICE and n EXPERT are DISCRETE
+                 TOGGLES over only the sizes the pilot ran (NOVICE 3/4/5, EXPERT
+                 15/20/30; defaults 3 and 30). Each toggle writes its hidden source
+                 input (#nNov / #nExp) so the rest of the engine reads it unchanged. -->
             <div class="control-group">
               <div class="cg-title">Model</div>
               <div class="cg-body">
                 <div class="input-group"><label>residual SD <i class="mvar">&sigma;</i></label><input id="sigma" type="text" value="2.5"></div>
-                <div class="input-group"><label>n NOVICE</label><input id="nNov" type="text" value="4"></div>
-                <div class="input-group"><label>n EXPERT</label><input id="nExp" type="text" value="80"></div>
+                <div class="input-group">
+                  <label>n NOVICE</label>
+                  <div class="seg" id="seg-nnov">
+                    <button class="active" data-n="3">3</button>
+                    <button data-n="4">4</button>
+                    <button data-n="5">5</button>
+                  </div>
+                  <input id="nNov" type="hidden" value="3">
+                </div>
+                <div class="input-group">
+                  <label>n EXPERT</label>
+                  <div class="seg" id="seg-nexp">
+                    <button data-n="15">15</button>
+                    <button data-n="20">20</button>
+                    <button class="active" data-n="30">30</button>
+                  </div>
+                  <input id="nExp" type="hidden" value="30">
+                </div>
+              </div>
+            </div>
+
+            <div class="cg-divider"></div>
+
+            <!-- Group: agent behaviour. Rational = the current truthful-Bayesian
+                 engine (unchanged). Data driven = each member still computes its
+                 posterior but STATES a bet from the wave-1 empirical reaction model.
+                 Corner lumps add the empirical 0/50/100 point-masses. -->
+            <div class="control-group">
+              <div class="cg-title">
+                <span>Agents</span>
+                <button type="button" class="info-btn" id="basis-info-btn"
+                        aria-label="What this simulation is based on" aria-expanded="false">i</button>
+              </div>
+              <div class="cg-body cg-stacked agents-group">
+                <div class="input-group">
+                  <label>behaviour</label>
+                  <div class="seg seg-mode" id="seg-agentmode">
+                    <button class="active" data-mode="rational">Rational (Bayesian)</button>
+                    <button data-mode="data">Data driven (wave 1)</button>
+                  </div>
+                </div>
+                <div class="input-group dd-only" hidden>
+                  <label>corner lumps</label>
+                  <div class="seg" id="seg-corners">
+                    <button class="active" data-corner="1">on</button>
+                    <button data-corner="0">off</button>
+                  </div>
+                </div>
+                <!-- "What this simulation is based on" — reuses the pop-host / info-btn
+                     pattern (wired via wireInfoPopover in simulation.js). -->
+                <div class="info-popover basis-pop" id="basis-popover" hidden>
+                  <p class="basis-title"><b>What this simulation is based on</b></p>
+                  <p><b>The world.</b> Islands produce coconuts. The true state is either Stable (0 extra per century) or Growing (2 or 3 more per century, set by the growth toggle). The prior is 75 / 25 Stable to Growing, noise is Gaussian, and coconut counts are integers. This is exactly the parameterisation of the live pilot experiment.</p>
+                  <p><b>Rational mode.</b> Every member computes the OLS slope from their own <i class="mvar">n</i> data points and reports the exact Bayesian posterior, so differences between roles are purely a matter of sample size.</p>
+                  <p><b>Data-driven mode.</b> Members still see simulated data and compute the same posterior, but their <i>stated</i> view follows the behaviour measured in the first Prolific wave of the pilot (August 2026, 10 completers, 24 rounds each). Novices overreact to the signal (reaction slope about 1.3 versus the truthful 1.0), experts compress toward an even split (about 0.4), and both put roughly 20 points too much on Growing when the state is Stable (base-rate neglect). Stated views scatter around the reaction line with the empirically observed noise, plus occasional exact answers of 0, 50, or 100.</p>
+                  <p><b>Groups.</b> The group panels pool these stated views, so group outcomes are an extrapolation from individually measured behaviour. Real group discussion was not part of the pilot.</p>
+                  <p class="xmode-current">Parameters will be re-estimated as more waves arrive.</p>
+                </div>
               </div>
             </div>
 
@@ -156,7 +215,8 @@
         </div>
 
         <!-- 2. Headline (two rules per role: nearest vs Bayes-optimal MAP) -->
-        <div class="headline">
+        <p class="mode-note dd-only" hidden>Rational-Bayesian benchmark &mdash; data-driven agents compute these internally but <b>act</b> via the wave-1 behavioural model (see the group section below).</p>
+        <div class="headline rational-only">
           <div class="head-cell novice">
             <div class="head-role">NOVICE &middot; avg error</div>
             <div class="head-metrics">
@@ -202,7 +262,8 @@
         </div>
 
         <!-- Breakdown table -->
-        <div class="card">
+        <div class="card rational-only">
+          <p class="mode-note dd-only" hidden style="margin:0 0 10px">Rational-Bayesian benchmark &mdash; error and confidence for the ideal estimator, not the wave-1 stated bets.</p>
           <div class="bd-legend">
             <span class="pop-host">Each cell: <span class="tag">err</span> (top) / <span class="tag">conf</span> (bottom)<button type="button" class="info-btn mini-info" aria-label="What do the table cells show?" aria-expanded="false">i</button>
               <div class="info-popover pick-pop" hidden>Each cell stacks two different quantities, being right vs feeling right. <b>err</b> (top) = mistake rate, how often the member is wrong. <b>conf</b> (bottom) = average confidence in the correct state, how sure the member is. The two rows are <span class="role-novice">NOVICE</span> and <span class="role-expert">EXPERT</span>. The table and its <b>AVERAGE</b> column use the nearest-candidate rule, so the AVERAGE matches the headline <b>nearest</b> value.</div>
@@ -224,7 +285,8 @@
       <!-- ============ SECTION 2: Simulated group dynamics ============ -->
         <section class="page-section">
           <h2 class="section-title">Simulated group dynamics</h2>
-          <p class="sim-lead"><b>Bottom half — groups.</b> The same simulation, played out for a handful of true slopes. Each panel draws one fresh group — <b>1 EXPERT</b> (<i class="mvar">n</i>=80) plus <b>NOVICES</b> (<i class="mvar">n</i>=4), group size set below — and shows the <b>group decision</b> that results from pooling their estimates. Press <b>Go</b> above for a new realisation.</p>
+          <p class="sim-lead"><b>Bottom half — groups.</b> The same simulation, played out for a handful of true slopes. Each panel draws one fresh group — <b>1 EXPERT</b> (<i class="mvar">n</i>=30) plus <b>NOVICES</b> (<i class="mvar">n</i>=3), group size set below — and shows the <b>group decision</b> that results from pooling their estimates. Press <b>Go</b> above for a new realisation.</p>
+          <p class="dd-caveat dd-only" hidden>Parameters from <b>wave 1</b>, n = 10 completers, estimated at the <b>same 0.75 / 0.25 prior</b> the site runs — individual play only, so group dynamics here are an <b>extrapolation</b> from the individual reaction model.</p>
 
         <!-- Examples (group rows, fully dynamic) -->
         <div class="card">
@@ -298,7 +360,7 @@
         <h2>The betting game</h2>
         <div class="intro-block">
           <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
-          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.02</b> (+2 per 100 units of x), flat <b>4 times in 5</b>, with <i class="mvar">σ</i> = 2.5 and <b>integer</b> y values.</p>
+          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.03</b> (+3 per 100 units of x), flat <b>3 times in 4</b>, with <i class="mvar">σ</i> = 2.5 and <b>integer</b> y values.</p>
           <ul>
             <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
           </ul>
@@ -324,7 +386,7 @@
         <!-- header -->
         <div class="game-go-row">
           <span class="game-title">Here is €1 — how do you bet it?</span>
-          <span class="game-role expert" id="game-role">EXPERT · n=80</span>
+          <span class="game-role expert" id="game-role">EXPERT · n=30</span>
         </div>
 
         <!-- TOP panel: scatter (LEFT, 2/3) + β-estimate slider (RIGHT, 1/3) -->
@@ -404,9 +466,9 @@
 
 </main>
 
-<script src="simulation.js?v=12"></script>
+<script src="simulation.js?v=14"></script>
 
-<script src="game.js?v=13"></script>
+<script src="game.js?v=14"></script>
 
 </body>
 </html>

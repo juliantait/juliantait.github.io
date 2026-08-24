@@ -944,6 +944,14 @@
   .seg.xmode button { padding: 7px 14px; font-size: 13px; }
   /* The group is the popover's positioning anchor; the ⓘ lives next to the label. */
   .xdesign-group { position: relative; }
+  /* Same anchor pattern for the "What this simulation is based on" popover. */
+  .agents-group { position: relative; }
+  .info-popover.basis-pop { width: 380px; }
+  .info-popover.basis-pop .basis-title {
+    margin: 0 0 8px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
 
   .info-btn {
     width: 18px;
@@ -1018,3 +1026,52 @@
 }
 #sec-stimuli .size-note { font-size: 12px; color: var(--text-muted); }
 #sec-stimuli .size-note b { color: var(--text); font-family: var(--font-mono); }
+
+  /* ============ Data-driven (wave 1) mode ============ */
+  /* Agent-behaviour toggle: wider labels than the numeric segs, so let it fill
+     the stacked control column and shrink the type a touch. */
+  .seg.seg-mode { width: 100%; }
+  .seg.seg-mode button { flex: 1; padding: 7px 10px; font-size: 11.5px; white-space: nowrap; }
+  #seg-agentmode button.active { background: #0e7d54; }   /* data-driven accent = green */
+  #seg-agentmode button[data-mode="rational"].active { background: #1e293b; }
+
+  /* .dd-only elements are shown/hidden via the `hidden` attribute from JS; no
+     display rule needed here. The rational-only analytic panels stay on screen
+     (as the benchmark) but dim in data mode. */
+  body.mode-data .rational-only { opacity: 0.5; }
+
+  .mode-note {
+    font-size: 12px; color: var(--text-muted); font-style: italic;
+    margin: 2px 0 10px; line-height: 1.4;
+  }
+
+  .dd-caveat {
+    margin: 10px 0 4px; padding: 9px 12px;
+    background: #fff8ec; border: 1px solid #f3d9a6; border-radius: 8px;
+    color: #7a5a12; font-size: 12.5px; line-height: 1.45;
+  }
+  .dd-caveat b { color: #6a4d0e; }
+
+  /* per-member stated bet (example cards) */
+  .dd-stated {
+    margin-top: 6px; padding-top: 7px; border-top: 1px dashed var(--border);
+  }
+  .dd-stated-head {
+    font-size: 11px; letter-spacing: 0.3px; color: var(--text-muted);
+    text-transform: uppercase; font-weight: 700;
+  }
+  .dd-stated-head .dd-sub { text-transform: none; font-weight: 400; letter-spacing: 0; }
+  .dd-stated-body { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 3px; }
+  .dd-bet { font-family: var(--font-mono); font-weight: 700; font-size: 17px; }
+  .dd-bet.growing { color: #0e7d54; }
+  .dd-bet.stable  { color: var(--gray); }
+  .dd-bet-u { font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-left: 3px; }
+  .dd-lean { font-size: 11.5px; color: var(--text-muted); }
+  .dd-lean b { color: var(--text); }
+
+  /* wave-1 stated-pool line inside the group-decision tiles */
+  .gt-dd {
+    margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border);
+    font-size: 11.5px; color: var(--text); line-height: 1.5;
+  }
+  .gt-dd b { font-family: var(--font-mono); }
