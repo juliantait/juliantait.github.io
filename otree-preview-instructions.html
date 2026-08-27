@@ -38,8 +38,14 @@
   fixed 1920x1080 canvas — an ordinary participant display — inside its own
   browsing context, where those units resolve as they do for a participant,
   and the canvas is scaled to fill whatever 16:9 box the page is given. The
-  scale is pure CSS (a length divided by a length is a number), so it works
-  with scripts disabled.
+  scale is applied in two layers. A tiny inline script (at the end of the
+  body) sets a UNITLESS scale — box width / 1920 — via a ResizeObserver, and
+  that is the path that also works on browsers WITHOUT CSS typed arithmetic
+  (pre-Chrome-140 / pre-Safari-18.2 / any Firefox): those drop the length-by-
+  length calc() below and would otherwise render the screen at native 1920px,
+  showing only its top-left corner. With scripts disabled, the CSS
+  transform:scale(calc(100cqw / 1920px)) below is the fallback and is correct
+  on any modern browser.
 -->
 <style>
 /* PREVIEW SHELL — the only hand-written CSS in this file. It positions the
@@ -2662,5 +2668,25 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
 &lt;/body&gt;
 &lt;/html&gt;
 "></iframe>
+<script>
+/* Layered fit (see head comment): set a UNITLESS scale so the render fits even
+   where the CSS transform:scale(calc(100cqw / 1920px)) fallback is dropped as
+   invalid — any browser without CSS typed arithmetic (pre-Chrome-140 /
+   pre-Safari-18.2 / all Firefox), the wide-Windows corner-only bug. Modern +
+   scripts-disabled still gets the CSS fallback; JS wins wherever it runs. */
+(function () {
+  var screen = document.getElementById('screen');
+  if (!screen) return;
+  function fit() {
+    screen.style.transform = 'scale(' + (document.body.clientWidth / 1920) + ')';
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(fit).observe(document.body);
+  } else if (window.addEventListener) {
+    window.addEventListener('resize', fit);
+  }
+  fit();
+})();
+</script>
 </body>
 </html>
