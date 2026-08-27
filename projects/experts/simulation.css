@@ -1075,3 +1075,84 @@
     font-size: 11.5px; color: var(--text); line-height: 1.5;
   }
   .gt-dd b { font-family: var(--font-mono); }
+
+/* ============================================================================
+   Round-2 revisions: top info module, ρ-driven group hero + benchmark,
+   and the aggregation control elevated to the primary group control.
+   (Placed after the .exp nesting block; CSS vars resolve via the .exp ancestor.)
+   ============================================================================ */
+
+/* ---- Top info module: "what the simulated people are matched on" ---- */
+.basis-bar-wrap { margin-bottom: 18px; }
+.basis-bar { position: relative; display: flex; }
+.basis-toggle {
+  display: inline-flex; align-items: center; gap: 10px; width: 100%;
+  font-family: var(--font-sans); font-size: 13.5px; font-weight: 600; color: var(--text);
+  background: linear-gradient(180deg,#eef4ff,#f8fbff);
+  border: 1px solid #cfe0f5; border-left: 4px solid var(--blue);
+  border-radius: 10px; padding: 12px 16px; cursor: pointer; text-align: left;
+  transition: border-color .15s, background .15s;
+}
+.basis-toggle:hover, .basis-toggle[aria-expanded="true"] {
+  border-color: var(--blue); background: linear-gradient(180deg,#e6efff,#f2f8ff);
+}
+.basis-toggle-i { font-size: 16px; color: var(--blue); line-height: 1; }
+.basis-toggle-hint {
+  margin-left: auto; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--blue); background: rgba(37,99,235,0.1);
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+}
+.exp .basis-bar .info-popover.basis-pop { width: 460px; max-width: 92vw; top: calc(100% + 8px); left: 0; }
+@media (max-width: 560px) { .basis-toggle-hint { display: none; } }
+
+/* ---- Group decision: ρ-driven hero outcome + rational benchmark ---- */
+.gcd-primary { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; align-items: stretch; }
+@media (max-width: 720px) { .gcd-primary { grid-template-columns: 1fr; } }
+
+.gcd-hero {
+  background: var(--card); border: 1px solid var(--border);
+  border-left: 5px solid var(--gray); border-radius: 10px; padding: 13px 16px 14px;
+}
+.gcd-hero.ok { border-left-color: #0e9f6e; }
+.gcd-hero.miss { border-left-color: var(--novice); }
+.gcd-hero-lab {
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.gcd-hero-scheme {
+  font-size: 10px; font-weight: 700; text-transform: none; letter-spacing: 0;
+  color: #fff; background: var(--blue); padding: 2px 8px; border-radius: 999px;
+}
+.gcd-hero-main { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.gcd-hero-num {
+  font-family: var(--font-mono); font-weight: 800; font-size: 40px; line-height: 1;
+  letter-spacing: -2px; color: var(--text);
+}
+.gcd-hero-unit { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); }
+.gcd-hero-arrow { font-size: 20px; color: var(--text-muted); margin: 0 2px; }
+.gcd-hero-pick { font-family: var(--font-sans); font-weight: 800; font-size: 20px; color: var(--text); }
+.gcd-hero.ok .gcd-hero-pick { color: #0e7d54; }
+.gcd-hero.miss .gcd-hero-pick { color: var(--novice); }
+.gcd-hero-foot { font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.45; }
+
+.gcd-bench { background: #f8fafc; border: 1px dashed var(--border); border-radius: 10px; padding: 13px 16px 14px; }
+.gcd-bench-lab { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.gcd-bench-sub { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--expert); }
+.gcd-bench-main { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.gcd-bench-num { font-family: var(--font-mono); font-weight: 800; font-size: 24px; line-height: 1; color: var(--expert); }
+.gcd-bench-unit { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); }
+.gcd-bench-pick { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.gcd-bench-pick b { color: var(--text); }
+.gcd-bench-foot { font-size: 10.5px; color: var(--text-muted); margin-top: 7px; line-height: 1.4; }
+
+/* ---- Aggregation control elevated to the primary group control ---- */
+.exp .agg-controls {
+  border: 2px solid var(--blue);
+  background: linear-gradient(180deg,#eef5ff,#f8fbff);
+  box-shadow: 0 2px 12px rgba(37,99,235,0.10);
+}
+.exp .agg-controls .ac-title { font-size: 12px; color: var(--blue); }
+.agg-controls .ac-primary-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #fff; background: var(--blue); padding: 2px 8px; border-radius: 999px; margin-left: 2px;
+}

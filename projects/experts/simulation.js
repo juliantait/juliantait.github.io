@@ -1247,8 +1247,13 @@ function renderGroupDecisions(state) {
   if (!state) return;
   const { groups, sortedBetas, sigmaAn } = state;
   const rho = getRho();
+  const dataMode = agentMode === 'data';
   if ($('rho-val')) $('rho-val').textContent = 'ρ = ' + rho.toFixed(2);
   if ($('rho-regime')) $('rho-regime').textContent = rhoRegime(rho);
+
+  const pctv = x => (x * 100).toFixed(1) + '%';
+  const chip = ok => `<span class="gt-chip ${ok ? 'ok' : 'miss'}">${ok ? '✓ hit' : '✗ miss'}</span>`;
+  const regime = rhoRegime(rho);
 
   groups.forEach(g => {
     const box = $('agg-' + g.rowIdx);
@@ -1259,17 +1264,21 @@ function renderGroupDecisions(state) {
       return { role: m.role, betaHat: m.betaHat, se, tau: 1 / (se * se) };
     });
     const tau = ms.map(m => m.tau);
-    const wEqual = ms.map(() => 1);
     const wRho = ms.map(m => Math.pow(m.tau, rho));   // ρ<0 ⇒ counter-precision
 
-    const opt = pooledGroupError(ms, tau, sortedBetas, g.trueBeta);     // optimal = precision
-    const eq  = pooledGroupError(ms, wEqual, sortedBetas, g.trueBeta);  // equal (⅓ each)
-    const beh = pooledGroupError(ms, wRho, sortedBetas, g.trueBeta);    // behavioural w∝τ^ρ
+    // EXPERT weight share under the current scheme (how much the group leans on the expert).
+    const ei = ms.findIndex(m => m.role === 'EXPERT');
+    const share = ws => { const s = ws.reduce((a, b) => a + b, 0); return ei >= 0 ? ws[ei] / s : 0; };
+    const expWtRho = share(wRho);
 
-    // Data-driven overlay: pool the members' STATED bets (0–100 on Growing) under
-    // the same three weightings, then decide by which side of 50 the pooled view
-    // lands. Shown alongside the rational expected error above, so the how-far-off
-    // is on screen. The rational tiles above are the "keep visible" comparison.
+    // Rational pooled benchmark: precision (inverse-variance = optimal) weighting → nearest candidate.
+    const bench = pooledGroupError(ms, tau, sortedBetas, g.trueBeta);
+    // Rational pool at the CURRENT ρ (the hero in rational mode).
+    const ratRho = pooledGroupError(ms, wRho, sortedBetas, g.trueBeta);
+
+    // Data-driven group OUTCOME: the ρ-weighted combination of member STATED bets
+    // (0–100 on Growing), decided by which side of 50 the pooled view lands. This is
+    // the hero in data mode and moves live as ρ is dragged.
     const bets = g.members.map(m => (typeof m.statedBet === 'number' ? m.statedBet : 50));
     const trueGrowing = g.trueBeta > 1e-9;
     const poolBet = ws => {
@@ -1278,44 +1287,52 @@ function renderGroupDecisions(state) {
       const v = swb / sw, grow = v >= 50;
       return { v, grow, correct: grow === trueGrowing };
     };
-    const ddOpt = poolBet(tau), ddEq = poolBet(wEqual), ddBeh = poolBet(wRho);
-    const ddLine = r => agentMode === 'data'
-      ? `<div class="gt-dd">wave-1 pool <b>${r.v.toFixed(0)}</b>/100 → <b>${r.grow ? 'Growing' : 'Stable'}</b> <span class="gt-chip ${r.correct ? 'ok' : 'miss'}">${r.correct ? '✓ hit' : '✗ miss'}</span></div>`
-      : '';
+    const ddRho = poolBet(wRho);
 
-    const ei = ms.findIndex(m => m.role === 'EXPERT');
-    const share = ws => { const s = ws.reduce((a, b) => a + b, 0); return ei >= 0 ? ws[ei] / s : 0; };
-    const expWtOpt = share(tau), expWtBeh = share(wRho);
+    // HERO — the outcome the ρ slider drives, live and primary.
+    const hero = dataMode
+      ? `<div class="gcd-hero ${ddRho.correct ? 'ok' : 'miss'}">
+           <div class="gcd-hero-lab">Group outcome <span class="gcd-hero-scheme">${regime}</span></div>
+           <div class="gcd-hero-main">
+             <span class="gcd-hero-num">${ddRho.v.toFixed(0)}</span><span class="gcd-hero-unit">/100 on Growing</span>
+             <span class="gcd-hero-arrow">→</span>
+             <span class="gcd-hero-pick">${ddRho.grow ? 'Growing' : 'Stable'}</span>
+             ${chip(ddRho.correct)}
+           </div>
+           <div class="gcd-hero-foot">weighted pool of the members' stated confidences · expert weight ${pctv(expWtRho)}</div>
+         </div>`
+      : `<div class="gcd-hero ${ratRho.correct ? 'ok' : 'miss'}">
+           <div class="gcd-hero-lab">Group outcome <span class="gcd-hero-scheme">${regime}</span></div>
+           <div class="gcd-hero-main">
+             <span class="gcd-hero-num">${pctv(ratRho.err)}</span><span class="gcd-hero-unit">expected error</span>
+             <span class="gcd-hero-arrow">→</span>
+             <span class="gcd-hero-pick">${fmtSigned(ratRho.pick)}</span>
+             ${chip(ratRho.correct)}
+           </div>
+           <div class="gcd-hero-foot">pooled β̄ ${fmtSigned(ratRho.bbar)} → nearest candidate · expert weight ${pctv(expWtRho)}</div>
+         </div>`;
 
-    const pctv = x => (x * 100).toFixed(1) + '%';
-    const deltaTag = res => res.err > opt.err + 1e-6
-      ? '<span class="gt-delta">+' + ((res.err - opt.err) * 100).toFixed(1) + ' pt vs optimal</span>'
-      : '<span class="gt-delta ok">at optimal</span>';
-    const tile = (cls, name, res, foot) => `
-      <div class="gcd-tile ${cls}">
-        <div class="gt-name">${name}</div>
-        <div class="gt-err"><span class="gt-num">${pctv(res.err)}</span><span class="gt-unit">expected error</span></div>
-        <div class="gt-pick">pooled β̄ ${fmtSigned(res.bbar)} → <b>${fmtSigned(res.pick)}</b> <span class="gt-chip ${res.correct ? 'ok' : 'miss'}">${res.correct ? '✓ hit' : '✗ miss'}</span></div>
-        ${foot}
+    // BENCHMARK — rational precision pool, always visible for comparison (does not move with ρ).
+    const benchHtml = `<div class="gcd-bench ${bench.correct ? 'ok' : 'miss'}">
+        <div class="gcd-bench-lab">Rational benchmark <span class="gcd-bench-sub">precision-pooled</span></div>
+        <div class="gcd-bench-main">
+          <span class="gcd-bench-num">${pctv(bench.err)}</span><span class="gcd-bench-unit">expected error</span>
+          <span class="gcd-bench-pick">β̄ ${fmtSigned(bench.bbar)} → <b>${fmtSigned(bench.pick)}</b></span>
+          ${chip(bench.correct)}
+        </div>
+        <div class="gcd-bench-foot">${dataMode ? 'if members reported the truthful Bayesian posterior' : 'inverse-variance (optimal) weighting'}</div>
       </div>`;
 
     box.innerHTML = `
       <div class="gcd-head">
-        <span class="gcd-title">Group decision · expected error</span>
-        <span class="gcd-note">${agentMode === 'data'
-          ? 'rational expected error (top) vs wave-1 stated pool → side of 50 (this draw)'
-          : 'pool the estimates → nearest candidate'}</span>
+        <span class="gcd-title">Group decision</span>
+        <span class="gcd-note">${dataMode
+          ? 'drag ρ above — the outcome is the ρ-weighted pool of stated confidences, decided by side of 50'
+          : 'drag ρ above — the group pools estimates by wᵢ ∝ τᵢ^ρ, then takes the nearest candidate'}</span>
       </div>
-      <div class="gcd-tiles">
-        ${tile('optimal', 'Optimal = precision', opt,
-          `<div class="gt-foot"><i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub> · expert weight ${pctv(expWtOpt)}</div>
-           <div class="agg-ewt-track" title="EXPERT weight share"><span class="agg-ewt-fill" style="width:${(expWtOpt * 100).toFixed(1)}%"></span></div>${ddLine(ddOpt)}`)}
-        ${tile('equal', 'Equal (⅓ each)', eq,
-          `<div class="gt-foot"><i class="mvar">w</i><sub>i</sub> = 1 · ignores precision ${deltaTag(eq)}</div>
-           <div class="agg-ewt-track" title="EXPERT weight share"><span class="agg-ewt-fill eqfill" style="width:33.3%"></span></div>${ddLine(ddEq)}`)}
-        ${tile('behavioural', behaviouralName(rho), beh,
-          `<div class="gt-foot">expert weight ${pctv(expWtBeh)} ${deltaTag(beh)}</div>
-           <div class="agg-ewt-track" title="EXPERT weight share under the behavioural scheme"><span class="agg-ewt-fill" style="width:${(expWtBeh * 100).toFixed(1)}%"></span></div>${ddLine(ddBeh)}`)}
+      <div class="gcd-primary">
+        ${hero}
+        ${benchHtml}
       </div>`;
   });
 }

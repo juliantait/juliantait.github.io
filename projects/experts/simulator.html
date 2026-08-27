@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=13">
+<link rel="stylesheet" href="simulation.css?v=15">
 <link rel="stylesheet" href="game.css?v=11">
 </head>
 <body>
@@ -44,6 +44,30 @@
 
   <!-- ===================== VIEW 1: SIMULATED GROUPS (all existing content, unchanged) ===================== -->
   <div id="view-groups" class="view">
+
+  <!-- ===================== TOP INFO MODULE ("what the simulated people are matched on") =====================
+       Openable panel reusing the info-popover / wireInfoPopover pattern. Merges (does not
+       duplicate) the previous round's "what this simulation is based on" popover, which used
+       to sit next to the Agents toggle. -->
+  <section class="exp basis-bar-wrap">
+    <div class="basis-bar pop-host">
+      <button type="button" class="basis-toggle" id="basis-info-btn"
+              aria-label="What the simulated people are matched on" aria-expanded="false">
+        <span class="basis-toggle-i" aria-hidden="true">ⓘ</span>
+        <span class="basis-toggle-txt">What the simulated people are matched on</span>
+        <span class="basis-toggle-hint">read this first</span>
+      </button>
+      <div class="info-popover basis-pop" id="basis-popover" hidden>
+        <p class="basis-title"><b>What the simulated people are matched on</b></p>
+        <p><b>Matched on the mapping, not the transcript.</b> Each simulated member computes the <b>exact Bayesian posterior</b> from its own simulated sample of noisy points. Its <i>stated</i> view is then generated from the behaviour measured in the pilot — a <b>reaction slope</b> of bet on posterior estimated per role, <b>residual scatter</b> around that line, a <b>base-rate shift</b> that over-places on Growing when the state is Stable, and occasional <b>exact answers of 0, 50, or 100</b>. So a member is matched on the <b>posterior-to-bet mapping</b> estimated from the collected data, <b>not</b> on replaying specific pilot rounds.</p>
+        <p><b>The world.</b> Islands produce coconuts. The true state is either Stable (0 extra per century) or Growing (2 or 3 more per century, set by the growth toggle). The prior is 75 / 25 Stable to Growing, noise is Gaussian, and coconut counts are integers — exactly the parameterisation of the live pilot experiment.</p>
+        <p><b>Rational mode.</b> Every member reports that exact posterior, so differences between roles are purely a matter of sample size.</p>
+        <p><b>Data-driven mode</b> (the default). Members still compute the same posterior, but state a bet from the wave-1 reaction model: novices overreact to the signal (reaction slope about 1.3 versus the truthful 1.0), experts compress toward an even split (about 0.4), and both put roughly 20 points too much on Growing when the state is Stable.</p>
+        <p><b>Groups.</b> The group panels pool these stated views, so group outcomes are an extrapolation from individually measured behaviour; real group discussion was not part of the pilot.</p>
+        <p class="xmode-current">Parameters currently come from the <b>first wave</b> (August 2026, 10 completers, 24 rounds each) and will be re-estimated as data accumulates.</p>
+      </div>
+    </div>
+  </section>
 
   <!-- ===================== SIMULATION (explorer) ===================== -->
   <section id="sec-simulation" class="exp">
@@ -131,15 +155,13 @@
             <div class="control-group">
               <div class="cg-title">
                 <span>Agents</span>
-                <button type="button" class="info-btn" id="basis-info-btn"
-                        aria-label="What this simulation is based on" aria-expanded="false">i</button>
               </div>
               <div class="cg-body cg-stacked agents-group">
                 <div class="input-group">
                   <label>behaviour</label>
                   <div class="seg seg-mode" id="seg-agentmode">
-                    <button class="active" data-mode="rational">Rational (Bayesian)</button>
-                    <button data-mode="data">Data driven (wave 1)</button>
+                    <button data-mode="rational">Rational (Bayesian)</button>
+                    <button class="active" data-mode="data">Data driven (wave 1)</button>
                   </div>
                 </div>
                 <div class="input-group dd-only" hidden>
@@ -148,16 +170,6 @@
                     <button class="active" data-corner="1">on</button>
                     <button data-corner="0">off</button>
                   </div>
-                </div>
-                <!-- "What this simulation is based on" — reuses the pop-host / info-btn
-                     pattern (wired via wireInfoPopover in simulation.js). -->
-                <div class="info-popover basis-pop" id="basis-popover" hidden>
-                  <p class="basis-title"><b>What this simulation is based on</b></p>
-                  <p><b>The world.</b> Islands produce coconuts. The true state is either Stable (0 extra per century) or Growing (2 or 3 more per century, set by the growth toggle). The prior is 75 / 25 Stable to Growing, noise is Gaussian, and coconut counts are integers. This is exactly the parameterisation of the live pilot experiment.</p>
-                  <p><b>Rational mode.</b> Every member computes the OLS slope from their own <i class="mvar">n</i> data points and reports the exact Bayesian posterior, so differences between roles are purely a matter of sample size.</p>
-                  <p><b>Data-driven mode.</b> Members still see simulated data and compute the same posterior, but their <i>stated</i> view follows the behaviour measured in the first Prolific wave of the pilot (August 2026, 10 completers, 24 rounds each). Novices overreact to the signal (reaction slope about 1.3 versus the truthful 1.0), experts compress toward an even split (about 0.4), and both put roughly 20 points too much on Growing when the state is Stable (base-rate neglect). Stated views scatter around the reaction line with the empirically observed noise, plus occasional exact answers of 0, 50, or 100.</p>
-                  <p><b>Groups.</b> The group panels pool these stated views, so group outcomes are an extrapolation from individually measured behaviour. Real group discussion was not part of the pilot.</p>
-                  <p class="xmode-current">Parameters will be re-estimated as more waves arrive.</p>
                 </div>
               </div>
             </div>
@@ -300,6 +312,7 @@
           <div class="agg-controls">
             <div class="ac-top">
               <span class="ac-title">Group aggregation</span>
+              <span class="ac-primary-badge">the key control</span>
               <span class="ac-host pop-host">
                 <button type="button" class="info-btn mini-info" id="rho-info-btn" aria-label="More on the weighting schemes" aria-expanded="false">i</button>
                 <div class="info-popover" id="rho-popover" hidden>
@@ -310,7 +323,7 @@
                 </div>
               </span>
             </div>
-            <p class="ac-desc">A group — <b>1 EXPERT + NOVICES</b> (size set below) — pools its members' slope estimates into one group decision. The <b>behavioural</b> tile below weights each member by <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup> (<i class="mvar">τ</i> = precision = 1/SE²). Drag <i class="mvar">ρ</i> to set how much the group trusts precision.</p>
+            <p class="ac-desc"><b>This is the main way the group outcome changes.</b> A group — <b>1 EXPERT + NOVICES</b> (size set below) — combines its members' views into one group decision, weighting each member by <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup> (<i class="mvar">τ</i> = precision = 1/SE²): <b>ρ = 0</b> is equal weight, <b>ρ = 1</b> is precision (inverse-variance) weight, <b>ρ &lt; 0</b> goes counter to precision. Drag <i class="mvar">ρ</i> and watch each group's outcome below update live.</p>
             <div class="ac-slider-row">
               <span class="ac-end">
                 <b>counter-precision</b><span class="ac-end-rho">ρ = −1</span>
@@ -466,7 +479,7 @@
 
 </main>
 
-<script src="simulation.js?v=14"></script>
+<script src="simulation.js?v=15"></script>
 
 <script src="game.js?v=14"></script>
 
