@@ -62,6 +62,11 @@
 /* PREVIEW SHELL — the only hand-written CSS in this file. It positions the
    canvas; it never styles the screen inside it. */
 html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f6; }
+/* The staging box the render must fit inside. container-type makes 100cqw below
+   resolve against THIS element's content width (page-driven, scrollbar-excluded)
+   rather than the viewport, so the fit no longer depends on Windows
+   scrollbars/DPI. #screen is position:absolute, so it never feeds back into this width. */
+body { container-type: inline-size; }
 #screen {
     position: absolute;
     top: 0;
@@ -70,7 +75,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f6; }
     height: 1080px;
     border: 0;
     transform-origin: top left;
-    transform: scale(calc(100vw / 1920px));
+    transform: scale(calc(100cqw / 1920px));
 }
 </style>
 </head>
