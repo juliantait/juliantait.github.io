@@ -17,16 +17,20 @@
   six-step timeline showing where each of them is, and pills for the
   things somebody in the room has to act on.
 
-  THE SESSION IS INVENTED. Nineteen rows, no real participant behind any of
-  them: no Prolific IDs (a Prolific row's label IS the platform ID), no
-  completion codes, no contact or bank details — the screen has no column
-  for any of those. The rows are in scripts/site_previews/monitor_session.py.
+  THE SESSION IS INVENTED, AND IT IS A DELIBERATE MIXED LAB-PLUS-ONLINE
+  DEMO. No real participant is behind any row: the lab seats are cubicle
+  labels (A1–A8, B1–B5), the online rows carry OBVIOUSLY FAKE ids (a run of
+  zeros and the word "demo", never a real platform ID), and there are no
+  completion codes, contact or bank details — the screen has no column for
+  any of those. The rows are in scripts/site_previews/monitor_session.py.
 
-  IT IS A LAB SESSION, AND THAT IS WHY THERE ARE NO RED "ENDED EARLY" ROWS.
-  All four terminal states (screened out, declined consent, comprehension
-  DQ, tab-monitor DQ) need a module the lab profile switches OFF, so a lab
-  monitor genuinely never shows one. An online session does; showing them
-  here would be a picture of a configuration this study does not run.
+  WHY A MIX, AND WHY THAT IS NOT A BUG. The four red terminal/ejection
+  states (screened out, declined consent, comprehension DQ, tab-monitor
+  DQ), the live tab-monitor count and the awaiting-return pill each need a
+  module a single profile turns on, and NO one real session shows them all
+  — a lab session shows none. This preview departs from a single profile ON
+  PURPOSE so the website shows what the monitor CAN display rather than the
+  sparse subset one profile reaches; the fixture's own docstring says so.
 
   THE ROWS WERE DRAWN BY THE DASHBOARD ITSELF. This is not a mock-up of the
   monitor: experimenter_dashboard.py's own JavaScript rendered every row
@@ -55,23 +59,15 @@
   fixed 1920x1080 canvas — an ordinary participant display — inside its own
   browsing context, where those units resolve as they do for a participant,
   and the canvas is scaled to fill whatever 16:9 box the page is given. The
-  scale is applied in two layers. A tiny inline script (at the end of the
-  body) sets a UNITLESS scale — box width / 1920 — via a ResizeObserver, and
-  that is the path that also works on browsers WITHOUT CSS typed arithmetic
-  (pre-Chrome-140 / pre-Safari-18.2 / any Firefox): those drop the length-by-
-  length calc() below and would otherwise render the screen at native 1920px,
-  showing only its top-left corner. With scripts disabled, the CSS
-  transform:scale(calc(100cqw / 1920px)) below is the fallback and is correct
-  on any modern browser.
+  scale is applied two ways — a container-query-unit CSS fallback that works
+  with scripts disabled, and a tiny inline script that measures and scales
+  directly — because the tidy `calc(100vw / 1920px)` form is CSS typed
+  arithmetic that most browsers (all Firefox, pre-140 Chrome) silently drop.
 -->
 <style>
 /* PREVIEW SHELL — the only hand-written CSS in this file. It positions the
    canvas; it never styles the screen inside it. */
 html, body { margin: 0; height: 100%; overflow: hidden; background: #eef1f6; }
-/* The staging box the render must fit inside. container-type makes 100cqw below
-   resolve against THIS element's content width (page-driven, scrollbar-excluded)
-   rather than the viewport, so the fit no longer depends on Windows
-   scrollbars/DPI. #screen is position:absolute, so it never feeds back into this width. */
 body { container-type: inline-size; }
 #screen {
     position: absolute;
@@ -81,6 +77,17 @@ body { container-type: inline-size; }
     height: 1080px;
     border: 0;
     transform-origin: top left;
+    /* SCALE THE CANVAS DOWN TO THE SITE'S 16:9 BOX, TWO WAYS — belt and braces.
+       The obvious `scale(calc(100vw / 1920px))` is CSS typed arithmetic
+       (dividing a length by a length to get a number): it only shipped in
+       Chrome 140 / Safari 18.2 and is in NO stable Firefox, so on most
+       browsers the whole `transform` is DROPPED and the canvas renders at its
+       native 1920px — only its top-left corner shows. So the CSS below uses
+       container query units (100cqw), which resolve against the body's
+       container width without typed arithmetic and reach further back, and the
+       inline script before </body> sets the scale directly from measured pixels
+       wherever it runs (covering older engines that lack cqw too). With scripts
+       blocked the cqw fallback still scales on any engine that supports it. */
     transform: scale(calc(100cqw / 1920px));
 }
 </style>
@@ -88,7 +95,7 @@ body { container-type: inline-size; }
 <body>
 <iframe id="screen" title="Experimenter monitor" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;title&gt;Dashboard — Lab session (CREED)&lt;/title&gt;
+&lt;title&gt;Dashboard — Demo session — lab + online (CREED)&lt;/title&gt;
 &lt;style&gt;
 /* ===== base.css — verbatim from _static/global/css/ ===== */
 
@@ -510,9 +517,30 @@ a { color: var(--accent); }
     gap: clamp(10px, 1.6vw, 18px);
 }
 .screen-card.single-page-fit .experimental-header { gap: 8px; }
-.screen-card.single-page-fit .experimental-content { gap: 10px; }
-.screen-card.single-page-fit &gt; .button-row { padding-top: 14px; }
+.screen-card.single-page-fit .experimental-content { gap: 8px; }
+.screen-card.single-page-fit &gt; .button-row { padding-top: 12px; }
 .screen-card.single-page-fit .panel { padding: clamp(10px, 1.8vw, 16px); }
+/* MODE 2 tightens the READING RHYTHM too, not only the font. INTENTION: the
+   base body line-height (1.65) is generous for comfortable Mode-1 reading; in the
+   one-viewport Mode-2 fit it costs height on every wrapped line, so it tightens
+   to 1.4 — still an easy-to-read measure, and the largest single reclaim
+   available without dropping below the legibility font floor. This is what lets
+   the Prolific consent page carry its quiz-attempts return-request disclosure AND
+   keep the consent control above the fold at 1280x720 (before/welcome+consent.html);
+   the agreement page, which has spare height, is simply a touch tighter. Scoped
+   to .single-page-fit so Mode-1 reading is untouched. */
+.screen-card.single-page-fit .experimental-content :is(p, .section-text, .panel, label) {
+    line-height: 1.4;
+}
+/* A stacked form&#x27;s last field (e.g. the consent radio) carries a trailing
+   form-field margin (oTree&#x27;s .mb-3) that only pushes the fold down in Mode 2 —
+   the flex gap above and the button row below already own the spacing. Reclaim
+   it. Harmless in Mode 1 because this is .single-page-fit-scoped. */
+.screen-card.single-page-fit .stacked-form &gt; *:last-child {
+    /* !important: oTree&#x27;s .mb-3 is a Bootstrap utility (margin-bottom !important),
+       so a plain rule cannot beat it. */
+    margin-bottom: 0 !important;
+}
 
 /* Layer 1 — the scrollbar itself. WebKit/Blink ignores scrollbar-width when a
    ::-webkit-scrollbar rule exists, and painting one explicitly is what stops
@@ -842,6 +870,28 @@ a { color: var(--accent); }
     font-style: italic;
 }
 
+/* COMPONENT — closing instruction. INTENTION: the ONE sentence that points a
+   participant at the control that ends the study (&quot;click the button below…&quot;).
+   It is CENTRED on every ending page, in every card family, because it belongs
+   to the control below it rather than to the running copy above it.
+
+   WHY IT IS A COMPONENT AND NOT A PAGE RULE (2026-08-21). The sentence is
+   written on BOTH endings — outro/Results.html and outro/Ended.html — and its
+   centring used to be decided in two different places, which is the inverted
+   collapsed-distinction fault in CLAUDE.md: on Ended it came free from
+   `.narrative-card .section-text`, while Results (a plain `.screen-card`, no
+   narrative family) had nothing centring it at all and the line simply sat
+   flush-left under a centred receipt. Nothing errored and no test went red —
+   one concept, two implementations, and they had already drifted. Now both
+   pages compose the SAME class and the alignment is decided once.
+
+   Compose it with `.section-text`, which supplies the reading measure and
+   centres the BLOCK; this class only sets the TEXT alignment inside it. Pinned
+   by scripts/tests/render_check.py leg AH (measured, both endings) and by
+   scripts/tests/ending_copy_test.py (document order). Specimen in
+   _static/global/html/template.html. */
+.closing-instruction { text-align: center; }
+
 /* FAMILY — narrative card. INTENTION: narrative screens (welcome, consent, the
    agreement and part/block-start screens) CENTRE their script — the page title,
    the sentences and the panels are centred and held to the reading band — while
@@ -898,6 +948,39 @@ a { color: var(--accent); }
     flex-wrap: wrap;
     padding-top: 4px;
 }
+
+/* THE BUTTON-ROW ORDER RULE (Julian, 2026-08-21) — THE PRIMARY ACTION IS THE
+   RIGHTMOST CONTROL IN THE ROW, and every secondary action sits to its left.
+
+   It is A RULE OF THE COMPONENT, not a decision each page makes, and it is
+   enforced here rather than by everyone remembering. Nearly every page in this
+   template has a one-button row, so the convention was invisible and the one
+   page that has two got it backwards: the online quiz rendered
+   `[Next] [Re-read the instructions]`, putting a SECONDARY control in the slot
+   a participant&#x27;s eye and thumb both go to first. Julian read it as an offer to
+   leave the quiz rather than as the way on — which is exactly what the right
+   edge of a button row promises.
+
+   THE PRIMARY IS `.next-button` WITHOUT `.ghost`. The ghost variant IS the
+   secondary shape of the same button (the instructions pager&#x27;s &quot;Back&quot;), so
+   keying on `.next-button` alone would put &quot;Back&quot; and &quot;Next&quot; in the same slot
+   and settle nothing. `.quiz-reread-btn`, `.skip-button` and `.exit-button` are
+   not `.next-button` at all, so they order before the primary for free — a new
+   secondary control therefore obeys the rule without being added to a list here.
+
+   DOM ORDER STILL MATTERS AND IS STILL WRITTEN CORRECTLY. `order` is a backstop,
+   not the plan: where the markup already reads secondary-then-primary (the
+   instructions pager, the quiz row since this change) this rule changes nothing
+   and the visual order, the DOM order and the TAB order agree. It is here so a
+   page that gets the markup wrong renders right anyway, which is the lesser of
+   the two faults.
+
+   NOT `.modal-actions`. That is a different component with its own settled
+   convention (primary first — see the specimen in template.html and the quiz
+   failure modals), and every modal in the template already agrees with itself.
+   Left alone deliberately; do not &quot;unify&quot; them without deciding that question
+   on its own merits. */
+.button-row &gt; .next-button:not(.ghost) { order: 1; }
 
 .screen-card &gt; .button-row { margin-top: auto; padding-top: 24px; }
 
@@ -2247,7 +2330,29 @@ input[type=&quot;range&quot;]:active::-webkit-slider-thumb { transform: scale(1.
 /* OPERATOR SCREEN. base.css supplies the tokens (colours, radii, shadow) so
    this looks like the study&#x27;s control room, not a debug page — but density
    and across-the-room legibility outrank the participant pages&#x27; whitespace. */
-body { padding: 18px 22px; font-size: 15px; line-height: 1.35; }
+
+/* THE PAGE IS A FIXED-HEIGHT COLUMN, NOT A SCROLLING DOCUMENT (2026-08-25).
+   The summary block (#overview) and the table&#x27;s COLUMN-HEADER ROW must stay put
+   while only the participant ROWS scroll under them. So the body fills its
+   viewport EXACTLY and never scrolls itself: the overview is a fixed-size flex
+   item at the top, and the table lives inside .dash-scroll — the one element on
+   the page that scrolls — with a sticky &lt;thead&gt;.
+
+   WHY THIS SURVIVES BOTH EMBEDDINGS (the whole brief). Standalone, the body&#x27;s
+   viewport is the browser window. In the oTree Report tab the page is inside a
+   100dvh iframe (outro/admin_report.html), so the body&#x27;s viewport is the
+   iframe. In BOTH the body has a definite height to divide between the pinned
+   overview and the scroll area, and the sticky header sticks to the top of
+   .dash-scroll — NOT to the window — so it does not matter which of the two is
+   scrolling around us, nor how tall the (variable-height) overview is. A
+   viewport-relative sticky header would need a hard-coded top offset equal to
+   the overview&#x27;s height and would break the moment the pills wrapped to a new
+   line; pinning inside our own scroll container sidesteps that entirely.
+   100dvh (not 100vh) is the unit the iframe itself uses and base.css standard. */
+html { height: 100%; }
+body { padding: 18px 22px; font-size: 15px; line-height: 1.35;
+  margin: 0; box-sizing: border-box; height: 100dvh;
+  display: flex; flex-direction: column; overflow: hidden; }
 .dash-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
   margin-bottom: 10px; }
 .dash-top h1 { font-size: 1.15rem; margin: 0; }
@@ -2255,14 +2360,54 @@ body { padding: 18px 22px; font-size: 15px; line-height: 1.35; }
 .dash-counts { color: var(--ink-soft); font-size: .9rem; }
 .dash-status { margin-left: auto; font-size: .85rem; color: var(--ink-mute); }
 .dash-status.err { color: var(--danger); font-weight: 650; }
-.dash-controls { font-size: .85rem; color: var(--ink-soft); user-select: none; }
+.dash-controls { font-size: .85rem; color: var(--ink-soft); user-select: none;
+  display: inline-flex; align-items: baseline; gap: 5px; cursor: pointer; }
+/* THE HIDING, SAID OUT LOUD. Muted, because it is a note about the VIEW and
+   not an alarm about the session — but never absent while rows are missing:
+   a table quietly shorter than the session is how an operator concludes the
+   room is emptier than it is. Paired with the control that lifts it. */
+.count-hidden { color: var(--ink-mute); }
+.count-hidden b { color: var(--ink-soft); }
 
-table.dash { width: 100%; border-collapse: collapse; background: var(--card-bg);
-  border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden;
-  box-shadow: var(--shadow); }
+/* THE SCROLL CONTAINER — the ONLY thing on the page that scrolls (2026-08-25).
+   The card frame (border, radius, shadow) lives HERE rather than on the table
+   so the sticky header below pins against a clean top edge and the table&#x27;s own
+   top border can never scroll up out from under it. `overflow: auto` scrolls
+   BOTH ways: vertically for the rows (the point), and horizontally so a wide
+   table scrolls inside this box instead of the page — which is what keeps the
+   body&#x27;s own `overflow: hidden` from ever clipping a column.
+   `min-height: 0` is LOAD-BEARING, not decoration: a flex child will not shrink
+   below its content&#x27;s height without it, so the full table would push the body
+   past 100dvh and the whole page would scroll again — defeating the sticky. */
+.dash-scroll { flex: 1 1 auto; min-height: 0; overflow: auto;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--shadow); background: var(--card-bg); }
+table.dash { width: 100%; border-collapse: collapse; background: var(--card-bg); }
+/* THE COLUMN-HEADER ROW PINS to the top of .dash-scroll while rows scroll
+   underneath it (2026-08-25). The separating line is a BOX-SHADOW, not
+   border-bottom: with border-collapse the cell&#x27;s bottom border belongs to the
+   table&#x27;s own collapsed border box, which scrolls away from a sticky &lt;th&gt; in
+   several engines, so a border-bottom underline would vanish on scroll. A
+   box-shadow is painted as part of the th and rides pinned with it. The sunken
+   background is what stops the scrolling rows showing THROUGH the header; the
+   z-index keeps it above any positioned cell content (timeline markers etc.). */
+table.dash thead th { position: sticky; top: 0; z-index: 5;
+  box-shadow: inset 0 -1px 0 var(--line-strong); }
 table.dash th { text-align: left; font-size: .78rem; text-transform: uppercase;
   letter-spacing: .04em; color: var(--ink-mute); background: var(--sunken);
-  padding: 7px 10px; border-bottom: 1px solid var(--line-strong); }
+  padding: 7px 10px; }
+/* SORTABLE HEADERS (2026-08-25). A clickable column header darkens on hover and
+   suppresses text selection so a repeated click toggles the direction without
+   selecting the label. The timeline header carries none of this — it is not a
+   sort key. The ▲/▼ marker is written into `.sort-ind` by updateSortIndicators
+   only on the ACTIVE column, so exactly one column ever shows a direction. */
+table.dash th.sortable { cursor: pointer; user-select: none;
+  -webkit-user-select: none; }
+table.dash th.sortable:hover { color: var(--ink); }
+.sort-ind { font-size: .72em; color: var(--accent); font-weight: 700;
+  /* reserve nothing when empty: an inactive column shows no glyph and no gap */
+  margin-left: 3px; letter-spacing: 0; }
+.sort-ind:empty { margin-left: 0; }
 table.dash td { padding: 6px 10px; border-bottom: 1px solid var(--line);
   vertical-align: middle; }
 table.dash tr:last-child td { border-bottom: none; }
@@ -2313,12 +2458,16 @@ tr.unmapped-row td.c-label { box-shadow: inset 4px 0 0 var(--dash-unmapped); }
    line starts and ends at the centre of the first and last markers. Hard-coding
    them was two more copies of &quot;how many steps are there&quot; — add a seventh step
    and a fixed 6-track grid would silently drop it off the end of the row. */
-/* 46%, NOT LESS: narrowing this (44% was tried when the state column became
-   pills) squeezes the header grid until the long step labels hit their
-   min-content floor and the six tracks stop being equal — measured as a 3.8px
-   spread by dashboard_render_check. The pills wrap inside their own cell
-   instead (.state-pills is flex-wrap), so they need no width ceded to them. */
-.c-timeline { width: 46%; }
+/* 48%, AND NOT LESS: narrowing this squeezes the header grid until the long
+   step labels (&quot;Questionnaire&quot;) hit their min-content floor and the six tracks
+   stop being equal — measured as a 3.8px spread by dashboard_render_check when
+   it was 44%, and again at 1280px when the SECOND time pill (2026-08-23) landed
+   and this still said 46%. Widened from 46% to 48% then, to give the header back
+   the room the extra pill took from it, verified at 1152/1280/1512/1728px. The
+   number may go UP (more slack for the labels) but never down. The state pills
+   wrap inside their own cell (.state-pills is flex-wrap) and the two time pills
+   are kept compact and on one line, so neither needs width ceded to it. */
+.c-timeline { width: 48%; }
 .tl-header, .tl { display: grid;
   grid-template-columns: repeat(6, 1fr); }
 .tl-header span { font-size: .68rem; text-align: center; }
@@ -2381,6 +2530,21 @@ tr.unmapped-row td.c-label { box-shadow: inset 4px 0 0 var(--dash-unmapped); }
 .pill.pill-live { background: var(--accent-soft); border-color: var(--accent);
   color: var(--accent); }
 .pill.pill-earn { background: #eaf6ef; border-color: #bfe3cd; color: #1f7a46; }
+/* THE TWO TIME PILLS share the Time column (Julian, 2026-08-23). Each carries a
+   tiny key so INTRO and TOTAL are told apart across the room, not only by
+   colour: INTRO freezes at the intro boundary (neutral once settled, accent
+   while still live), TOTAL keeps counting (accent while live). The key rides on
+   the pill&#x27;s OWN baseline (align-items:baseline) so the little label and the
+   time do not stagger. Kept on ONE line — `.c-instr` is `nowrap` and the two
+   pills sit side by side — so a second timer never grows the row height (the
+   site preview canvas is a fixed frame; a taller row would clip it). */
+.time-pill { display: inline-flex; align-items: baseline; gap: 3px;
+  padding: 2px 6px; }
+.time-pill i { font-style: normal; font-size: .55rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .02em; color: var(--ink-mute); }
+.time-pill.pill-live i { color: var(--accent); opacity: .8; }
+.time-pill em { font-style: normal; }
+.time-pill + .time-pill { margin-left: 4px; }
 .c-instr { width: 10%; white-space: nowrap; }
 .c-earn { width: 10%; white-space: nowrap; }
 
@@ -2436,6 +2600,11 @@ tr.unmapped-row td.c-label { box-shadow: inset 4px 0 0 var(--dash-unmapped); }
   background: var(--card-bg); border: 1px solid var(--line);
   border-radius: var(--r-md); box-shadow: var(--shadow);
   padding: 11px 14px 12px; margin-bottom: 14px;
+  /* PINNED, by being the non-scrolling flex item at the top of the column: it
+     keeps its natural (variable) height and the scroll area below takes the
+     rest. flex-shrink 0 so a tall overview is never squeezed — the table gives
+     up height instead, which is exactly the row area we want scrollable. */
+  flex: 0 0 auto;
 }
 .dash-overview .dash-top { margin-bottom: 0; }
 .ov-strip {
@@ -2782,45 +2951,55 @@ tr.qm-unreadable td { color: var(--dash-amber); background: #fffceb; }
      the alarm row. One section about who is here and how it is going. --&gt;
 &lt;div class=&quot;dash-overview&quot; id=&quot;overview&quot;&gt;
   &lt;div class=&quot;dash-top&quot;&gt;
-    &lt;h1&gt;Lab session (CREED)&lt;/h1&gt;
+    &lt;h1&gt;Demo session — lab + online (CREED)&lt;/h1&gt;
     &lt;span class=&quot;hdr-rule&quot;&gt;&lt;/span&gt;
     &lt;span class=&quot;hdr-session&quot;&gt;&lt;span class=&quot;hdr-key&quot;&gt;Session&lt;/span&gt;
       &lt;code class=&quot;hdr-code&quot;&gt;demo1234&lt;/code&gt;&lt;/span&gt;
     &lt;span class=&quot;hdr-dot&quot;&gt;·&lt;/span&gt;
     &lt;span class=&quot;dash-counts&quot; id=&quot;counts&quot;&gt;👤 &lt;b&gt;17&lt;/b&gt; of &lt;b&gt;18&lt;/b&gt; arrived&lt;/span&gt;
-    &lt;label class=&quot;dash-controls&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;hide-entry&quot;&gt;
-      hide not-arrived rows&lt;/label&gt;
+    &lt;label class=&quot;dash-controls&quot; title=&quot;Not arrived = has not opened a page yet (participant.visited). Terminal rows — a screen-out, a declined consent — are never hidden, however they got there.&quot;&gt;
+      &lt;input type=&quot;checkbox&quot; id=&quot;show-not-arrived&quot; checked=&quot;&quot;&gt;
+      show not-arrived rows&lt;/label&gt;
     &lt;span class=&quot;dash-status&quot; id=&quot;status&quot;&gt;updated 10:42:18 AM&lt;/span&gt;
   &lt;/div&gt;
-  &lt;div class=&quot;ov-strip&quot; id=&quot;ov-strip&quot;&gt;&lt;span class=&quot;ov ov-treat&quot; title=&quot;Treatment cells. Each pair is FINISHED of ASSIGNED, so the denominators side by side are the balance the assigner maintains (least-filled cell on arrival, random tie-break) and the numerators are completion. Assigned minus finished is NOT still going: it also holds anyone who abandoned or was ejected after the instructions. Names come from settings.TREATMENT_CELLS, so this can never show a treatment the code does not have.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Treatments&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;row&lt;/i&gt;&lt;em&gt;2&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;8&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;column&lt;/i&gt;&lt;em&gt;1&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;7&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;3 unassigned&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-people&quot; title=&quot;THE STATE OF PEOPLE — the three buckets that partition everyone who has ARRIVED (the x of y above).
-IN PROGRESS 14, OF WHICH STALLED 2 — too long in one phase against that phase threshold. A CONDITION on people who are still going, NOT a fourth outcome, which is why it is nested inside the in-progress number rather than set beside it.
+  &lt;div class=&quot;ov-strip&quot; id=&quot;ov-strip&quot;&gt;&lt;span class=&quot;ov ov-treat&quot; title=&quot;Treatment cells. Each pair is FINISHED of ASSIGNED, so the denominators side by side are the balance the assigner maintains (least-filled cell on arrival, random tie-break) and the numerators are completion. Assigned minus finished is NOT still going: it also holds anyone who abandoned or was ejected after the instructions. Names come from settings.TREATMENT_CELLS, so this can never show a treatment the code does not have.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Treatments&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;row&lt;/i&gt;&lt;em&gt;2&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;7&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;column&lt;/i&gt;&lt;em&gt;1&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;6&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;5 unassigned&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-people&quot; title=&quot;THE STATE OF PEOPLE — the three buckets that partition everyone who has ARRIVED (the x of y above).
+IN PROGRESS 10, OF WHICH STALLED 2 — too long in one phase against that phase threshold. A CONDITION on people who are still going, NOT a fourth outcome, which is why it is nested inside the in-progress number rather than set beside it.
 FINISHED 3
-ENDED EARLY 0
-   turned away at entry — 0
-   ejected after starting — 0
+ENDED EARLY 4
+   turned away at entry — 2
+   ejected after starting — 2
    unclassified — 0
-NOT SHOWN, deliberately: an &amp;quot;abandoned&amp;quot; count. Exit code 0 means &amp;quot;never reached an ending&amp;quot; and is what everyone is initialised to, so live it cannot tell somebody working right now from somebody who closed the tab — they are inside IN PROGRESS.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Participants&lt;/b&gt;&lt;span class=&quot;ov-nest&quot;&gt;&lt;em&gt;14&lt;/em&gt; in progress&lt;span class=&quot;ov-stall&quot;&gt;(2 stalled)&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov-chip&quot;&gt;&lt;em&gt;3&lt;/em&gt; finished&lt;/span&gt;&lt;span class=&quot;ov-early&quot;&gt;&lt;em&gt;0&lt;/em&gt; ended early&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-earn&quot; title=&quot;Earnings over the FINISHED participants — the average and the total, both read off the ONE figure summed on the server from the same earnings the rows show, so neither can disagree with the per-row cells. Earnings do not exist until the results page computes them, so this population is forced by the data.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Earnings&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;avg&lt;/i&gt;&lt;em&gt;16.25&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;48.75&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;ov-unit&quot;&gt;EUR&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;of 3&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-time&quot; title=&quot;TWO AVERAGES, TWO DIFFERENT POPULATIONS — each over the participants who completed THAT stage. INTRO: mean time inside the intro app, over everyone whose intro time is settled (they have a quiz_done stamp and are out of the intro) — it includes people now in the task, the questionnaire, finished, or ejected after the intro. EXPERIMENT: mean time for the whole run, first stamp to the finished stamp, over those who FINISHED the study; nothing else can have it. Both summed on the server from the same stage timestamps the rows use.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Time (avg)&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:55&lt;/em&gt;&lt;s class=&quot;ov-den&quot;&gt;of 11&lt;/s&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;experiment&lt;/i&gt;&lt;em&gt;22:18&lt;/em&gt;&lt;s class=&quot;ov-den&quot;&gt;of 3&lt;/s&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
+NOT SHOWN, deliberately: an &amp;quot;abandoned&amp;quot; count. Exit code 0 means &amp;quot;never reached an ending&amp;quot; and is what everyone is initialised to, so live it cannot tell somebody working right now from somebody who closed the tab — they are inside IN PROGRESS.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Participants&lt;/b&gt;&lt;span class=&quot;ov-nest&quot;&gt;&lt;em&gt;10&lt;/em&gt; in progress&lt;span class=&quot;ov-stall&quot;&gt;(2 stalled)&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov-chip&quot;&gt;&lt;em&gt;3&lt;/em&gt; finished&lt;/span&gt;&lt;span class=&quot;ov-early&quot;&gt;&lt;em&gt;4&lt;/em&gt; ended early&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-earn&quot; title=&quot;Earnings over the FINISHED participants — the average and the total, both read off the ONE figure summed on the server from the same earnings the rows show, so neither can disagree with the per-row cells. Earnings do not exist until the results page computes them, so this population is forced by the data.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Earnings&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;avg&lt;/i&gt;&lt;em&gt;15.08&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;45.25&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;ov-unit&quot;&gt;EUR&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;of 3&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-time&quot; title=&quot;TWO AVERAGES, TWO DIFFERENT POPULATIONS — each over the participants who completed THAT stage. INTRO: mean time inside the intro app, over everyone whose intro time is settled (they have a quiz_done stamp and are out of the intro) — it includes people now in the task, the questionnaire, finished, or ejected after the intro. EXPERIMENT: mean time for the whole run, first stamp to the finished stamp, over those who FINISHED the study; nothing else can have it. Both summed on the server from the same stage timestamps the rows use.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Time (avg)&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;4:01&lt;/em&gt;&lt;s class=&quot;ov-den&quot;&gt;of 10&lt;/s&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;experiment&lt;/i&gt;&lt;em&gt;22:18&lt;/em&gt;&lt;s class=&quot;ov-den&quot;&gt;of 3&lt;/s&gt;&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
   &lt;div class=&quot;ov-alert&quot; id=&quot;ov-alert&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
+&lt;!-- THE SCROLL CONTAINER: the summary above stays put, the &lt;thead&gt; below pins,
+     and ONLY these rows scroll. See .dash-scroll / thead sticky in the CSS. --&gt;
+&lt;div class=&quot;dash-scroll&quot;&gt;
 &lt;table class=&quot;dash&quot;&gt;
   &lt;thead&gt;&lt;tr&gt;
-  &lt;th class=&quot;c-label&quot;&gt;Participant&lt;/th&gt;
+  &lt;th class=&quot;c-label sortable&quot; data-sort=&quot;label&quot; title=&quot;Click to sort by participant (natural order)&quot;&gt;Participant&lt;span class=&quot;sort-ind&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&lt;/th&gt;
   &lt;th class=&quot;c-timeline&quot;&gt;
     &lt;div class=&quot;tl-header&quot;&gt;&lt;span&gt;Entry&lt;/span&gt;&lt;span&gt;Instructions&lt;/span&gt;&lt;span&gt;Quiz&lt;/span&gt;&lt;span&gt;Task&lt;/span&gt;&lt;span&gt;Questionnaire&lt;/span&gt;&lt;span&gt;Done&lt;/span&gt;&lt;/div&gt;
   &lt;/th&gt;
-  &lt;th class=&quot;c-quiz&quot; title=&quot;Quiz attempts&quot;&gt;Quiz
+  &lt;th class=&quot;c-quiz sortable&quot; data-sort=&quot;quiz&quot; title=&quot;Quiz attempts — click to
+sort by how many attempts were wrong&quot;&gt;Quiz&lt;span class=&quot;sort-ind&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
     &lt;!-- THE QUIZ-MISTAKES AFFORDANCE. Reuses the SAME `.th-info` styling the
          State header uses for its threshold legend (quiet, hoverable,
          focusable) — no new affordance. Inert until clicked: it issues ONE
          fetch to /quiz_mistakes into an overlay (see the panel JS) and never
          rides the 2-second poll. This is the only footprint on the live
-         table. --&gt;
+         table. Clicking THIS icon opens the panel and does NOT sort — the sort
+         handler ignores clicks that land on a `.th-info`. --&gt;
     &lt;span class=&quot;th-info&quot; id=&quot;quiz-mistakes-info&quot; tabindex=&quot;0&quot; role=&quot;button&quot; title=&quot;What people got wrong on the quiz — click to open&quot;&gt;ⓘ&lt;/span&gt;
   &lt;/th&gt;
-  &lt;th class=&quot;c-instr&quot; title=&quot;Whole time in the intro app, both rounds: from
-leaving the entry pages until the quiz is finished with&quot;&gt;Intro time&lt;/th&gt;
-  &lt;th class=&quot;c-earn&quot;&gt;Earnings&lt;/th&gt;
-  &lt;th class=&quot;c-state&quot;&gt;State
+  &lt;th class=&quot;c-instr sortable&quot; data-sort=&quot;time&quot; title=&quot;Two timers per
+participant. INTRO: the whole time in the intro app, both rounds, from leaving
+the entry pages until the quiz is finished with — it FREEZES at that boundary.
+TOTAL: time since they started (the first recorded page), the intro included,
+still counting while they are live. Click to sort by TOTAL time.&quot;&gt;Time&lt;span class=&quot;sort-ind&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&lt;/th&gt;
+  &lt;th class=&quot;c-earn sortable&quot; data-sort=&quot;earnings&quot; title=&quot;Click to sort by earnings&quot;&gt;Earnings&lt;span class=&quot;sort-ind&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;&lt;/th&gt;
+  &lt;th class=&quot;c-state sortable&quot; data-sort=&quot;state&quot; title=&quot;Click to sort by status
+— active/live first, then finished, then disqualified&quot;&gt;State&lt;span class=&quot;sort-ind&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
     &lt;!-- THE THRESHOLD LEGEND (item 17). A `title` tooltip, which is the pattern
          the other headers on this table already use — no second mechanism.
          The text is written by the poll from `stall_legend` in the JSON, so the
@@ -2837,33 +3016,15 @@ leaving the entry pages until the quiz is finished with&quot;&gt;Intro time&lt;/
 Tune them in settings.py (DASHBOARD_STALL_SECONDS_*).&quot;&gt;ⓘ&lt;/span&gt;
   &lt;/th&gt;
 &lt;/tr&gt;&lt;/thead&gt;
-  &lt;tbody id=&quot;rows&quot;&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 01&lt;span class=&quot;page-hint&quot;&gt;Consent&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 02&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;9:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;9:41 in this phase — amber past 8:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Intro 9:41&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 03&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-progress&quot;&gt;&lt;div class=&quot;fillbar&quot; style=&quot;width:33.300000000000004%&quot;&gt;&lt;/div&gt;&lt;span&gt;1×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;5:41&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 04&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;2 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:24&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 05&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;6 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:52&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 06&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;9 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 3&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;6:20&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 07&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:15&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 08&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:30&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;18.50 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 09&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;6:12&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;14.00 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;span class=&quot;spill spill-nonsepa&quot; title=&quot;This participant’s IBAN is outside the SEPA area — check the transfer will work before they leave&quot;&gt;Non-SEPA&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 10&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;5 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-forced&quot; title=&quot;advanced past the quiz from the admin panel — no correct answer was ever submitted&quot;&gt;&lt;span&gt;forced&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;4:05&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 11&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-red&quot;&gt;&lt;span&gt;3×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;6:42&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 12&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;3 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:08&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;5:12 in this phase — amber past 3:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Task round 5:12&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 14&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill pill-live&quot; title=&quot;still in the intro app&quot;&gt;1:12&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 15&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;4 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;4:18&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 16&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;2:58&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 17&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill&quot;&gt;3:02&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;16.25 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;entry-only&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;Seat 18&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;span style=&quot;color:var(--ink-mute)&quot;&gt;not arrived&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;&lt;span class=&quot;code-fallback&quot;&gt;k7m2p9xr&lt;/span&gt;&lt;span class=&quot;page-hint&quot;&gt;Welcome&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;tbody id=&quot;rows&quot;&gt;&lt;tr class=&quot;terminal-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;000000000000000000demo01&lt;span class=&quot;page-hint&quot;&gt;DeviceCheck&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker terminal-marker&quot; title=&quot;Screened out&quot;&gt;📵&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-terminal&quot;&gt;&lt;span class=&quot;emoji&quot;&gt;📵&lt;/span&gt;Screened out&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;terminal-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;000000000000000000demo02&lt;span class=&quot;page-hint&quot;&gt;Consent&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker terminal-marker&quot; title=&quot;Declined consent&quot;&gt;✋&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-terminal&quot;&gt;&lt;span class=&quot;emoji&quot;&gt;✋&lt;/span&gt;Declined consent&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;terminal-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;000000000000000000demo03&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker terminal-marker&quot; title=&quot;Comprehension DQ&quot;&gt;❌&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-red&quot;&gt;&lt;span&gt;3×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;5:56&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;total time since they started — the intro included&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;24:46&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-terminal&quot;&gt;&lt;span class=&quot;emoji&quot;&gt;❌&lt;/span&gt;Comprehension DQ&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;terminal-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;000000000000000000demo04&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker terminal-marker&quot; title=&quot;Tab monitor DQ&quot;&gt;👀&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:48&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;total time since they started — the intro included&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;22:38&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-terminal&quot;&gt;&lt;span class=&quot;emoji&quot;&gt;👀&lt;/span&gt;Tab monitor DQ&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A1&lt;span class=&quot;page-hint&quot;&gt;Consent&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A2&lt;span class=&quot;page-hint&quot;&gt;Instructions&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;581&quot; title=&quot;time in the intro app so far — still going&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;9:41&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;621&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;10:21&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;9:41 in this phase — amber past 8:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Intro 9:41&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A3&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-progress&quot;&gt;&lt;div class=&quot;fillbar&quot; style=&quot;width:33.300000000000004%&quot;&gt;&lt;/div&gt;&lt;span&gt;1×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;341&quot; title=&quot;time in the intro app so far — still going&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;5:41&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;381&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;6:21&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A4&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;2 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:24&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;464&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;7:44&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A5&lt;span class=&quot;page-hint&quot;&gt;Quiz&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-red&quot;&gt;&lt;span&gt;3×&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;402&quot; title=&quot;time in the intro app so far — still going&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;6:42&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;442&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;7:22&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A6&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;5 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-forced&quot; title=&quot;advanced past the quiz from the admin panel — no correct answer was ever submitted&quot;&gt;&lt;span&gt;forced&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;4:05&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;505&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;8:25&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A7&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;6 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;2:52&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;432&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;7:12&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-monitor&quot; title=&quot;Tab/focus losses counted by the server monitor — disqualified on reaching the limit (tab_monitor_max_violations). Someone to speak to BEFORE that happens.&quot;&gt;👀 2 of 3&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;stalled&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;A8&lt;span class=&quot;page-hint&quot;&gt;GameStart&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;3 of 10&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:08&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;500&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;8:20&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-stall&quot; title=&quot;5:12 in this phase — amber past 3:00 (tune in settings.py; all thresholds under the State header’s ⓘ)&quot;&gt;⚠️ Task round 5:12&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;B1&lt;span class=&quot;page-hint&quot;&gt;Feedback&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:15&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill pill-live&quot; data-live=&quot;455&quot; title=&quot;total time since they started — the intro included, still counting&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;7:35&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;B2&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;3:30&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;total time since they started — the intro included&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;22:20&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;18.50 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;B3&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 1&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;4:03&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;total time since they started — the intro included&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;22:53&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;12.75 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;span class=&quot;spill spill-return&quot; title=&quot;Finished the study but no “Back to Prolific” click was recorded — their submission may still be open (unpaid) on the platform&quot;&gt;↩ no return click&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;finished-row&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;B4&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell donestep&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker done-marker&quot;&gt;✓&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-green&quot;&gt;&lt;span&gt;✓ 2&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;time spent in the intro app (frozen once they left it)&quot;&gt;&lt;i&gt;intro&lt;/i&gt;&lt;em&gt;6:12&lt;/em&gt;&lt;/span&gt;&lt;span class=&quot;pill time-pill&quot; title=&quot;total time since they started — the intro included&quot;&gt;&lt;i&gt;total&lt;/i&gt;&lt;em&gt;25:02&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;span class=&quot;pill pill-earn&quot;&gt;14.00 EUR&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;div class=&quot;state-pills&quot;&gt;&lt;span class=&quot;spill spill-finished&quot;&gt;✓ finished&lt;/span&gt;&lt;span class=&quot;spill spill-nonsepa&quot; title=&quot;This participant’s IBAN is outside the SEPA area — check the transfer will work before they leave&quot;&gt;Non-SEPA&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;entry-only&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;B5&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;span style=&quot;color:var(--ink-mute)&quot;&gt;not arrived&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr class=&quot;&quot;&gt;&lt;td class=&quot;c-label&quot;&gt;&lt;span class=&quot;code-fallback&quot;&gt;k7m2p9xr&lt;/span&gt;&lt;span class=&quot;page-hint&quot;&gt;Welcome&lt;/span&gt;&lt;/td&gt;&lt;td class=&quot;c-timeline&quot;&gt;&lt;div class=&quot;tl&quot;&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;marker&quot;&gt;●&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;stepcell&quot;&gt;&lt;span class=&quot;dot&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-quiz&quot;&gt;&lt;div class=&quot;quizcell q-idle&quot;&gt;&lt;span&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class=&quot;c-instr&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-earn&quot;&gt;&lt;/td&gt;&lt;td class=&quot;c-state&quot;&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
 &lt;/table&gt;
+&lt;/div&gt;
 &lt;!-- THE QUIZ-MISTAKES OVERLAY. Empty until the Quiz header&#x27;s ⓘ is clicked; the
      panel JS fills it from one /quiz_mistakes fetch. Outside the table, so a
      broken panel cannot touch a single row. --&gt;
 &lt;div class=&quot;qm-overlay&quot; id=&quot;qm-overlay&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
 
 &lt;/body&gt;&lt;/html&gt;"></iframe>
-<script>
-/* Layered fit (see head comment): set a UNITLESS scale so the render fits even
-   where the CSS transform:scale(calc(100cqw / 1920px)) fallback is dropped as
-   invalid — any browser without CSS typed arithmetic (pre-Chrome-140 /
-   pre-Safari-18.2 / all Firefox), the wide-Windows corner-only bug. Modern +
-   scripts-disabled still gets the CSS fallback; JS wins wherever it runs. */
-(function () {
-  var screen = document.getElementById('screen');
-  if (!screen) return;
-  function fit() {
-    screen.style.transform = 'scale(' + (document.body.clientWidth / 1920) + ')';
-  }
-  if (typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(fit).observe(document.body);
-  } else if (window.addEventListener) {
-    window.addEventListener('resize', fit);
-  }
-  fit();
-})();
-</script>
+<script>(function(){var screen=document.getElementById("screen");if(!screen)return;function fit(){screen.style.transform="scale("+(document.body.clientWidth/1920)+")";}if(typeof ResizeObserver!=="undefined"){new ResizeObserver(fit).observe(document.body);}else if(window.addEventListener){window.addEventListener("resize",fit);}fit();})();</script>
 </body>
 </html>
