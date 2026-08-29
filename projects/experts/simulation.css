@@ -207,94 +207,69 @@
     letter-spacing: 0;
   }
 
-  /* ---- Headline ---- */
-  .headline {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 28px;   /* breathing room before the graph + table row */
+  /* ---- Individual error rates: one compact table (replaces the large per-role
+     tiles). Rows = role, columns = the two decision rules. Kept tight so the
+     quick individual read takes minimal vertical space before the group section. */
+  table.err-summary {
+    border-collapse: collapse;
+    width: auto;                 /* tight, not full width */
+    margin: 0 0 22px;
+    font-size: 13.5px;
   }
-
-  .head-cell {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px 18px 18px;
+  table.err-summary th,
+  table.err-summary td {
+    padding: 7px 20px;
     text-align: center;
-    background: var(--card);
+    border-bottom: 1px solid var(--border);
   }
-
-  .head-cell.novice { border-color: rgba(220,38,38,0.35); background: linear-gradient(180deg, #fff7f7, #fff); }
-  .head-cell.expert { border-color: rgba(37,99,235,0.35); background: linear-gradient(180deg, #f5f8ff, #fff); }
-
-  .head-role {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.4px;
-    color: var(--text-muted);
-    margin-bottom: 16px;
-  }
-
-  .head-metrics {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 30px;
-  }
-  .head-metric { display: flex; flex-direction: column; align-items: center; gap: 7px; }
-
-  .head-num {
-    font-size: 42px;
-    font-weight: 800;
-    font-family: var(--font-mono);
-    line-height: 1;
-    letter-spacing: -1px;
-  }
-
-  .head-cell.novice .head-num { color: var(--novice); }
-  .head-cell.expert .head-num { color: var(--expert); }
-  /* The Bayes-optimal number is the better one but shown as a reference: slightly
-     softened so the headline (nearest) stays primary, gap = base-rate-neglect cost. */
-  .head-metric + .head-metric .head-num { opacity: 0.62; }
-
-  .head-sub {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+  table.err-summary thead th {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
   }
-  .head-sub .info-popover { text-align: left; }
+  table.err-summary th:first-child,
+  table.err-summary td:first-child {
+    text-align: left;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  table.err-summary td.role-novice { color: var(--novice); }
+  table.err-summary td.role-expert { color: var(--expert); }
+  table.err-summary .es-num {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  /* Bayes-optimal is the reference (lower) number: softened so nearest stays
+     primary, the gap being the cost of base-rate neglect. */
+  table.err-summary .es-map { opacity: 0.62; }
+  table.err-summary thead th.pop-host { cursor: default; }
 
   @media (max-width: 620px) {
-    .headline { grid-template-columns: 1fr; }
-    .head-num { font-size: 34px; }
-    .head-metrics { gap: 20px; }
+    table.err-summary th,
+    table.err-summary td { padding: 7px 12px; }
+    table.err-summary .es-num { font-size: 18px; }
   }
 
-  /* ---- Graph + table block (constrained to ~2/3 width, stacked, left-aligned) ---- */
-  /* ITEM 6: graph and table sit SIDE BY SIDE in one row (graph a touch wider),
-     below the full-width headline. They stack vertically on narrow screens. */
+  /* ---- Breakdown table block (the sampling-PDF graph that used to sit beside it
+     has been removed; the per-state detail table now stands alone, constrained to
+     ~2/3 width and left-aligned so it stays compact above the group section). ---- */
   .viz-block {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 18px;
-    align-items: stretch;          /* ITEM A: graph and table share the row height */
   }
   .viz-block .card { margin-bottom: 0; }
-  /* The graph card fills its (stretched) height; the canvas grows to match the
-     table beside it. drawPlot() reads canvas-wrap's height and redraws to fit. */
-  .viz-graph-card { display: flex; flex-direction: column; }
-  .viz-graph-card .canvas-wrap { flex: 1 1 auto; min-height: 160px; }
   @media (max-width: 860px) {
     .viz-block { grid-template-columns: 1fr; }
   }
 
-  /* ---- Graph ---- */
-  .canvas-wrap { width: 100%; }
-
+  /* ---- Canvas (example scatters / mini-posteriors) ---- */
   canvas {
     display: block;
     width: 100%;

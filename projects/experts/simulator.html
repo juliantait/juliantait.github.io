@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=17">
+<link rel="stylesheet" href="simulation.css?v=18">
 <link rel="stylesheet" href="game.css?v=11">
 </head>
 <body>
@@ -52,12 +52,12 @@
   <section class="exp basis-bar-wrap">
     <div class="basis-bar pop-host">
       <button type="button" class="basis-toggle" id="basis-info-btn"
-              aria-label="What the simulated people are matched on" aria-expanded="false">
+              aria-label="What the simulated people are matched on" aria-expanded="true">
         <span class="basis-toggle-i" aria-hidden="true">ⓘ</span>
         <span class="basis-toggle-txt">What the simulated people are matched on</span>
         <span class="basis-toggle-hint">read this first</span>
       </button>
-      <div class="info-popover basis-pop" id="basis-popover" hidden>
+      <div class="info-popover basis-pop" id="basis-popover">
         <p class="basis-title"><b>What the simulated people are matched on</b></p>
         <ul class="basis-list">
           <li>Simulated bets follow the measured behaviour of 126 real participants</li>
@@ -227,52 +227,33 @@
           <div class="error-msg" id="err"></div>
         </div>
 
-        <!-- 2. Headline (two rules per role: nearest vs Bayes-optimal MAP) -->
+        <!-- 2. Individual error rates — ONE compact table (replaces the large per-role
+             tiles). Rows = role, columns = the two decision rules whose percentages
+             used to be shown large. Point-first labels, no colon prefixes. IDs
+             head-nov / head-exp / head-nov-map / head-exp-map are preserved so the
+             simulate() writes land unchanged. -->
         <p class="mode-note dd-only" hidden>Rational-Bayesian benchmark &mdash; data-driven agents compute these internally but <b>act</b> via the waves-1+2 behavioural model (see the group section below).</p>
-        <div class="headline rational-only">
-          <div class="head-cell novice">
-            <div class="head-role">NOVICE &middot; avg error</div>
-            <div class="head-metrics">
-              <div class="head-metric">
-                <div class="head-num" id="head-nov">--</div>
-                <div class="head-sub pop-host">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button>
-                  <div class="info-popover pick-pop" hidden><b>nearest</b>: average error rate if a member classifies their estimate to the closest candidate. Prior-free, it ignores the base rate (the prior over the states), so it reflects base-rate neglect.</div>
-                </div>
-              </div>
-              <div class="head-metric">
-                <div class="head-num" id="head-nov-map">--</div>
-                <div class="head-sub pop-host">Bayes-optimal<button type="button" class="info-btn mini-info" aria-label="What does Bayes-optimal mean?" aria-expanded="false">i</button>
-                  <div class="info-popover pick-pop" hidden><b>Bayes-optimal</b>: average error under the posterior-mode (MAP) rule, which uses the prior. This is the lowest achievable error. The gap between nearest and Bayes-optimal is the cost of base-rate neglect.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="head-cell expert">
-            <div class="head-role">EXPERT &middot; avg error</div>
-            <div class="head-metrics">
-              <div class="head-metric">
-                <div class="head-num" id="head-exp">--</div>
-                <div class="head-sub pop-host">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button>
-                  <div class="info-popover pick-pop" hidden><b>nearest</b>: average error rate if a member classifies their estimate to the closest candidate. Prior-free, it ignores the base rate (the prior over the states), so it reflects base-rate neglect.</div>
-                </div>
-              </div>
-              <div class="head-metric">
-                <div class="head-num" id="head-exp-map">--</div>
-                <div class="head-sub pop-host">Bayes-optimal<button type="button" class="info-btn mini-info" aria-label="What does Bayes-optimal mean?" aria-expanded="false">i</button>
-                  <div class="info-popover pick-pop" hidden><b>Bayes-optimal</b>: average error under the posterior-mode (MAP) rule, which uses the prior. This is the lowest achievable error. The gap between nearest and Bayes-optimal is the cost of base-rate neglect.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <table class="err-summary rational-only" id="err-summary">
+          <thead>
+            <tr>
+              <th>avg error</th>
+              <th class="pop-host">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button>
+                <div class="info-popover pick-pop" hidden><b>nearest</b>: average error rate if a member classifies their estimate to the closest candidate. Prior-free, it ignores the base rate (the prior over the states), so it reflects base-rate neglect.</div>
+              </th>
+              <th class="pop-host">Bayes-optimal<button type="button" class="info-btn mini-info" aria-label="What does Bayes-optimal mean?" aria-expanded="false">i</button>
+                <div class="info-popover pick-pop" hidden><b>Bayes-optimal</b>: average error under the posterior-mode (MAP) rule, which uses the prior. This is the lowest achievable error. The gap between nearest and Bayes-optimal is the cost of base-rate neglect.</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="role-novice">NOVICE</td><td class="es-num" id="head-nov">--</td><td class="es-num es-map" id="head-nov-map">--</td></tr>
+            <tr><td class="role-expert">EXPERT</td><td class="es-num" id="head-exp">--</td><td class="es-num es-map" id="head-exp-map">--</td></tr>
+          </tbody>
+        </table>
 
-        <!-- 3 + 4. Graph and breakdown table, stacked and constrained to ~2/3 width -->
+        <!-- Breakdown table (the sampling-PDF/CDF graph exhibit that used to sit
+             beside it has been removed; the table keeps the per-state detail). -->
         <div class="viz-block">
-
-        <!-- Graph -->
-        <div class="card viz-graph-card" style="padding-top:14px">
-          <div class="canvas-wrap"><canvas id="plot"></canvas></div>
-        </div>
 
         <!-- Breakdown table -->
         <div class="card rational-only">
@@ -480,7 +461,7 @@
 
 </main>
 
-<script src="simulation.js?v=17"></script>
+<script src="simulation.js?v=18"></script>
 
 <script src="game.js?v=14"></script>
 

@@ -219,7 +219,7 @@ let candCount = (() => {
 })();
 // Caches so switching nav views can redraw canvases at the now-visible
 // width without resampling (Monte-Carlo data only changes on a Go press).
-let lastRender = null, lastExamples = null;
+let lastExamples = null;
 
 function formatDuration(ms) {
   if (ms < 1000) return `simulation took: ${ms.toFixed(1)} ms`;
@@ -367,8 +367,20 @@ function wireInfoPopover(btnId, popId) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
 }
 wireInfoPopover('xmode-info-btn', 'xmode-popover');
-// "What this simulation is based on" — the overview popover by the mode toggle.
-wireInfoPopover('basis-info-btn', 'basis-popover');
+// "What the simulated people are matched on" — SHOWN BY DEFAULT (the popover
+// ships without [hidden] and the button with aria-expanded="true"). Unlike the
+// transient info popovers this is a persistent intro panel: only the button
+// collapses it, so a stray click elsewhere on the page does not hide it.
+(() => {
+  const btn = $('basis-info-btn'), pop = $('basis-popover');
+  if (!btn || !pop) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = pop.hasAttribute('hidden');
+    if (open) pop.removeAttribute('hidden'); else pop.setAttribute('hidden', '');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
 
 // ITEM 1: per-card "nearest" / "most likely" info popovers (dynamically rendered,
 // so handled by event delegation on the document).
@@ -590,8 +602,6 @@ function recompute(silent) {
   $('head-exp-map').textContent = pct(avgErrMapE);
 
   renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN, avgConfE);
-  drawPlot('plot', sortedBetas, bs, seN, seE, sigmaAn, nN, nE);
-  lastRender = { sortedBetas, bs, seN, seE, sigma: sigmaAn, nN, nE };
   renderExamples(sortedBetas, sigma, sigmaAn, nE, nN, sortedPriors);
 
   if (!silent) {
@@ -650,7 +660,7 @@ function renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN
   $('tbl-body').innerHTML = `<tr class="prior-row">${priorRow}</tr><tr>${novRow}</tr><tr>${expRow}</tr>`;
 }
 
-// ============ Plot ============
+// ============ Canvas helpers (shared by the group-example canvases) ============
 
 // Canvas backing stores cost css-w × css-h × scale² × 4 bytes and WebKit
 // reclaims them lazily; at devicePixelRatio 3 a large plot is a multi-MB GPU
@@ -666,195 +676,6 @@ function backingScale(w, h) {
   return s;
 }
 
-function getCtx(id, aspect, fill) {
-  const c = document.getElementById(id);
-  const container = c.parentElement;
-  const w = Math.floor(container.clientWidth);
-  let h = Math.floor(w / (aspect || 2.6));
-  // ITEM A: when the card is stretched to match the table, fill the available
-  // height instead of using the aspect ratio (falls back to aspect on mobile /
-  // before layout settles, where clientHeight isn't meaningfully larger).
-  if (fill) {
-    const avail = Math.floor(container.clientHeight);
-    if (avail > h) h = avail;
-  }
-  const dpr = backingScale(w, h);
-  c.width = w * dpr;
-  c.height = h * dpr;
-  c.style.width = w + 'px';
-  c.style.height = h + 'px';
-  const ctx = c.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.W = w;
-  ctx.H = h;
-  return ctx;
-}
-
-function drawPlot(canvasId, sortedBetas, bs, seN, seE, sigma, nN, nE) {
-  // Aspect 2.6 / 0.6 ≈ 4.33 = squished to 60% of original height; fill the
-  // stretched card height when there's extra room (ITEM A).
-  const ctx = getCtx(canvasId, 2.6 / 0.6, true);
-  const W = ctx.W, H = ctx.H;
-  const pad = { top: 38, right: 28, bottom: 50, left: 46 };
-  const pw = W - pad.left - pad.right;
-  const ph = H - pad.top - pad.bottom;
-
-  ctx.clearRect(0, 0, W, H);
-
-  // In random-x mode the SE-arrays bound the worst case; use the smallest
-  // realised SE for y-max so we cover the tallest mixture component.
-  const seArrN = seCache.arrs[nN], seArrE = seCache.arrs[nE];
-  const seMin = (seArrN && seArrE)
-    ? Math.min(seArrN.reduce((m,v)=>Math.min(m,v), Infinity),
-               seArrE.reduce((m,v)=>Math.min(m,v), Infinity))
-    : Math.min(seN, seE);
-  const seMax = Math.max(seN, seE);
-  const xLo = Math.min(...sortedBetas) - 4 * seMax;
-  const xHi = Math.max(...sortedBetas) + 4 * seMax;
-  const yMax = (1 / seMin / Math.sqrt(2 * Math.PI)) * 1.10;
-
-  const tx = (v) => pad.left + (v - xLo) / (xHi - xLo) * pw;
-  const ty = (v) => pad.top + (1 - v / yMax) * ph;
-
-  // Light grid
-  ctx.strokeStyle = '#f1f5f9';
-  ctx.lineWidth = 1;
-  const xStep = niceStep((xHi - xLo) / 8);
-  for (let v = Math.ceil(xLo / xStep) * xStep; v <= xHi; v += xStep) {
-    ctx.beginPath(); ctx.moveTo(tx(v), pad.top); ctx.lineTo(tx(v), pad.top + ph); ctx.stroke();
-  }
-
-  // X axis
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.beginPath();
-  ctx.moveTo(pad.left, pad.top + ph);
-  ctx.lineTo(pad.left + pw, pad.top + ph);
-  ctx.stroke();
-
-  // X tick labels
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '11px ' + getComputedStyle(document.body).fontFamily;
-  ctx.textAlign = 'center';
-  for (let v = Math.ceil(xLo / xStep) * xStep; v <= xHi; v += xStep) {
-    ctx.fillText(formatTick(v), tx(v), pad.top + ph + 16);
-  }
-
-  // Bin boundaries (dashed)
-  const innerBoundaries = [];
-  for (let i = 0; i < bs.length - 1; i++) innerBoundaries.push(bs[i][1]);
-  ctx.strokeStyle = '#475569';
-  ctx.setLineDash([5, 4]);
-  innerBoundaries.forEach(b => {
-    if (b > xLo && b < xHi) {
-      ctx.beginPath();
-      ctx.moveTo(tx(b), pad.top);
-      ctx.lineTo(tx(b), pad.top + ph);
-      ctx.stroke();
-    }
-  });
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#475569';
-  ctx.font = '10px ' + getComputedStyle(document.body).fontFamily;
-  innerBoundaries.forEach(b => {
-    if (b > xLo && b < xHi) ctx.fillText(b.toFixed(3), tx(b), pad.top - 6);
-  });
-
-  const roles = [
-    { name: 'NOVICE', n: nN, color: '#dc2626', shade: 'rgba(220,38,38,0.18)' },
-    { name: 'EXPERT', n: nE, color: '#2563eb', shade: 'rgba(37,99,235,0.18)' },
-  ];
-
-  const nPts = 400;
-  // Pre-evaluate p(x | β = mu) on the plotting grid. mixturePdf transparently
-  // returns the fixed-x normal or the random-x mixture depending on xMode.
-  const grid = new Float64Array(nPts + 1);
-  for (let i = 0; i <= nPts; i++) grid[i] = xLo + (xHi - xLo) * i / nPts;
-  const densByRoleAndK = roles.map(role =>
-    sortedBetas.map(mu => {
-      const arr = new Float64Array(nPts + 1);
-      for (let i = 0; i <= nPts; i++) arr[i] = mixturePdf(grid[i], mu, role.n, sigma);
-      return arr;
-    })
-  );
-
-  // Shaded misclassification regions (back layer)
-  roles.forEach((role, rIdx) => {
-    sortedBetas.forEach((mu, k) => {
-      const [a, b] = bs[k];
-      const dens = densByRoleAndK[rIdx][k];
-      ctx.fillStyle = role.shade;
-      let started = false;
-      for (let i = 0; i <= nPts; i++) {
-        const xv = grid[i];
-        const inside = (xv >= a) && (xv <= b);
-        if (inside) {
-          if (started) {
-            ctx.lineTo(tx(xv), ty(0));
-            ctx.closePath();
-            ctx.fill();
-            started = false;
-          }
-          continue;
-        }
-        const yv = dens[i];
-        if (!started) {
-          ctx.beginPath();
-          ctx.moveTo(tx(xv), ty(0));
-          started = true;
-        }
-        ctx.lineTo(tx(xv), ty(yv));
-      }
-      if (started) {
-        ctx.lineTo(tx(xHi), ty(0));
-        ctx.closePath();
-        ctx.fill();
-      }
-    });
-  });
-
-  // PDF curves
-  roles.forEach((role, rIdx) => {
-    sortedBetas.forEach((mu, k) => {
-      const dens = densByRoleAndK[rIdx][k];
-      ctx.strokeStyle = role.color;
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      for (let i = 0; i <= nPts; i++) {
-        const xv = grid[i];
-        const yv = dens[i];
-        if (i === 0) ctx.moveTo(tx(xv), ty(yv));
-        else ctx.lineTo(tx(xv), ty(yv));
-      }
-      ctx.stroke();
-    });
-  });
-
-  // Candidate ticks + labels
-  ctx.strokeStyle = '#1e293b';
-  ctx.lineWidth = 1.5;
-  sortedBetas.forEach(mu => {
-    const px = tx(mu);
-    ctx.beginPath();
-    ctx.moveTo(px, pad.top + ph);
-    ctx.lineTo(px, pad.top + ph + 6);
-    ctx.stroke();
-  });
-  ctx.fillStyle = '#1e293b';
-  ctx.font = 'bold 11px ' + getComputedStyle(document.body).fontFamily;
-  sortedBetas.forEach(mu => {
-    ctx.fillText('β=' + fmtSigned(mu), tx(mu), pad.top + ph + 32);
-  });
-
-  // Title
-  ctx.fillStyle = '#475569';
-  ctx.font = 'bold 12px ' + getComputedStyle(document.body).fontFamily;
-  ctx.textAlign = 'left';
-  const titleSuffix = xMode === 'random'
-    ? ` (averaged over x ~ U(0,${WINDOW_YEARS}))`
-    : '';
-  ctx.fillText('Sampling PDFs of β̂ — shaded mass = misclassification' + titleSuffix, pad.left, 18);
-}
-
 function niceStep(rawStep) {
   const exp = Math.floor(Math.log10(rawStep));
   const base = rawStep / Math.pow(10, exp);
@@ -864,12 +685,6 @@ function niceStep(rawStep) {
   else if (base < 7) nice = 5;
   else nice = 10;
   return nice * Math.pow(10, exp);
-}
-
-function formatTick(v) {
-  if (Math.abs(v) < 1e-10) return '0';
-  // β is a per-year slope (candidates 0.01–0.04), so ticks need 3 decimals.
-  return v.toFixed(3);
 }
 
 // ============ Examples ============
@@ -1528,10 +1343,8 @@ function drawMiniPosterior(canvasId, betaHat, se, sortedBetas, pickedValue, prio
 // Redraw both views' canvases from the cached snapshot (no resampling).
 // Used when a hidden view becomes visible and its canvases need real width.
 function redrawAll() {
-  if (lastRender) {
-    const r = lastRender;
-    drawPlot('plot', r.sortedBetas, r.bs, r.seN, r.seE, r.sigma, r.nN, r.nE);
-  }
+  // The individual-level sampling-PDF plot was removed; only the group-example
+  // canvases still need a resize-time redraw from the cached snapshot.
   if (lastExamples) drawExampleCanvases(lastExamples);
 }
 
