@@ -1145,14 +1145,34 @@
 }
 .exp .param-done-btn:hover { background: #1d4ed8; }
 
+/* ---- Group aggregate headline: correct-decision rate over many groups,
+   observed behaviour vs Bayes-rational, recomputed live on parameter / ρ change. */
+.exp .group-agg {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px;
+  margin: 2px 0 16px; padding: 12px 16px;
+  border: 1px solid var(--border); border-left: 4px solid var(--blue);
+  border-radius: 12px; background: var(--card); box-shadow: var(--shadow);
+}
+.exp .ga-head { font-size: 12.5px; color: var(--text-muted); }
+.exp .ga-head b { color: var(--text); }
+.exp .ga-nums { display: flex; gap: 24px; margin-left: auto; }
+.exp .ga-stat { display: flex; flex-direction: column; align-items: flex-start; }
+.exp .ga-v { font-family: var(--font-mono); font-weight: 800; font-size: 26px; line-height: 1; }
+.exp .ga-stat.obs .ga-v { color: #b45309; }
+.exp .ga-stat.bay .ga-v { color: var(--blue); }
+.exp .ga-k {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.4px; color: var(--text-muted); margin-top: 3px;
+}
+
 /* ---- Narrow viewports (phones, ~375px): stack the top strip and the collapsed
    parameter strip so nothing overflows the width. ---- */
 @media (max-width: 480px) {
-  .exp .err-strip { flex-direction: column; gap: 8px; }
-  .exp .err-role { width: 100%; }
   .exp .ind-fig-grid { flex-direction: column; gap: 8px; }
   .exp .if-role { width: 100%; }
   .exp .if-track { width: 84px; }
+  .exp .group-agg { gap: 10px; }
+  .exp .ga-nums { margin-left: 0; width: 100%; justify-content: space-between; gap: 12px; }
   .exp .param-collapsed { align-items: stretch; }
   .exp .param-summary { flex-basis: 100%; font-size: 12px; }
   .exp .param-edit-btn { width: 100%; }

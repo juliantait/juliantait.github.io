@@ -325,6 +325,7 @@ document.querySelectorAll('#seg-size button').forEach(b => {
     document.querySelectorAll('#seg-size button').forEach(x =>
       x.classList.toggle('active', x === b));
     const nv = $('size-nov'); if (nv) nv.textContent = N_NOVICES_PER_GROUP;
+    const nw = $('size-nov-word'); if (nw) nw.textContent = N_NOVICES_PER_GROUP === 1 ? 'NOVICE' : 'NOVICES';
     timedRecompute();
   });
 });
@@ -602,6 +603,58 @@ function renderIndividualFigure(statsN, statsE, bayes) {
     block('EXPERT', 'role-expert', statsE, bayes.errE, bayes.confE);
 }
 
+// ============ GROUP AGGREGATE (headline: correct-decision rate over many groups) ============
+// A cached Monte-Carlo pool of groups at the current settings. Each group is
+// 1 EXPERT + N_NOVICES_PER_GROUP NOVICES; per member we store its evidence
+// precision τ = 1/SE² and TWO stated views: the observed (pilot-data) bet and the
+// Bayes-rational truthful bet (100·P(Growing)). The ρ slider re-weights this SAME
+// sample (w ∝ τ^ρ), so the headline responds smoothly to ρ without resampling.
+let aggSample = null;
+
+function buildAggSample(seN, seE, sortedBetas, sortedPriors, draws) {
+  draws = draws || 400;
+  const norm = makeNormal(Math.random);
+  // shared true-slope for the group currently being drawn (set per group below)
+  let aggTrueBeta = 0;
+  const drawMember = (role, se) => {
+    // draw this member's estimate around the group's true slope, then both views
+    const betaHat = aggTrueBeta + se * norm();
+    const pG = pGrowingOf(betaHat, se, sortedBetas, sortedPriors);
+    return {
+      tau: 1 / (se * se),
+      obs: statedBetForMember(role, pG, (Math.random() * 4294967296) >>> 0),
+      bay: 100 * pG,
+    };
+  };
+  const groups = [];
+  for (let d = 0; d < draws; d++) {
+    let u = Math.random(), acc = 0, ti = sortedBetas.length - 1;
+    for (let k = 0; k < sortedBetas.length; k++) { acc += sortedPriors[k]; if (u < acc) { ti = k; break; } }
+    aggTrueBeta = sortedBetas[ti];
+    const trueGrow = aggTrueBeta > 1e-9;
+    const members = [drawMember('EXPERT', seE)];
+    for (let j = 0; j < N_NOVICES_PER_GROUP; j++) members.push(drawMember('NOVICE', seN));
+    groups.push({ trueGrow, members });
+  }
+  aggSample = groups;
+}
+
+// Re-pool the cached sample at the current ρ and write the two headline rates.
+function renderGroupAggregate() {
+  if (!aggSample || !$('ga-obs')) return;
+  const rho = getRho();
+  let obsOk = 0, bayOk = 0;
+  aggSample.forEach(g => {
+    let sw = 0, swO = 0, swB = 0;
+    g.members.forEach(m => { const w = Math.pow(m.tau, rho); sw += w; swO += w * m.obs; swB += w * m.bay; });
+    if ((swO / sw >= 50) === g.trueGrow) obsOk += 1;
+    if ((swB / sw >= 50) === g.trueGrow) bayOk += 1;
+  });
+  const n = aggSample.length || 1;
+  $('ga-obs').textContent = Math.round(100 * obsOk / n) + '%';
+  $('ga-bay').textContent = Math.round(100 * bayOk / n) + '%';
+}
+
 // Show/hide the data-driven-only elements and dim the rational-only analytic
 // panels. Called on mode change and once on load.
 function applyModeUI() {
@@ -661,22 +714,21 @@ function recompute(silent) {
   const avgErrMapN = mapAvgErrorX(sortedBetas, sortedPriors, nN, sigmaAn);
   const avgErrMapE = mapAvgErrorX(sortedBetas, sortedPriors, nE, sigmaAn);
 
-  // TOP STRIP: headline avg error + confidence, one line per role. (The MAP /
-  // Bayes-optimal column moved out of the strip; avgErrMap* still feed the log.)
-  $('head-nov').textContent = pct(avgErrN);
-  $('head-exp').textContent = pct(avgErrE);
-  $('head-nov-conf').textContent = pct(avgConfN);
-  $('head-exp-conf').textContent = pct(avgConfE);
-
-  // Paired individual-vs-Bayesian mini-figure: observed (waves 1+2) error &
-  // confidence per role, beside the Bayes benchmark (MAP error / posterior conf).
+  // CONSOLIDATED individual figure: observed (pilot data) vs the Bayes benchmark
+  // (MAP error / posterior confidence) per role, error and confidence. This is now
+  // the single home of the Bayes numbers — the duplicate strip and the per-state
+  // breakdown table were removed.
   const obsN = observedRoleStats('NOVICE', seN, sortedBetas, sortedPriors);
   const obsE = observedRoleStats('EXPERT', seE, sortedBetas, sortedPriors);
   renderIndividualFigure(obsN, obsE, {
     errN: avgErrMapN, confN: avgConfN, errE: avgErrMapE, confE: avgConfE,
   });
 
-  renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN, avgConfE);
+  // GROUP AGGREGATE headline: cache a fresh MC pool of groups at these settings;
+  // the ρ slider re-weights the SAME cached sample, so dragging is smooth.
+  buildAggSample(seN, seE, sortedBetas, sortedPriors);
+  renderGroupAggregate();
+
   renderExamples(sortedBetas, sigma, sigmaAn, nE, nN, sortedPriors);
 
   if (!silent) {
@@ -703,36 +755,6 @@ function fmtBin(v) {
   if (v === Infinity) return '+inf';
   if (v === -Infinity) return '-inf';
   return v.toFixed(3);
-}
-
-function renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN, avgConfE) {
-  const head = $('tbl-head');
-  head.innerHTML = '<th></th>' +
-    sortedBetas.map(b => `<th><i class="mvar">β</i> = ${fmtSigned(b)}</th>`).join('') +
-    '<th>Average</th>';
-
-  const ERR_TIP = 'err = mistake rate: how often the member misclassifies the true state (an objective frequency — being right)';
-  const CONF_TIP = 'conf = avg confidence in the correct state: mean posterior probability placed on the true state (subjective certainty — feeling right)';
-  const cell = (err, conf) =>
-    `<td><div class="cell-err" title="${ERR_TIP}">${pct(err)}</div><div class="cell-conf" title="${CONF_TIP}">${pct(conf)}</div></td>`;
-  const avgCell = (err, conf) =>
-    `<td class="avg"><div class="cell-err" title="${ERR_TIP}">${pct(err)}</div><div class="cell-conf" title="${CONF_TIP}">${pct(conf)}</div></td>`;
-
-  // Prior / sampling row: P(β) weights that combine the per-β columns into the
-  // AVERAGE column. The Average cell shows their sum (1.00 by construction).
-  const priorSum = sortedPriors.reduce((s, p) => s + p, 0);
-  const priorRow = '<td class="role-prior">prior <i class="mvar">π</i></td>' +
-    sortedPriors.map(p => `<td class="cell-prior">${p.toFixed(2)}</td>`).join('') +
-    `<td class="avg cell-prior">${priorSum.toFixed(2)}</td>`;
-
-  const novRow = '<td class="role-novice">NOVICE</td>' +
-    rows.map(r => cell(r.errN, r.confN)).join('') +
-    avgCell(avgErrN, avgConfN);
-  const expRow = '<td class="role-expert">EXPERT</td>' +
-    rows.map(r => cell(r.errE, r.confE)).join('') +
-    avgCell(avgErrE, avgConfE);
-
-  $('tbl-body').innerHTML = `<tr class="prior-row">${priorRow}</tr><tr>${novRow}</tr><tr>${expRow}</tr>`;
 }
 
 // ============ Canvas helpers (shared by the group-example canvases) ============
@@ -1029,7 +1051,7 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
                 </div>
                 ${agentMode === 'data' ? `
                 <div class="dd-stated">
-                  <div class="dd-stated-head">waves 1+2 stated bet <span class="dd-sub">— ${m.role === 'EXPERT' ? 'compresses' : 'overreacts'}</span></div>
+                  <div class="dd-stated-head">stated bet · pilot data <span class="dd-sub">— ${m.role === 'EXPERT' ? 'compresses' : 'overreacts'}</span></div>
                   <div class="dd-stated-body">
                     <span class="dd-bet ${m.statedBet >= 50 ? 'growing' : 'stable'}">${Math.round(m.statedBet)}<span class="dd-bet-u">/100 on Growing</span></span>
                     <span class="dd-lean">P(Growing)=${(m.pGrowing * 100).toFixed(0)}% → <b>${m.statedBet >= 50 ? 'Growing' : 'Stable'}</b></span>
@@ -1190,7 +1212,7 @@ function renderGroupDecisions(state) {
              <span class="gcd-hero-pick">${ddRho.grow ? 'Growing' : 'Stable'}</span>
              ${chip(ddRho.correct)}
            </div>
-           <div class="gcd-hero-foot">weighted pool of the members' stated confidences · expert weight ${pctv(expWtRho)}</div>
+           <div class="gcd-hero-foot">evidence-weighted pool of the members' stated views · expert weight ${pctv(expWtRho)}</div>
          </div>`
       : `<div class="gcd-hero ${ratRho.correct ? 'ok' : 'miss'}">
            <div class="gcd-hero-lab">Rational pool <span class="gcd-hero-scheme">${regime}</span></div>
@@ -1218,7 +1240,7 @@ function renderGroupDecisions(state) {
       <div class="gcd-head">
         <span class="gcd-title">Group decision</span>
         <span class="gcd-note">${dataMode
-          ? 'drag ρ above — the outcome is the ρ-weighted pool of stated confidences, decided by side of 50'
+          ? 'drag ρ above — the outcome is the evidence-weighted pool of stated views, decided by side of 50'
           : 'drag ρ above — the group pools estimates by wᵢ ∝ τᵢ^ρ, then takes the nearest candidate'}</span>
       </div>
       <div class="gcd-primary">
@@ -1445,7 +1467,7 @@ window.addEventListener('resize', () => {
 // cached sample — no resimulation, so only the behavioural row moves.
 (() => {
   const slider = $('rho');
-  if (slider) slider.addEventListener('input', () => renderGroupDecisions(lastExamples));
+  if (slider) slider.addEventListener('input', () => { renderGroupDecisions(lastExamples); renderGroupAggregate(); });
   // Info popover for the aggregation schemes (click to toggle, outside/Esc to close).
   wireInfoPopover('rho-info-btn', 'rho-popover');
 })();

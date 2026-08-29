@@ -51,9 +51,11 @@
         #sec-game .game-role.expert { color:var(--expert); background:rgba(37,99,235,0.10); border:1px solid rgba(37,99,235,0.30); }
         #sec-game .game-role.novice { color:var(--novice); background:rgba(220,38,38,0.10); border:1px solid rgba(220,38,38,0.30); }
 
-        /* TOP panel: scatter (2/3, left) + β slider (1/3, right). BOTTOM panel: beliefs + bet, 50/50. */
-        #sec-game .game-top { display:grid; grid-template-columns:2fr 1fr; gap:18px; align-items:stretch; margin-bottom:14px; }
-        #sec-game .game-bottom { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
+        /* BET-ONLY round: TOP = the scatter (full width); BOTTOM = the two-step bet
+           (full width, capped for readability and centred). */
+        #sec-game .game-top { margin-bottom:14px; }
+        #sec-game .game-bottom { display:flex; justify-content:center; }
+        #sec-game .game-bottom .bet-area { width:100%; max-width:680px; }
         /* the scatter fills its cell so it matches the β-box height exactly
            (the β box, via beta-track min-height, sets the shared top-row height) */
         #sec-game .game-scatter-wrap { width:100%; display:flex; min-height:0; }

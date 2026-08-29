@@ -42,16 +42,13 @@
 
   var FALLBACK_BETAS  = [0, 0.03];
   var FALLBACK_PRIORS = [0.75, 0.25];
-  var MAXBELIEF = 100;                // belief bars are 0–100, independent (never auto-adjusted)
-  // β-guess slider range. β is a per-year slope now, so ±0.06 covers the 0.01–0.04
-  // growth arms plus a NOVICE SE either side; the axis labels are drawn from these.
-  var BETA_LO = -0.06, BETA_HI = 0.06, BETA_STEP = 0.001;
 
   // ---- mutable round + control state ----
+  // The round is BET-ONLY (matches the live experiment): see the chart, place the
+  // two-step Stable/Growing bet, see results. There is no β-estimate input and no
+  // separate belief/confidence elicitation.
   var round = null;          // { sigma, n, isExpert, states, trueIdx, trueBeta, baseline, x, y, betaHat, se, posterior }
   var revealed = false;      // false on the bet screen, true on the results screen
-  var beliefs = [];          // belief-bar heights (independent; init at the prior)
-  var betaGuess = 0;         // vertical slider value in [BETA_LO, BETA_HI]
 
   // ---- TWO-STEP BET (mirrors the live elicitation) ----
   // The recorded bet is POINTS ON GROWING, 0–100 (unchanged in meaning). It is
@@ -94,13 +91,6 @@
                      .sort(function(a, b){ return betas[a] - betas[b]; });
     return { betas: order.map(function(i){ return betas[i]; }),
              priors: order.map(function(i){ return priors[i]; }) };
-  }
-
-  // Colour slot for a candidate: with 3 states keep the page's −/0/+ colouring,
-  // otherwise colour by sign (red down, grey flat, blue up).
-  function segClass(b, i, K){
-    if (K === 3) return 's' + i;
-    return b < 0 ? 's0' : (b > 0 ? 's2' : 's1');
   }
 
   // ---- generate one fresh round ----
@@ -152,25 +142,6 @@
   // world these are exactly {flat, +β}. The posterior mass on the growing side is
   // 1 − P(stable), so the bet's "optimal points on Growing" is 100·pGrowing().
   function pGrowing(){ return 1 - round.posterior[0]; }
-
-  // Build the per-round belief bars (one per candidate slope). The bet widget
-  // itself is static markup, reset — not rebuilt — each round by bet2Reset().
-  function buildBetUI(){
-    var b = round.states.betas, K = b.length, i;
-    var bars = '';
-    for (i = 0; i < K; i++){
-      var cls = segClass(b[i], i, K);
-      bars += '<div class="bbar" data-i="' + i + '">' +
-                '<div class="bbar-val"></div>' +
-                '<div class="bbar-track"><div class="bbar-fill ' + cls + '"></div>' +
-                  '<div class="bbar-opt"><span></span></div></div>' +
-                '<div class="bbar-lab">' + fmtSigned(b[i]) + '</div>' +
-              '</div>';
-    }
-    gid('belief-bars').innerHTML = bars;
-    setupBeliefDrag();
-    bet2Reset();
-  }
 
   // ---- two-step bet: helpers --------------------------------------------------
   function bet2Toast(msg){
@@ -236,22 +207,6 @@
     m.querySelector('span').textContent = opt + ' opt';
   }
 
-  function renderBeliefBars(){
-    var bars = document.querySelectorAll('#belief-bars .bbar');
-    for (var k = 0; k < bars.length; k++){
-      var i = +bars[k].dataset.i;
-      bars[k].querySelector('.bbar-fill').style.height = (beliefs[i] / MAXBELIEF * 100) + '%';
-      bars[k].querySelector('.bbar-val').textContent = Math.round(beliefs[i]);
-    }
-  }
-
-  function renderBeta(){
-    var span = BETA_HI - BETA_LO;
-    var frac = (BETA_HI - betaGuess) / span;   // 0 at top (BETA_HI), 1 at bottom
-    gid('beta-thumb').style.top = (frac * 100) + '%';
-    gid('beta-val').textContent = signed(betaGuess);
-  }
-
   function drawGameScatter(){
     var c = gid('game-scatter');
     if (!c || !round) return;
@@ -309,24 +264,19 @@
       ctx.setLineDash([]);
     }
 
-    // RESULTS screen: overlay the OLS fit β̂ (green) and the player's guessed
-    // slope (dashed dark), both through the data centroid, so they compare.
+    // RESULTS screen: overlay the OLS fit β̂ (green) through the data centroid, as
+    // truth feedback on what the dots implied.
     if (revealed){
       var nn = x.length, xbar = 0, ybar = 0, k;
       for (k = 0; k < nn; k++){ xbar += x[k]; ybar += y[k]; }
       xbar /= nn; ybar /= nn;
       ctx.save();
       ctx.beginPath(); ctx.rect(pad.left, pad.top, pw, ph); ctx.clip();
-      var line = function(slope, color, dash){
-        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dash ? [6, 4] : []);
-        ctx.beginPath();
-        ctx.moveTo(tx(xLo), ty(ybar + slope * (xLo - xbar)));
-        ctx.lineTo(tx(xHi), ty(ybar + slope * (xHi - xbar)));
-        ctx.stroke();
-      };
-      line(betaGuess, '#1e293b', true);       // your guess (dashed)
-      line(round.betaHat, '#0e7d54', false);  // β̂ OLS (green)
-      ctx.setLineDash([]);
+      ctx.strokeStyle = '#0e7d54'; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(tx(xLo), ty(ybar + round.betaHat * (xLo - xbar)));
+      ctx.lineTo(tx(xHi), ty(ybar + round.betaHat * (xHi - xbar)));
+      ctx.stroke();
       ctx.restore();
     }
 
@@ -344,66 +294,17 @@
     ctx.fillText('y', 0, 0); ctx.restore();
 
     // RESULTS overlays: realised true β (top-right) + β̂ on the OLS line (top-left),
-    // both with a white halo so they stay legible over the cloud.
+    // with a white halo so they stay legible over the cloud.
     if (revealed){
-      var fmtB = function(b){ return 'β = ' + signed(b); };
       ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 4;
       ctx.textAlign = 'left'; ctx.font = 'bold 11px ' + font;
       ctx.fillStyle = '#0e7d54'; ctx.fillText('β̂ = ' + signed(round.betaHat) + '  (OLS fit)', pad.left + 6, pad.top + 13);
-      ctx.fillStyle = '#1e293b'; ctx.fillText('your slope (dashed)', pad.left + 6, pad.top + 28);
       ctx.textAlign = 'right'; ctx.font = 'bold 12px ' + font; ctx.fillStyle = '#111827';
-      ctx.fillText('realised  ' + fmtB(round.trueBeta), pad.left + pw - 6, pad.top + 13);
+      ctx.fillText('realised  β = ' + signed(round.trueBeta), pad.left + pw - 6, pad.top + 13);
       ctx.restore();
     }
   }
   window.__gameRedraw = drawGameScatter;
-
-  // ---- drag wiring (pointer events → mouse + touch) ----
-  function startDrag(captureEl, onMove){
-    return function(e){
-      if (revealed) return;
-      e.preventDefault();
-      try { captureEl.setPointerCapture(e.pointerId); } catch (err) {}
-      onMove(e);
-      var mv = function(ev){ onMove(ev); };
-      var up = function(){
-        captureEl.removeEventListener('pointermove', mv);
-        captureEl.removeEventListener('pointerup', up);
-        captureEl.removeEventListener('pointercancel', up);
-      };
-      captureEl.addEventListener('pointermove', mv);
-      captureEl.addEventListener('pointerup', up);
-      captureEl.addEventListener('pointercancel', up);
-    };
-  }
-
-  function setupBeliefDrag(){
-    var bars = document.querySelectorAll('#belief-bars .bbar');
-    for (var k = 0; k < bars.length; k++){
-      (function(bar){
-        var track = bar.querySelector('.bbar-track');
-        var i = +bar.dataset.i;
-        track.addEventListener('pointerdown', startDrag(track, function(e){
-          var rct = track.getBoundingClientRect();
-          var v = (1 - (e.clientY - rct.top) / rct.height) * MAXBELIEF;
-          beliefs[i] = Math.max(0, Math.min(MAXBELIEF, v));
-          renderBeliefBars();
-        }));
-      })(bars[k]);
-    }
-  }
-
-  function setupBetaDrag(){
-    var track = gid('beta-track');
-    var span = BETA_HI - BETA_LO;
-    track.addEventListener('pointerdown', startDrag(track, function(e){
-      var rct = track.getBoundingClientRect();
-      var frac = (e.clientY - rct.top) / rct.height;
-      frac = Math.max(0, Math.min(1, frac));
-      betaGuess = Math.round((BETA_HI - frac * span) / BETA_STEP) * BETA_STEP;
-      renderBeta();
-    }));
-  }
 
   // ---- scoring: binarised quadratic (paired-uniform) on the TWO-STEP bet ----
   // With m = (points on the ACTUAL type)/100, the win probability is 1 − (1−m)²
@@ -419,44 +320,6 @@
   function expWinFor(bet){
     var pg = pGrowing();
     return pg * winProbFor(bet, true) + (1 - pg) * winProbFor(bet, false);
-  }
-
-  // largest-remainder (Hamilton) rounding → integer % summing to EXACTLY 100
-  function pcts(probs){
-    var raw = probs.map(function(p){ return p * 100; });
-    var fl = raw.map(Math.floor);
-    var rem = Math.round(100 - fl.reduce(function(a, b){ return a + b; }, 0));
-    var order = raw.map(function(v, i){ return { i:i, f:v - fl[i] }; })
-                   .sort(function(a, b){ return b.f - a.f; });
-    for (var j = 0; j < rem; j++){ fl[order[j % order.length].i]++; }
-    return fl;
-  }
-
-  // ---- reveal overlays, drawn in place on the results screen ----
-  function renderBeliefOverlay(){
-    // Re-standardise the player's beliefs to sum to 100 — SAME ratios they
-    // submitted, just rescaled — so they share the optimal posterior's scale;
-    // then overlay that posterior (orange line) on each bar.
-    var K = beliefs.length;
-    var sum = beliefs.reduce(function(a, b){ return a + b; }, 0);
-    var frac = (sum > 0) ? beliefs.map(function(b){ return b / sum; })
-                         : beliefs.map(function(){ return 1 / K; });
-    var lab = pcts(frac);                       // integer % summing to exactly 100
-    var bars = document.querySelectorAll('#belief-bars .bbar');
-    for (var k = 0; k < bars.length; k++){
-      var i = +bars[k].dataset.i;
-      bars[k].querySelector('.bbar-fill').style.height = (frac[i] * 100) + '%';
-      bars[k].querySelector('.bbar-val').textContent = lab[i] + '%';
-      var opt = bars[k].querySelector('.bbar-opt');
-      opt.style.height = (round.posterior[i] * 100) + '%';
-      opt.querySelector('span').textContent = Math.round(round.posterior[i] * 100) + '%';
-    }
-  }
-  function renderBetaHat(){
-    var bh = Math.max(BETA_LO, Math.min(BETA_HI, round.betaHat));   // clamp onto the track
-    gid('beta-hat').style.top = ((BETA_HI - bh) / (BETA_HI - BETA_LO) * 100) + '%';
-    gid('beta-hat').querySelector('span').textContent = signed(round.betaHat);
-    gid('beta-hat-val').textContent = 'β̂ ' + signed(round.betaHat) + ' (you off ' + Math.abs(betaGuess - round.betaHat).toFixed(3) + ')';
   }
 
   // ---- Submit → results screen: same layout, truth revealed in place ----
@@ -478,10 +341,8 @@
     var optPts = Math.round(100 * pGrowing());
     var wYou = expWinFor(betPts), wOpt = expWinFor(optPts);
 
-    renderBeliefOverlay();   // your beliefs (rescaled) + optimal posterior overlay (bottom-left)
-    bet2RenderOptimal();     // orange optimal-points marker on the bet slider
-    renderBetaHat();         // β̂ marker on the slider (right of the scatter)
-    drawGameScatter();       // β̂ + your-slope lines on the scatter (top-left)
+    bet2RenderOptimal();     // orange optimal-points marker on the bet slider (posterior)
+    drawGameScatter();       // β̂ (OLS) + realised β revealed on the scatter
 
     gid('bet-earn').innerHTML =
       '<div class="earn-stat paid"><span class="v">' + eur(payout) + '</span><span class="k">paid this round</span></div>' +
@@ -508,18 +369,15 @@
     revealed = false;
     scoredThisRound = false;
     gid('sec-game').classList.remove('revealed');
-    // beliefs start at the prior (0.75 / 0.25 by default); the two-step bet starts
-    // UNSET — no direction, no points — reset by buildBetUI → bet2Reset().
-    beliefs = round.states.priors.map(function(p){ return p * MAXBELIEF; });
-    betaGuess = 0;
+    // the two-step bet starts UNSET — no direction, no points.
+    bet2Reset();
 
     var rl = gid('game-role');
     rl.textContent = (round.isExpert ? 'EXPERT' : 'NOVICE') + ' · n=' + round.n;
     rl.className = 'game-role ' + (round.isExpert ? 'expert' : 'novice');
 
     gid('game-submit').textContent = 'Submit';   // reset the in-place button label
-    buildBetUI();
-    renderBeliefBars(); renderBeta(); drawGameScatter();
+    drawGameScatter();
   }
 
   // ---- session summary screen ----
@@ -570,15 +428,13 @@
   window.__gameState = function(){
     return {
       round: round ? { trueIdx: round.trueIdx, trueBeta: round.trueBeta, isExpert: round.isExpert, n: round.n } : null,
-      betaGuess: betaGuess, bet: { dir: betDir, pts: betPts }, revealed: revealed,
+      bet: { dir: betDir, pts: betPts }, revealed: revealed,
       sess: { rounds: sess.rounds, won: sess.won, betHits: sess.betHits }
     };
   };
 
   // ---- init ----
-  // The belief bars are rebuilt (and re-wired) each round by buildBetUI; the β-guess
-  // track and the two-step bet controls are permanent elements, wired once here.
-  setupBetaDrag();
+  // The two-step bet controls are permanent elements, wired once here.
   // two-step bet: step 1 opens the gate + clamps step 2; the shield turns a
   // slider-first touch into the nudge instead of silence.
   document.querySelectorAll('#bet2-seg input').forEach(function(r){
@@ -594,8 +450,6 @@
       e.preventDefault(); bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.');
     });
   })();
-  // β-axis labels come from the slider bounds so they cannot drift out of sync
-  gid('beta-axis').innerHTML = '<span>' + signed(BETA_HI) + '</span><span>0</span><span>' + signed(BETA_LO) + '</span>';
   // one footer button: Submit on the bet screen, Next round on the results screen
   gid('game-submit').addEventListener('click', function(){ if (revealed) newRound(); else submit(); });
   gid('game-results-btn').addEventListener('click', showSummary);   // reveal screen → session summary

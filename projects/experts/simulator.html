@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=19">
-<link rel="stylesheet" href="game.css?v=12">
+<link rel="stylesheet" href="simulation.css?v=20">
+<link rel="stylesheet" href="game.css?v=13">
 </head>
 <body>
 
@@ -50,7 +50,7 @@
       <!-- ============ SECTION 1: Simulation ============ -->
         <section class="page-section">
           <h2 class="section-title">Individual-level simulation</h2>
-          <p class="sim-lead"><b>Top half — individuals.</b> Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=30 vs <b>NOVICE</b> <i class="mvar">n</i>=3). Tune the parameters below; the <b>group dynamics</b> at the bottom show how individual estimates aggregate into a group decision.</p>
+          <p class="sim-lead">Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=30 vs <b>NOVICE</b> <i class="mvar">n</i>=3). Tune the parameters below; the group dynamics further down show how individual estimates aggregate into a group decision.</p>
 
         <!-- 1. Control panel — COLLAPSIBLE (item 3). Collapsed by default: a compact
              strip shows the current defaults inline with an Edit button; expanding
@@ -146,7 +146,7 @@
                   <label>behaviour</label>
                   <div class="seg seg-mode" id="seg-agentmode">
                     <button data-mode="rational">Rational (Bayesian)</button>
-                    <button class="active" data-mode="data">Observed behaviour (waves 1+2)</button>
+                    <button class="active" data-mode="data">Observed behaviour (pilot data)</button>
                   </div>
                 </div>
                 <div class="input-group dd-only" hidden>
@@ -214,57 +214,16 @@
           </div><!-- /param-expanded -->
         </div><!-- /param-panel -->
 
-        <!-- 2. Individual error rates — TOP STRIP: one compact line per role, the
-             headline avg error + confidence (replaces the nearest / Bayes-optimal
-             table). IDs head-nov / head-exp carry the error writes and
-             head-nov-conf / head-exp-conf the confidence writes in simulate(). -->
-        <p class="mode-note dd-only" hidden>Bayes-rational error rates</p>
-        <!-- TOP STRIP: one compact line per role — headline avg error + confidence.
-             (Replaces the nearest / Bayes-optimal summary table.) IDs head-nov /
-             head-exp are preserved for the simulate() writes; head-*-conf are new. -->
-        <div class="err-strip rational-only" id="err-strip">
-          <div class="err-role role-novice">
-            <span class="er-role">NOVICE</span>
-            <span class="er-metric"><span class="er-lab">avg error</span><b class="es-num" id="head-nov">--</b></span>
-            <span class="er-sep" aria-hidden="true">·</span>
-            <span class="er-metric"><span class="er-lab">confidence</span><b class="es-num es-conf" id="head-nov-conf">--</b></span>
-          </div>
-          <div class="err-role role-expert">
-            <span class="er-role">EXPERT</span>
-            <span class="er-metric"><span class="er-lab">avg error</span><b class="es-num" id="head-exp">--</b></span>
-            <span class="er-sep" aria-hidden="true">·</span>
-            <span class="er-metric"><span class="er-lab">confidence</span><b class="es-num es-conf" id="head-exp-conf">--</b></span>
-          </div>
-        </div>
-
-        <!-- Paired mini-figure: the individual-vs-Bayesian gap at a glance. Per
-             role, observed (waves 1+2) error & confidence beside the Bayes-rational
-             benchmark, so the reader sees the gap before the group section. Built
-             by renderIndividualFigure() in simulation.js. -->
+        <!-- 2. Individual error + confidence — ONE consolidated unit. The paired
+             figure carries everything: per role, observed (pilot data) vs the
+             Bayes-rational benchmark, for both error and confidence. The Bayes
+             numbers appear exactly once (here); the old duplicate strip and the
+             per-state breakdown table were removed. Built by
+             renderIndividualFigure() in simulation.js. -->
         <figure class="ind-fig" id="ind-fig">
-          <figcaption class="ind-fig-head">Individual reads &mdash; <span class="if-key obs">observed</span> vs <span class="if-key bay">Bayes</span>, per role</figcaption>
+          <figcaption class="ind-fig-head">Individual error &amp; confidence &mdash; <span class="if-key obs">observed</span> vs <span class="if-key bay">Bayes</span>, per role</figcaption>
           <div class="ind-fig-grid" id="ind-fig-grid"></div>
         </figure>
-
-        <!-- Breakdown table (the sampling-PDF/CDF graph exhibit that used to sit
-             beside it has been removed; the table keeps the per-state detail). -->
-        <div class="viz-block">
-
-        <!-- Breakdown table -->
-        <div class="card rational-only">
-          <p class="mode-note dd-only" hidden style="margin:0 0 10px">Rational-Bayesian benchmark &mdash; error and confidence for the ideal estimator, not the waves-1+2 stated bets.</p>
-          <div class="bd-legend">
-            <span class="pop-host">Each cell: <span class="tag">err</span> (top) / <span class="tag">conf</span> (bottom)<button type="button" class="info-btn mini-info" aria-label="What do the table cells show?" aria-expanded="false">i</button>
-              <div class="info-popover pick-pop" hidden>Each cell stacks two different quantities, being right vs feeling right. <b>err</b> (top) = mistake rate, how often the member is wrong. <b>conf</b> (bottom) = average confidence in the correct state, how sure the member is. The two rows are <span class="role-novice">NOVICE</span> and <span class="role-expert">EXPERT</span>. The table and its <b>AVERAGE</b> column use the nearest-candidate rule, so the AVERAGE matches the headline <b>nearest</b> value.</div>
-            </span>
-          </div>
-          <table class="bd" id="tbl">
-            <thead><tr id="tbl-head"></tr></thead>
-            <tbody id="tbl-body"></tbody>
-          </table>
-        </div>
-
-        </div><!-- /viz-block -->
 
         </section>
   </section>
@@ -292,8 +251,19 @@
       <!-- ============ SECTION 2: Simulated group dynamics ============ -->
         <section class="page-section">
           <h2 class="section-title">Simulated group dynamics</h2>
-          <p class="sim-lead"><b>Bottom half — groups.</b> The same simulation, played out for a handful of true slopes. Each panel draws one fresh group — <b>1 EXPERT</b> (<i class="mvar">n</i>=30) plus <b>NOVICES</b> (<i class="mvar">n</i>=3), group size set below — and shows the <b>group decision</b> that results from pooling their estimates. Press <b>Go</b> above for a new realisation.</p>
-          <p class="dd-caveat dd-only" hidden>Fitted to n = 126 completers on the <b>same 0.75 / 0.25 prior</b> as the site. Individual play only &mdash; group dynamics an <b>extrapolation</b> from the individual reaction model.</p>
+          <p class="sim-lead">A group — <b>1 EXPERT</b> plus <b>NOVICES</b> (size below) — pools its members' stated views into one <b>group decision</b>.</p>
+          <p class="dd-caveat dd-only" hidden>Group play <b>extrapolates</b> the individual pilot-data model.</p>
+
+          <!-- AGGREGATE headline (item 4): expectation over many simulated groups at
+               the current settings, recomputed live on parameter / ρ change. The
+               fresh single-group panels below stay as the illustration. -->
+          <div class="group-agg" id="group-agg">
+            <div class="ga-head">Over many groups at these settings, the <b>group decides correctly</b></div>
+            <div class="ga-nums">
+              <div class="ga-stat obs"><span class="ga-v" id="ga-obs">--</span><span class="ga-k">observed behaviour</span></div>
+              <div class="ga-stat bay"><span class="ga-v" id="ga-bay">--</span><span class="ga-k">Bayes-rational</span></div>
+            </div>
+          </div>
 
         <!-- Examples (group rows, fully dynamic) -->
         <div class="card">
@@ -306,19 +276,19 @@
                averaged group-decision panel; updates live without resampling. -->
           <div class="agg-controls">
             <div class="ac-top">
-              <span class="ac-title">Group aggregation</span>
+              <span class="ac-title">Evidence weighting</span>
               <span class="ac-primary-badge">the key control</span>
               <span class="ac-host pop-host">
                 <button type="button" class="info-btn mini-info" id="rho-info-btn" aria-label="More on the weighting schemes" aria-expanded="false">i</button>
                 <div class="info-popover" id="rho-popover" hidden>
                   <p>A group pools its members' slope estimates into one estimate <i class="mvar">β̄</i> = Σ<i class="mvar">w</i><sub>i</sub><i class="mvar">β̂</i><sub>i</sub> / Σ<i class="mvar">w</i><sub>i</sub>, then takes the nearest candidate. The averaged panel reports the <b>expected error rate</b> of that decision.</p>
-                  <p><b>Optimal = precision.</b> For Gaussian estimates the optimal pooled estimate <i>is</i> the inverse-variance mean, <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub> = 1/SE<sub>i</sub>² — so "optimal" and "precision weighting" coincide here.</p>
-                  <p><b>Behavioural <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup>.</b> <b>ρ=1</b> is optimal; <b>ρ=0</b> is equal weighting (⅓ each — ignores precision); <b>ρ&lt;0</b> goes <i>counter</i> to precision, over-trusting the noisy, strong-looking members and actively under-weighting the EXPERT.</p>
+                  <p><b>Evidence precision.</b> Each member's evidence has precision <i class="mvar">τ</i><sub>i</sub> = 1/SE<sub>i</sub>² (larger <i class="mvar">n</i> ⇒ sharper). For Gaussian estimates the optimal pool <i>is</i> the precision-weighted mean, so "optimal" and "weight by evidence precision" coincide here.</p>
+                  <p><b>Weights <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup>.</b> <b>ρ=1</b> weights fully by evidence precision (optimal); <b>ρ=0</b> is equal weighting (ignores precision); <b>ρ&lt;0</b> goes <i>counter</i> to the evidence, over-trusting noisy strong-looking members and under-weighting the EXPERT.</p>
                   <p class="xmode-current"><b>Provisional</b> form — to be finalised. The per-draw panels (right of each group) instead compare three fixed anchors: optimal, equal, and a raw-strength weighting.</p>
                 </div>
               </span>
             </div>
-            <p class="ac-desc"><b>This is the main way the group outcome changes.</b> A group — <b>1 EXPERT + NOVICES</b> (size set below) — combines its members' views into one group decision, weighting each member by <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup> (<i class="mvar">τ</i> = precision = 1/SE²): <b>ρ = 0</b> is equal weight, <b>ρ = 1</b> is precision (inverse-variance) weight, <b>ρ &lt; 0</b> goes counter to precision. Drag <i class="mvar">ρ</i> and watch each group's outcome below update live.</p>
+            <p class="ac-desc"><b>Weight members by the precision of their evidence</b>, applied to their stated views. Each member's evidence precision is <i class="mvar">τ</i><sub>i</sub> = 1/SE<sub>i</sub>² (set by their <i class="mvar">n</i> — the EXPERT's is sharpest); the group weights are <i class="mvar">w</i><sub>i</sub> ∝ <i class="mvar">τ</i><sub>i</sub><sup>ρ</sup>. <b>ρ = 1</b> weights fully by evidence precision (optimal), <b>ρ = 0</b> weights everyone equally, <b>ρ &lt; 0</b> goes counter to the evidence. Drag <i class="mvar">ρ</i>; the outcome below updates live.</p>
             <div class="ac-slider-row">
               <span class="ac-end">
                 <b>counter-precision</b><span class="ac-end-rho">ρ = −1</span>
@@ -339,11 +309,12 @@
           <div class="size-control">
             <span class="size-title">Group size</span>
             <div class="seg" id="seg-size">
+              <button data-size="2">2</button>
               <button class="active" data-size="3">3</button>
               <button data-size="4">4</button>
               <button data-size="5">5</button>
             </div>
-            <span class="size-note">always 1 EXPERT + <b id="size-nov">2</b> NOVICES per group</span>
+            <span class="size-note">always 1 EXPERT + <b id="size-nov">2</b> <span id="size-nov-word">NOVICES</span> per group</span>
           </div>
 
           <div id="example-groups"></div>
@@ -374,11 +345,9 @@
           </ul>
         </div>
         <div class="intro-block">
-          <p class="intro-h"><b>We measure three things:</b></p>
+          <p class="intro-h"><b>Your task each round:</b> read the chart, then place one bet.</p>
           <ul>
-            <li>your <b>beliefs</b> over the candidate slopes;</li>
-            <li>your <b>bet</b> — 100 points split <b>Stable</b> vs <b>Growing</b> <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>;</li>
-            <li>your <b>estimate of <i class="mvar">β</i></b>.</li>
+            <li>your <b>bet</b> — 100 points split <b>Stable</b> vs <b>Growing</b> <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>.</li>
           </ul>
         </div>
         <div class="game-intro-foot">
@@ -397,34 +366,15 @@
           <span class="game-role expert" id="game-role">EXPERT · n=30</span>
         </div>
 
-        <!-- TOP panel: scatter (LEFT, 2/3) + β-estimate slider (RIGHT, 1/3) -->
+        <!-- TOP panel: the data — one scatter, full width. The round is BET-ONLY
+             now (no β-estimate, no belief elicitation), matching the live
+             experiment: see the chart, place the two-step bet, see results. -->
         <div class="game-top">
           <div class="game-scatter-wrap"><canvas id="game-scatter"></canvas></div>
-          <div class="beta-col">
-            <div class="beta-coltitle">Your estimate of <i class="mvar">β</i></div>
-            <div class="beta-wrap">
-              <div class="beta-axis" id="beta-axis"></div>
-              <div class="beta-track" id="beta-track">
-                <div class="beta-hat" id="beta-hat"><span></span></div>
-                <div class="beta-thumb" id="beta-thumb"></div>
-              </div>
-            </div>
-            <div class="beta-readout">you <span id="beta-val">0</span><span class="beta-hat-readout" id="beta-hat-val"></span></div>
-          </div>
         </div>
 
-        <!-- BOTTOM panel: beliefs (LEFT) + euro bet (RIGHT), 50/50 -->
+        <!-- BOTTOM panel: the two-step bet, full width -->
         <div class="game-bottom">
-          <!-- beliefs -->
-          <div class="belief-area">
-            <div class="ctl-title">Your beliefs <span class="q">— how likely is each slope? (0–100 each)</span></div>
-            <div class="belief-body">
-              <!-- one bar per candidate slope; built by game.js from the Simulation panel -->
-              <div class="belief-bars" id="belief-bars"></div>
-            </div>
-            <div class="belief-note">bars = your beliefs, rescaled to 100 &nbsp;·&nbsp; <span class="swatch"></span> optimal posterior given the data</div>
-          </div>
-
           <!-- bet — TWO-STEP widget, mirroring the live experiment elicitation:
                STEP 1 a Stable/Growing direction; STEP 2 a 0–100 points-on-Growing
                slider, gated by step 1 and clamped to the chosen half (50 reachable
@@ -504,9 +454,9 @@
 
 </main>
 
-<script src="simulation.js?v=19"></script>
+<script src="simulation.js?v=20"></script>
 
-<script src="game.js?v=15"></script>
+<script src="game.js?v=16"></script>
 
 </body>
 </html>
