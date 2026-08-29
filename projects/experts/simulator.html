@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=16">
+<link rel="stylesheet" href="simulation.css?v=17">
 <link rel="stylesheet" href="game.css?v=11">
 </head>
 <body>
@@ -60,34 +60,12 @@
       <div class="info-popover basis-pop" id="basis-popover" hidden>
         <p class="basis-title"><b>What the simulated people are matched on</b></p>
         <ul class="basis-list">
-          <li><b>Matched on:</b> posterior-to-bet mapping from the pilot</li>
-          <li><b>Not replayed:</b> actual pilot rounds &mdash; draws are fresh</li>
-          <li><b>Sample:</b> waves 1+2, 126 completers, 24 rounds each</li>
+          <li>Simulated bets follow the measured behaviour of 126 real participants</li>
+          <li>Bet moves 1.07 points per posterior point for novices, 0.58 for experts</li>
+          <li>Empirical noise, corner answers and base-rate shift included</li>
+          <li>Every draw is fresh, no pilot rounds replayed</li>
+          <li>Exact Bayesian posterior computed per member, behaviour layered on top</li>
         </ul>
-        <p class="basis-sub">Each member</p>
-        <ul class="basis-list">
-          <li>Exact Bayesian posterior from own noisy points</li>
-          <li>Bet from the fitted reaction line, not the transcript</li>
-        </ul>
-        <p class="basis-sub">The world</p>
-        <ul class="basis-list">
-          <li>Islands &rarr; coconuts; state Stable or Growing</li>
-          <li>Growing = +2 or +3 per century (growth toggle)</li>
-          <li>Prior 75 / 25 Stable : Growing; Gaussian noise; integer counts</li>
-        </ul>
-        <p class="basis-sub">Per role, from data</p>
-        <ul class="basis-list">
-          <li>Reaction slope: 1.07 novice, 0.58 expert</li>
-          <li>Residual noise; base-rate shift (over-places on Growing when Stable)</li>
-          <li>Corner answers: exact 0 / 50 / 100</li>
-        </ul>
-        <p class="basis-sub">Modes</p>
-        <ul class="basis-list">
-          <li><b>Rational:</b> every member reports the exact posterior</li>
-          <li><b>Data-driven</b> (default): posterior computed, bet stated from the model</li>
-          <li><b>Groups:</b> pool stated views &mdash; extrapolation, no real discussion in pilot</li>
-        </ul>
-        <p class="xmode-current">Waves 1+2 &middot; 126 completers &middot; Aug 2026 &middot; re-estimated as data arrives</p>
       </div>
     </div>
   </section>
@@ -321,7 +299,7 @@
         <section class="page-section">
           <h2 class="section-title">Simulated group dynamics</h2>
           <p class="sim-lead"><b>Bottom half — groups.</b> The same simulation, played out for a handful of true slopes. Each panel draws one fresh group — <b>1 EXPERT</b> (<i class="mvar">n</i>=30) plus <b>NOVICES</b> (<i class="mvar">n</i>=3), group size set below — and shows the <b>group decision</b> that results from pooling their estimates. Press <b>Go</b> above for a new realisation.</p>
-          <p class="dd-caveat dd-only" hidden>Parameters: <b>waves 1+2</b>, n = 126 completers. <b>Same 0.75 / 0.25 prior</b> as the site. Individual play only &mdash; group dynamics an <b>extrapolation</b> from the individual reaction model.</p>
+          <p class="dd-caveat dd-only" hidden>Fitted to n = 126 completers on the <b>same 0.75 / 0.25 prior</b> as the site. Individual play only &mdash; group dynamics an <b>extrapolation</b> from the individual reaction model.</p>
 
         <!-- Examples (group rows, fully dynamic) -->
         <div class="card">
@@ -502,7 +480,7 @@
 
 </main>
 
-<script src="simulation.js?v=16"></script>
+<script src="simulation.js?v=17"></script>
 
 <script src="game.js?v=14"></script>
 

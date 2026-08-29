@@ -1,0 +1,82 @@
+{
+  "schema": "experts_empirical_params_v1",
+  "source": "data_pilot_completers.RData (sleek completers file, waves 1+2)",
+  "wave": "prolific_wave1+2_2026-08-29",
+  "wave_date": "2026-08-29",
+  "n_completers": 126,
+  "n_rounds_total": 3024,
+  "rounds_per_participant": 24,
+  "bet_scale": "allocation_pos_pct: integer 0..100, points on Growing",
+  "posterior_scale": "posterior: Bayesian P(Growing|data), 0..1; reaction fit uses 100*posterior",
+  "reaction_model": "allocation_pos_pct ~ reaction_intercept + reaction_slope * (100*posterior) + Normal(0, residual_sd), then clamp to [0,100]",
+  "base_rate_neglect_note": "mean(bet - 100*posterior) on Stable-state rounds (state_is_pos=FALSE); positive = points over-placed on Growing, i.e. prior under-used",
+  "design_prior": {
+    "states": ["Stable", "Growing"],
+    "p_stable": 0.75,
+    "p_growing": 0.25
+  },
+  "growth_arms_beta_pos": [0.02, 0.03],
+  "roles": {
+    "NOVICE": {
+      "n_rows": 1608,
+      "n_points_seen": [               3,                4,                5],
+      "reaction_slope":           1.0739,
+      "reaction_intercept":          12.5274,
+      "reaction_slope_within_participant":           1.0825,
+      "residual_sd":           25.585,
+      "reaction_r2":           0.3464,
+      "corner_prob_0":           0.1225,
+      "corner_prob_50":           0.0473,
+      "corner_prob_100":           0.0578,
+      "mean_bet":             39.5,
+      "sd_bet":            31.65,
+      "base_rate_neglect_stable_shift":            13.92,
+      "posterior_quantiles_05_10_25_50_75_90_95": [          0.0407,           0.0714,           0.1203,           0.2107,           0.3547,           0.4754,            0.599],
+      "per_arm": {
+        "0.02": {
+          "n": 840,
+          "mean":           0.2538,
+          "sd":           0.1387,
+          "quantiles_10_25_50_75_90": [          0.1029,           0.1427,           0.2297,           0.3483,           0.4598]
+        },
+        "0.03": {
+          "n": 768,
+          "mean":           0.2483,
+          "sd":           0.2048,
+          "quantiles_10_25_50_75_90": [           0.042,           0.0977,           0.1864,           0.3691,           0.5533]
+        }
+      }
+    },
+    "EXPERT": {
+      "n_rows": 1416,
+      "n_points_seen": [              15,               20,               30],
+      "reaction_slope":           0.5829,
+      "reaction_intercept":          23.2812,
+      "reaction_slope_within_participant":           0.5963,
+      "residual_sd":           26.163,
+      "reaction_r2":           0.2716,
+      "corner_prob_0":           0.1151,
+      "corner_prob_50":           0.0134,
+      "corner_prob_100":           0.0508,
+      "mean_bet":            37.84,
+      "sd_bet":            30.66,
+      "base_rate_neglect_stable_shift":             17.1,
+      "posterior_quantiles_05_10_25_50_75_90_95": [          0.0037,           0.0102,           0.0376,           0.1341,           0.3807,           0.7146,           0.8779],
+      "per_arm": {
+        "0.02": {
+          "n": 792,
+          "mean":           0.2519,
+          "sd":           0.2353,
+          "quantiles_10_25_50_75_90": [          0.0276,           0.0611,           0.1718,           0.3795,           0.6409]
+        },
+        "0.03": {
+          "n": 624,
+          "mean":           0.2468,
+          "sd":           0.3167,
+          "quantiles_10_25_50_75_90": [          0.0034,           0.0169,           0.0816,           0.3816,           0.8454]
+        }
+      }
+    }
+  }
+}
+

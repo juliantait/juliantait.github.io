@@ -1,0 +1,81 @@
+{
+  "schema": "experts_empirical_params_v1",
+  "source": "data_pilot_cleaned.RData (completers only)",
+  "wave": "prolific_wave1_2026-08-23",
+  "wave_date": "2026-08-23",
+  "n_completers": 10,
+  "n_rounds_total": 240,
+  "rounds_per_participant": 24,
+  "bet_scale": "allocation_pos_pct: integer 0..100, points on Growing",
+  "posterior_scale": "posterior: Bayesian P(Growing|data), 0..1; reaction fit uses 100*posterior",
+  "reaction_model": "allocation_pos_pct ~ reaction_intercept + reaction_slope * (100*posterior) + Normal(0, residual_sd), then clamp to [0,100]",
+  "base_rate_neglect_note": "mean(bet - 100*posterior) on Stable-state rounds (state_is_pos=FALSE); positive = points over-placed on Growing, i.e. prior under-used",
+  "design_prior": {
+    "states": ["Stable", "Growing"],
+    "p_stable": 0.75,
+    "p_growing": 0.25
+  },
+  "growth_arms_beta_pos": [0.02, 0.03],
+  "roles": {
+    "NOVICE": {
+      "n_rows": 120,
+      "n_points_seen": [3, 4, 5],
+      "reaction_slope": 1.3151,
+      "reaction_intercept": 10.7137,
+      "reaction_slope_within_participant": 1.5174,
+      "residual_sd": 24.847,
+      "reaction_r2": 0.4204,
+      "corner_prob_0": 0.0333,
+      "corner_prob_50": 0.0167,
+      "corner_prob_100": 0.0333,
+      "mean_bet": 43.08,
+      "sd_bet": 32.64,
+      "base_rate_neglect_stable_shift": 16.72,
+      "posterior_quantiles_05_10_25_50_75_90_95": [0.0683, 0.0867, 0.1203, 0.2038, 0.3398, 0.4768, 0.5533],
+      "per_arm": {
+        "0.02": {
+          "n": 72,
+          "mean": 0.2465,
+          "sd": 0.1451,
+          "quantiles_10_25_50_75_90": [0.0929, 0.1352, 0.2107, 0.3115, 0.4754]
+        },
+        "0.03": {
+          "n": 48,
+          "mean": 0.2455,
+          "sd": 0.1837,
+          "quantiles_10_25_50_75_90": [0.0471, 0.1155, 0.1798, 0.3718, 0.5241]
+        }
+      }
+    },
+    "EXPERT": {
+      "n_rows": 120,
+      "n_points_seen": [15, 20, 30],
+      "reaction_slope": 0.3967,
+      "reaction_intercept": 30.9778,
+      "reaction_slope_within_participant": 0.4576,
+      "residual_sd": 21.396,
+      "reaction_r2": 0.2036,
+      "corner_prob_0": 0,
+      "corner_prob_50": 0.025,
+      "corner_prob_100": 0.0083,
+      "mean_bet": 40.26,
+      "sd_bet": 23.97,
+      "base_rate_neglect_stable_shift": 22.77,
+      "posterior_quantiles_05_10_25_50_75_90_95": [0.0031, 0.0063, 0.0284, 0.1233, 0.3455, 0.6634, 0.9118],
+      "per_arm": {
+        "0.02": {
+          "n": 48,
+          "mean": 0.2933,
+          "sd": 0.2519,
+          "quantiles_10_25_50_75_90": [0.0494, 0.0941, 0.2285, 0.3979, 0.6782]
+        },
+        "0.03": {
+          "n": 72,
+          "mean": 0.1944,
+          "sd": 0.2804,
+          "quantiles_10_25_50_75_90": [0.0035, 0.0107, 0.0583, 0.2643, 0.5907]
+        }
+      }
+    }
+  }
+}
