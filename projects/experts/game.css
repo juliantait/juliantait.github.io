@@ -84,26 +84,65 @@
            must not wrap inside the 38px-wide bar column */
         #sec-game .bbar-lab { font-family:var(--font-mono); font-size:10px; color:var(--text-muted); white-space:nowrap; }
 
-        /* bet — €1 allocation: a draggable "you" bar; on reveal an "optimal" bar appears below */
+        /* bet — TWO-STEP direction+points widget (mirrors the live experiment:
+           step 1 Stable/Growing, step 2 a 0–100 points-on-Growing slider gated by
+           step 1 and clamped to the chosen half). On reveal an orange "optimal"
+           marker appears on the same track. */
         #sec-game .bet-area { min-width:0; }
-        /* inline row: label sits to the LEFT of the bar (saves vertical space so the
-           bet box matches the belief box height on both screens) */
-        #sec-game .bet-barline { display:flex; align-items:center; gap:8px; }
-        #sec-game .bet-rowlab { flex:0 0 46px; width:46px; text-align:right; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); }
-        #sec-game .opt-only { display:none; }
-        #sec-game.revealed .opt-only { display:flex; }
-        #sec-game .alloc-bar { position:relative; flex:1; min-width:0; height:34px; touch-action:none; user-select:none; }
-        #sec-game .alloc-optbar { position:relative; flex:1; min-width:0; height:28px; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
-        #sec-game .alloc-track { position:absolute; inset:0; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
-        #sec-game .alloc-seg { position:absolute; top:0; bottom:0; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:12px; color:#fff; overflow:hidden; white-space:nowrap; }
-        #sec-game .alloc-seg.s0 { background:#dc2626; }
-        #sec-game .alloc-seg.s1 { background:#64748b; }
-        #sec-game .alloc-seg.s2 { background:#2563eb; }
-        #sec-game .alloc-optbar .alloc-seg { font-size:11px; }
-        #sec-game .alloc-handle { position:absolute; top:-3px; bottom:-3px; width:14px; margin-left:-7px; background:#fff; border:2px solid var(--text); border-radius:4px; cursor:ew-resize; box-shadow:0 1px 4px rgba(0,0,0,0.35); z-index:3; touch-action:none; }
-        #sec-game .alloc-handle::after { content:''; position:absolute; left:50%; top:50%; width:2px; height:16px; margin:-8px 0 0 -1px; background:var(--text); opacity:0.45; border-radius:1px; }
-        #sec-game.revealed .alloc-handle { display:none; }
-        #sec-game .alloc-labels { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); margin-top:2px; padding-left:54px; }
+        #sec-game .bet2-step { display:flex; flex-direction:column; }
+        #sec-game .bet2-step--dir { margin-bottom:13px; }
+        #sec-game .bet2-label { font-size:11.5px; line-height:1.3; color:var(--text); font-weight:600; margin:0 0 7px; display:flex; align-items:center; gap:6px; }
+        #sec-game .bet2-badge { flex:0 0 auto; width:15px; height:15px; border-radius:50%; background:var(--text); color:#fff; font-family:var(--font-mono); font-size:9px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+        /* step 1: two segmented buttons backed by real radios */
+        #sec-game .bet2-seg { display:flex; gap:8px; }
+        #sec-game .bet2-btn { flex:1; position:relative; cursor:pointer; margin:0; }
+        #sec-game .bet2-btn input { position:absolute; opacity:0; width:0; height:0; }
+        #sec-game .bet2-face { display:flex; align-items:center; justify-content:center; gap:7px; height:34px; border:1.5px solid var(--border); border-radius:8px; background:#fff; font-size:12.5px; font-weight:700; color:var(--text-muted); transition:border-color .12s, background .12s, color .12s; }
+        #sec-game .bet2-btn input:checked + .bet2-face { color:var(--text); background:#f4f7fb; }
+        #sec-game .bet2-btn--stable input:checked + .bet2-face { border-color:#64748b; box-shadow:inset 0 0 0 1px #64748b; }
+        #sec-game .bet2-btn--growing input:checked + .bet2-face { border-color:var(--expert); box-shadow:inset 0 0 0 1px var(--expert); }
+        #sec-game .bet2-btn input:focus-visible + .bet2-face { outline:2px solid var(--expert); outline-offset:2px; }
+        #sec-game .bet2-swatch { width:11px; height:11px; border-radius:3px; flex:0 0 auto; }
+        #sec-game .bet2-swatch.stable { background:#64748b; }
+        #sec-game .bet2-swatch.growing { background:var(--expert); }
+        /* step 2: gated + clamped points slider */
+        #sec-game .bet2-gate { transition:opacity .12s; }
+        #sec-game .bet2-gate.locked { opacity:0.5; }
+        #sec-game .bet2-readout { display:flex; justify-content:space-between; margin-bottom:8px; }
+        #sec-game .bet2-side { display:flex; align-items:baseline; gap:4px; font-size:10px; color:var(--text-muted); }
+        #sec-game .bet2-side.growing { flex-direction:row-reverse; }
+        #sec-game .bet2-sname { display:flex; align-items:center; gap:4px; font-weight:700; }
+        #sec-game .bet2-num { font-family:var(--font-mono); font-weight:800; font-size:15px; color:var(--text); }
+        #sec-game .bet2-unit { font-size:9px; }
+        #sec-game .bet2-slider-wrap { position:relative; height:26px; }
+        /* track painted behind a transparent native range; inset 10px each side so
+           its 0–100% maps to the thumb-centre travel (thumb radius ≈ 10px) */
+        #sec-game .bet2-track-bg { position:absolute; left:10px; right:10px; top:50%; height:8px; transform:translateY(-50%); border-radius:5px; background:#e6ebf1; border:1px solid var(--border); }
+        #sec-game .bet2-track-bg .dead { position:absolute; top:0; bottom:0; background:#cbd5e1; }
+        #sec-game .bet2-track-bg.dir-none .dead { left:0; right:0; }
+        #sec-game .bet2-track-bg.dir-growing .dead { left:0; width:50%; }
+        #sec-game .bet2-track-bg.dir-stable .dead { left:50%; right:0; }
+        #sec-game .bet2-track-bg .mid { position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:var(--text-muted); opacity:0.55; }
+        #sec-game .bet2-slider { position:absolute; inset:0; width:100%; margin:0; background:transparent; -webkit-appearance:none; appearance:none; }
+        #sec-game .bet2-slider::-webkit-slider-runnable-track { background:transparent; height:26px; }
+        #sec-game .bet2-slider::-moz-range-track { background:transparent; height:26px; }
+        #sec-game .bet2-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.30); cursor:ew-resize; margin-top:3px; }
+        #sec-game .bet2-slider::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#fff; border:2px solid var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.30); cursor:ew-resize; }
+        #sec-game .bet2-slider.is-unset::-webkit-slider-thumb { opacity:0; }
+        #sec-game .bet2-slider.is-unset::-moz-range-thumb { opacity:0; }
+        #sec-game.revealed .bet2-slider { pointer-events:none; }
+        #sec-game .bet2-opt { position:absolute; top:1px; bottom:1px; width:0; border-left:2px solid #c2410c; display:none; z-index:5; pointer-events:none; }
+        #sec-game.revealed .bet2-opt { display:block; }
+        #sec-game .bet2-opt span { position:absolute; left:50%; transform:translateX(-50%); top:-13px; font-family:var(--font-mono); font-size:9px; font-weight:800; color:#c2410c; white-space:nowrap; text-shadow:0 0 2px #fff,0 0 2px #fff; }
+        #sec-game .bet2-scale { display:flex; justify-content:space-between; margin-top:5px; font-size:8.5px; color:var(--text-muted); line-height:1.15; }
+        #sec-game .bet2-scale span { flex:0 0 33%; }
+        #sec-game .bet2-scale .bet2-scale-mid { text-align:center; }
+        #sec-game .bet2-scale span:last-child { text-align:right; }
+        /* transparent shield: catches a pointer that reaches the slider before
+           step 1 is answered, so elicit-style the nudge fires instead of silence */
+        #sec-game .bet2-shield { position:absolute; inset:0; z-index:6; cursor:not-allowed; }
+        #sec-game .bet2-toast { position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%); background:var(--text); color:#fff; font-size:11px; padding:6px 11px; border-radius:7px; white-space:nowrap; z-index:10; box-shadow:0 4px 14px rgba(0,0,0,0.3); }
+        #sec-game .bet2-toast[hidden] { display:none; }
 
         /* beta-estimate vertical slider — the 1/3 right panel of the top row */
         #sec-game .beta-col { display:flex; flex-direction:column; align-items:center; gap:8px; border:1px solid var(--border); border-radius:10px; background:#fafbfc; padding:10px 8px; }

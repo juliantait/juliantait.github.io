@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=18">
-<link rel="stylesheet" href="game.css?v=11">
+<link rel="stylesheet" href="simulation.css?v=19">
+<link rel="stylesheet" href="game.css?v=12">
 </head>
 <body>
 
@@ -45,31 +45,6 @@
   <!-- ===================== VIEW 1: SIMULATED GROUPS (all existing content, unchanged) ===================== -->
   <div id="view-groups" class="view">
 
-  <!-- ===================== TOP INFO MODULE ("what the simulated people are matched on") =====================
-       Openable panel reusing the info-popover / wireInfoPopover pattern. Merges (does not
-       duplicate) the previous round's "what this simulation is based on" popover, which used
-       to sit next to the Agents toggle. -->
-  <section class="exp basis-bar-wrap">
-    <div class="basis-bar pop-host">
-      <button type="button" class="basis-toggle" id="basis-info-btn"
-              aria-label="What the simulated people are matched on" aria-expanded="true">
-        <span class="basis-toggle-i" aria-hidden="true">ⓘ</span>
-        <span class="basis-toggle-txt">What the simulated people are matched on</span>
-        <span class="basis-toggle-hint">read this first</span>
-      </button>
-      <div class="info-popover basis-pop" id="basis-popover">
-        <p class="basis-title"><b>What the simulated people are matched on</b></p>
-        <ul class="basis-list">
-          <li>Simulated bets follow the measured behaviour of 126 real participants</li>
-          <li>Bet moves 1.07 points per posterior point for novices, 0.58 for experts</li>
-          <li>Empirical noise, corner answers and base-rate shift included</li>
-          <li>Every draw is fresh, no pilot rounds replayed</li>
-          <li>Exact Bayesian posterior computed per member, behaviour layered on top</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
   <!-- ===================== SIMULATION (explorer) ===================== -->
   <section id="sec-simulation" class="exp">
       <!-- ============ SECTION 1: Simulation ============ -->
@@ -77,7 +52,16 @@
           <h2 class="section-title">Individual-level simulation</h2>
           <p class="sim-lead"><b>Top half — individuals.</b> Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=30 vs <b>NOVICE</b> <i class="mvar">n</i>=3). Tune the parameters below; the <b>group dynamics</b> at the bottom show how individual estimates aggregate into a group decision.</p>
 
-        <!-- 1. Control panel -->
+        <!-- 1. Control panel — COLLAPSIBLE (item 3). Collapsed by default: a compact
+             strip shows the current defaults inline with an Edit button; expanding
+             reveals the full control layout below. #param-summary is filled live by
+             updateParamSummary() in simulation.js. -->
+        <div class="param-panel collapsed" id="param-panel">
+          <div class="param-collapsed" id="param-collapsed">
+            <span class="param-summary" id="param-summary">Loading current settings…</span>
+            <button type="button" class="param-edit-btn" id="param-edit" aria-expanded="false" aria-controls="param-expanded">Edit</button>
+          </div>
+          <div class="param-expanded" id="param-expanded">
         <div class="card">
           <div class="form-row">
 
@@ -162,7 +146,7 @@
                   <label>behaviour</label>
                   <div class="seg seg-mode" id="seg-agentmode">
                     <button data-mode="rational">Rational (Bayesian)</button>
-                    <button class="active" data-mode="data">Data driven (waves 1+2)</button>
+                    <button class="active" data-mode="data">Observed behaviour (waves 1+2)</button>
                   </div>
                 </div>
                 <div class="input-group dd-only" hidden>
@@ -225,31 +209,42 @@
 
           </div>
           <div class="error-msg" id="err"></div>
+          <div class="param-foot"><button type="button" class="param-done-btn" id="param-done">Done</button></div>
+        </div>
+          </div><!-- /param-expanded -->
+        </div><!-- /param-panel -->
+
+        <!-- 2. Individual error rates — TOP STRIP: one compact line per role, the
+             headline avg error + confidence (replaces the nearest / Bayes-optimal
+             table). IDs head-nov / head-exp carry the error writes and
+             head-nov-conf / head-exp-conf the confidence writes in simulate(). -->
+        <p class="mode-note dd-only" hidden>Bayes-rational error rates</p>
+        <!-- TOP STRIP: one compact line per role — headline avg error + confidence.
+             (Replaces the nearest / Bayes-optimal summary table.) IDs head-nov /
+             head-exp are preserved for the simulate() writes; head-*-conf are new. -->
+        <div class="err-strip rational-only" id="err-strip">
+          <div class="err-role role-novice">
+            <span class="er-role">NOVICE</span>
+            <span class="er-metric"><span class="er-lab">avg error</span><b class="es-num" id="head-nov">--</b></span>
+            <span class="er-sep" aria-hidden="true">·</span>
+            <span class="er-metric"><span class="er-lab">confidence</span><b class="es-num es-conf" id="head-nov-conf">--</b></span>
+          </div>
+          <div class="err-role role-expert">
+            <span class="er-role">EXPERT</span>
+            <span class="er-metric"><span class="er-lab">avg error</span><b class="es-num" id="head-exp">--</b></span>
+            <span class="er-sep" aria-hidden="true">·</span>
+            <span class="er-metric"><span class="er-lab">confidence</span><b class="es-num es-conf" id="head-exp-conf">--</b></span>
+          </div>
         </div>
 
-        <!-- 2. Individual error rates — ONE compact table (replaces the large per-role
-             tiles). Rows = role, columns = the two decision rules whose percentages
-             used to be shown large. Point-first labels, no colon prefixes. IDs
-             head-nov / head-exp / head-nov-map / head-exp-map are preserved so the
-             simulate() writes land unchanged. -->
-        <p class="mode-note dd-only" hidden>Rational-Bayesian benchmark &mdash; data-driven agents compute these internally but <b>act</b> via the waves-1+2 behavioural model (see the group section below).</p>
-        <table class="err-summary rational-only" id="err-summary">
-          <thead>
-            <tr>
-              <th>avg error</th>
-              <th class="pop-host">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button>
-                <div class="info-popover pick-pop" hidden><b>nearest</b>: average error rate if a member classifies their estimate to the closest candidate. Prior-free, it ignores the base rate (the prior over the states), so it reflects base-rate neglect.</div>
-              </th>
-              <th class="pop-host">Bayes-optimal<button type="button" class="info-btn mini-info" aria-label="What does Bayes-optimal mean?" aria-expanded="false">i</button>
-                <div class="info-popover pick-pop" hidden><b>Bayes-optimal</b>: average error under the posterior-mode (MAP) rule, which uses the prior. This is the lowest achievable error. The gap between nearest and Bayes-optimal is the cost of base-rate neglect.</div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td class="role-novice">NOVICE</td><td class="es-num" id="head-nov">--</td><td class="es-num es-map" id="head-nov-map">--</td></tr>
-            <tr><td class="role-expert">EXPERT</td><td class="es-num" id="head-exp">--</td><td class="es-num es-map" id="head-exp-map">--</td></tr>
-          </tbody>
-        </table>
+        <!-- Paired mini-figure: the individual-vs-Bayesian gap at a glance. Per
+             role, observed (waves 1+2) error & confidence beside the Bayes-rational
+             benchmark, so the reader sees the gap before the group section. Built
+             by renderIndividualFigure() in simulation.js. -->
+        <figure class="ind-fig" id="ind-fig">
+          <figcaption class="ind-fig-head">Individual reads &mdash; <span class="if-key obs">observed</span> vs <span class="if-key bay">Bayes</span>, per role</figcaption>
+          <div class="ind-fig-grid" id="ind-fig-grid"></div>
+        </figure>
 
         <!-- Breakdown table (the sampling-PDF/CDF graph exhibit that used to sit
              beside it has been removed; the table keeps the per-state detail). -->
@@ -272,6 +267,24 @@
         </div><!-- /viz-block -->
 
         </section>
+  </section>
+
+  <!-- ===================== WHAT THE SIMULATED PEOPLE ARE MATCHED ON =====================
+       A fixed, always-visible zone (no popover/toggle). Sits between the individual
+       simulation and the group dynamics, where it reads naturally. -->
+  <section class="exp basis-section" id="sec-basis">
+    <section class="page-section">
+      <div class="card basis-card">
+        <h2 class="section-title">What the simulated people are matched on</h2>
+        <ul class="basis-list">
+          <li>Simulated bets follow the measured behaviour of 126 real participants</li>
+          <li>Bet moves 1.07 points per posterior point for novices, 0.58 for experts</li>
+          <li>Empirical noise, corner answers and base-rate shift included</li>
+          <li>Every draw is fresh, no pilot rounds replayed</li>
+          <li>Exact Bayesian posterior computed per member, behaviour layered on top</li>
+        </ul>
+      </div>
+    </section>
   </section>
 
   <!-- ===================== GROUP DYNAMICS (example stimuli — all one page) ===================== -->
@@ -364,7 +377,7 @@
           <p class="intro-h"><b>We measure three things:</b></p>
           <ul>
             <li>your <b>beliefs</b> over the candidate slopes;</li>
-            <li>your <b>one-euro bet</b> across them <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>;</li>
+            <li>your <b>bet</b> — 100 points split <b>Stable</b> vs <b>Growing</b> <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>;</li>
             <li>your <b>estimate of <i class="mvar">β</i></b>.</li>
           </ul>
         </div>
@@ -380,7 +393,7 @@
 
         <!-- header -->
         <div class="game-go-row">
-          <span class="game-title">Here is €1 — how do you bet it?</span>
+          <span class="game-title">Place your bet on this island</span>
           <span class="game-role expert" id="game-role">EXPERT · n=30</span>
         </div>
 
@@ -412,20 +425,50 @@
             <div class="belief-note">bars = your beliefs, rescaled to 100 &nbsp;·&nbsp; <span class="swatch"></span> optimal posterior given the data</div>
           </div>
 
-          <!-- euro bet -->
+          <!-- bet — TWO-STEP widget, mirroring the live experiment elicitation:
+               STEP 1 a Stable/Growing direction; STEP 2 a 0–100 points-on-Growing
+               slider, gated by step 1 and clamped to the chosen half (50 reachable
+               from both sides, the blocked half greyed, no pre-set value). The
+               recorded bet is unchanged in meaning: points on Growing, 0–100. -->
           <div class="bet-area">
-            <div class="ctl-title">Bet your euro <span class="q">— split €1.00 (this is scored)</span></div>
+            <div class="ctl-title">Your bet <span class="q">— 100 points, Stable vs Growing (this is scored)</span></div>
             <div class="bet-body">
-              <div class="bet-barline">
-                <span class="bet-rowlab">you</span>
-                <!-- track + drag handles are built by game.js (one segment per candidate slope) -->
-                <div class="alloc-bar" id="alloc-bar"></div>
+              <!-- STEP 1: direction (two segmented buttons backed by real radios) -->
+              <div class="bet2-step bet2-step--dir">
+                <p class="bet2-label"><span class="bet2-badge">1</span>Is this island&rsquo;s production stable or growing?</p>
+                <div class="bet2-seg" id="bet2-seg" role="radiogroup" aria-label="Is this island's production stable or growing?">
+                  <label class="bet2-btn bet2-btn--stable">
+                    <input type="radio" name="bet2_dir" id="bet2_stable" value="STABLE">
+                    <span class="bet2-face"><span class="bet2-swatch stable"></span>Stable</span>
+                  </label>
+                  <label class="bet2-btn bet2-btn--growing">
+                    <input type="radio" name="bet2_dir" id="bet2_growing" value="GROWING">
+                    <span class="bet2-face">Growing<span class="bet2-swatch growing"></span></span>
+                  </label>
+                </div>
               </div>
-              <div class="bet-barline opt-only">
-                <span class="bet-rowlab">optimal</span>
-                <div class="alloc-optbar" id="alloc-optbar"></div>
+              <!-- STEP 2: the points slider, gated + clamped by step 1 -->
+              <div class="bet2-step bet2-step--bet">
+                <p class="bet2-label"><span class="bet2-badge">2</span><span id="bet2-step2-text">How confident are you?</span></p>
+                <div class="bet2-gate locked" id="bet2-gate">
+                  <div class="bet2-readout">
+                    <div class="bet2-side stable"><span class="bet2-sname"><span class="bet2-swatch stable"></span>Stable</span><span class="bet2-num" id="bet2-pts-stable">—</span><span class="bet2-unit">pts</span></div>
+                    <div class="bet2-side growing"><span class="bet2-sname">Growing<span class="bet2-swatch growing"></span></span><span class="bet2-num" id="bet2-pts-growing">—</span><span class="bet2-unit">pts</span></div>
+                  </div>
+                  <div class="bet2-slider-wrap" id="bet2-slider-wrap">
+                    <div class="bet2-track-bg dir-none" id="bet2-track-bg"><div class="dead"></div><div class="mid"></div></div>
+                    <input type="range" class="bet2-slider is-unset" id="bet2-slider" min="0" max="100" step="1" value="50" aria-label="Points on Growing">
+                    <div class="bet2-opt" id="bet2-opt"><span></span></div>
+                    <div class="bet2-shield" id="bet2-shield"></div>
+                    <div class="bet2-toast" id="bet2-toast" role="status" aria-live="polite" hidden></div>
+                  </div>
+                  <div class="bet2-scale">
+                    <span>Fully confident stable</span>
+                    <span class="bet2-scale-mid">Not sure</span>
+                    <span>Fully confident growing</span>
+                  </div>
+                </div>
               </div>
-              <div class="alloc-labels" id="alloc-labels"></div>
             </div>
             <div class="bet-earn" id="bet-earn"></div>
           </div>
@@ -461,9 +504,9 @@
 
 </main>
 
-<script src="simulation.js?v=18"></script>
+<script src="simulation.js?v=19"></script>
 
-<script src="game.js?v=14"></script>
+<script src="game.js?v=15"></script>
 
 </body>
 </html>

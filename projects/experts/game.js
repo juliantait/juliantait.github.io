@@ -51,8 +51,17 @@
   var round = null;          // { sigma, n, isExpert, states, trueIdx, trueBeta, baseline, x, y, betaHat, se, posterior }
   var revealed = false;      // false on the bet screen, true on the results screen
   var beliefs = [];          // belief-bar heights (independent; init at the prior)
-  var cuts = [];             // K−1 allocation cut positions in [0,1] (init at the prior)
   var betaGuess = 0;         // vertical slider value in [BETA_LO, BETA_HI]
+
+  // ---- TWO-STEP BET (mirrors the live elicitation) ----
+  // The recorded bet is POINTS ON GROWING, 0–100 (unchanged in meaning). It is
+  // set in two steps: a Stable/Growing direction, then a slider clamped to the
+  // chosen half. Both start UNSET each round — there is no pre-filled value, so
+  // an untouched submission records nothing (Submit nudges instead).
+  var BLOCK = 50;            // the physical centre / block point; 50 on both halves
+  var betDir = null;         // null | 'STABLE' | 'GROWING'
+  var betPts = null;         // null | integer 0–100 (points on Growing)
+  var bet2ToastT = null;
 
   // ---- in-memory session accumulators (reset on page reload) ----
   var sess = { rounds: 0, won: 0, betHits: 0 };
@@ -138,20 +147,17 @@
   }
 
   // ---- renderers ----
-  // The bet is K stakes; the draggable state is the K−1 cut positions between them.
-  function alloc(){
-    var out = [], prev = 0;
-    for (var i = 0; i < cuts.length; i++){ out.push(cuts[i] - prev); prev = cuts[i]; }
-    out.push(1 - prev);
-    return out;
-  }
+  // STABLE is the lowest-β candidate (flat / least-growing, index 0 after the
+  // ascending sort); GROWING is everything above it. In the pilot's two-state
+  // world these are exactly {flat, +β}. The posterior mass on the growing side is
+  // 1 − P(stable), so the bet's "optimal points on Growing" is 100·pGrowing().
+  function pGrowing(){ return 1 - round.posterior[0]; }
 
-  // Build the per-round widgets: one belief bar, one bet segment and one label per
-  // candidate slope, plus K−1 drag handles. Rebuilt each round, so the drag
-  // handlers are re-wired onto the fresh elements.
+  // Build the per-round belief bars (one per candidate slope). The bet widget
+  // itself is static markup, reset — not rebuilt — each round by bet2Reset().
   function buildBetUI(){
     var b = round.states.betas, K = b.length, i;
-    var bars = '', segs = '', handles = '', labels = '';
+    var bars = '';
     for (i = 0; i < K; i++){
       var cls = segClass(b[i], i, K);
       bars += '<div class="bbar" data-i="' + i + '">' +
@@ -160,16 +166,74 @@
                   '<div class="bbar-opt"><span></span></div></div>' +
                 '<div class="bbar-lab">' + fmtSigned(b[i]) + '</div>' +
               '</div>';
-      segs   += '<div class="alloc-seg ' + cls + '"></div>';
-      labels += '<span>β=' + fmtSigned(b[i]) + '</span>';
     }
-    for (i = 0; i < K - 1; i++) handles += '<div class="alloc-handle" data-h="' + i + '"></div>';
     gid('belief-bars').innerHTML = bars;
-    gid('alloc-bar').innerHTML = '<div class="alloc-track">' + segs + '</div>' + handles;
-    gid('alloc-optbar').innerHTML = segs;
-    gid('alloc-labels').innerHTML = labels;
     setupBeliefDrag();
-    setupAllocDrag();
+    bet2Reset();
+  }
+
+  // ---- two-step bet: helpers --------------------------------------------------
+  function bet2Toast(msg){
+    var t = gid('bet2-toast');
+    t.innerHTML = msg; t.hidden = false;
+    clearTimeout(bet2ToastT);
+    bet2ToastT = setTimeout(function(){ t.hidden = true; }, 2600);
+  }
+  function bet2Readout(){
+    gid('bet2-pts-growing').textContent = (betPts == null) ? '—' : betPts;
+    gid('bet2-pts-stable').textContent  = (betPts == null) ? '—' : (100 - betPts);
+  }
+  // Reset to the fully-unset first-view state: no direction, no bet, slider parked
+  // at the block point with a hidden thumb, both readouts em-dashes, gate greyed
+  // and the shield armed so a slider-first touch gets the nudge.
+  function bet2Reset(){
+    betDir = null; betPts = null;
+    var radios = document.querySelectorAll('#bet2-seg input');
+    for (var k = 0; k < radios.length; k++) radios[k].checked = false;
+    var s = gid('bet2-slider');
+    s.value = BLOCK; s.classList.add('is-unset');
+    gid('bet2-step2-text').textContent = 'How confident are you?';
+    gid('bet2-track-bg').className = 'bet2-track-bg dir-none';
+    gid('bet2-gate').classList.add('locked');
+    gid('bet2-shield').hidden = false;
+    gid('bet2-toast').hidden = true;
+    bet2Readout();
+  }
+  // Choosing a direction opens the gate and clamps the slider to that half. It
+  // CLEARS any prior bet (never mirrors the old value across the centre), exactly
+  // as the live widget does.
+  function bet2SetDirection(dir){
+    if (revealed) return;
+    betDir = dir; betPts = null;
+    var s = gid('bet2-slider');
+    s.value = BLOCK; s.classList.add('is-unset');
+    gid('bet2-step2-text').textContent =
+      'How confident are you that it is ' + (dir === 'GROWING' ? 'growing' : 'stable') + '?';
+    gid('bet2-track-bg').className =
+      'bet2-track-bg ' + (dir === 'GROWING' ? 'dir-growing' : 'dir-stable');
+    gid('bet2-gate').classList.remove('locked');
+    gid('bet2-shield').hidden = true;
+    bet2Readout();
+  }
+  // The slider moved: clamp to the chosen half (block reachable from both) and
+  // record it. Any move reveals the thumb and sets the bet.
+  function bet2OnInput(){
+    if (revealed || !betDir) return;
+    var v = parseInt(gid('bet2-slider').value, 10);
+    if (betDir === 'GROWING') v = Math.max(BLOCK, v);
+    else                      v = Math.min(BLOCK, v);
+    betPts = v;
+    var s = gid('bet2-slider');
+    s.value = v; s.classList.remove('is-unset');
+    bet2Readout();
+  }
+  // On reveal: an orange marker at the optimal points-on-Growing (100·pGrowing),
+  // positioned to match the thumb-centre travel (track inset 10px each side).
+  function bet2RenderOptimal(){
+    var opt = Math.round(100 * pGrowing());
+    var m = gid('bet2-opt');
+    m.style.left = 'calc(10px + ' + (opt / 100) + ' * (100% - 20px))';
+    m.querySelector('span').textContent = opt + ' opt';
   }
 
   function renderBeliefBars(){
@@ -179,19 +243,6 @@
       bars[k].querySelector('.bbar-fill').style.height = (beliefs[i] / MAXBELIEF * 100) + '%';
       bars[k].querySelector('.bbar-val').textContent = Math.round(beliefs[i]);
     }
-  }
-
-  function renderAlloc(){
-    var a = alloc(), bar = gid('alloc-bar');
-    var segs = bar.querySelectorAll('.alloc-seg'), left = 0, i;
-    for (i = 0; i < segs.length; i++){
-      segs[i].style.left = (left * 100) + '%';
-      segs[i].style.width = (a[i] * 100) + '%';
-      segs[i].textContent = (a[i] >= 0.06) ? eur(a[i]) : '';
-      left += a[i];
-    }
-    var hs = bar.querySelectorAll('.alloc-handle');
-    for (i = 0; i < hs.length; i++) hs[i].style.left = (cuts[i] * 100) + '%';
   }
 
   function renderBeta(){
@@ -342,27 +393,6 @@
     }
   }
 
-  function setupAllocDrag(){
-    var bar = gid('alloc-bar');
-    var hs = bar.querySelectorAll('.alloc-handle');
-    for (var k = 0; k < hs.length; k++){
-      (function(hEl){
-        var which = +hEl.dataset.h;
-        hEl.addEventListener('pointerdown', startDrag(hEl, function(e){
-          var rct = bar.getBoundingClientRect();
-          var p = (e.clientX - rct.left) / rct.width;
-          p = Math.max(0, Math.min(1, p));
-          cuts[which] = p;
-          // Handles PUSH each other: drag one into its neighbour and keep going and
-          // the neighbour is shoved along, so you can sweep them all to either end.
-          for (var j = which + 1; j < cuts.length; j++) if (cuts[j] < p) cuts[j] = p;
-          for (var i = which - 1; i >= 0; i--)          if (cuts[i] > p) cuts[i] = p;
-          renderAlloc();
-        }));
-      })(hs[k]);
-    }
-  }
-
   function setupBetaDrag(){
     var track = gid('beta-track');
     var span = BETA_HI - BETA_LO;
@@ -375,18 +405,20 @@
     }));
   }
 
-  // ---- scoring: paired-uniform (binarized quadratic) scoring rule ----
-  // Stakes a = (a₋, a₀, a₊) sum to 1; e is the indicator of the realised state.
-  // Quadratic loss ℓ = Σ(aₖ − eₖ)² ∈ [0,2]; win-probability w = 1 − ℓ/2 ∈ [0,1].
-  // A single Uniform(0,1) draw U binarizes it: pay €1 iff U < w, else €0. Expected
-  // payoff = w euros, maximised (truthfully) at a = posterior — a strictly proper rule.
-  function winProbOf(a, eIdx){
-    var loss = 0;
-    for (var k = 0; k < a.length; k++){
-      var e = (k === eIdx) ? 1 : 0;
-      loss += (a[k] - e) * (a[k] - e);
-    }
-    return 1 - loss / 2;
+  // ---- scoring: binarised quadratic (paired-uniform) on the TWO-STEP bet ----
+  // With m = (points on the ACTUAL type)/100, the win probability is 1 − (1−m)²
+  // (main/scoring.py's binarised_win_prob, and the widget's info panel). One
+  // Uniform(0,1) draw binarises it: pay €1 iff U < w, else €0. Expected payoff = w,
+  // maximised truthfully at bet = 100·P(Growing) — a strictly proper rule. For the
+  // two-state pilot this is identical to the old K=2 quadratic-loss rule.
+  function winProbFor(bet, trueGrow){
+    var m = (trueGrow ? bet : (100 - bet)) / 100;   // share on the type that occurred
+    return 1 - (1 - m) * (1 - m);
+  }
+  // Expected win probability of a bet under the posterior (P(Growing) = pGrowing()).
+  function expWinFor(bet){
+    var pg = pGrowing();
+    return pg * winProbFor(bet, true) + (1 - pg) * winProbFor(bet, false);
   }
 
   // largest-remainder (Hamilton) rounding → integer % summing to EXACTLY 100
@@ -420,16 +452,6 @@
       opt.querySelector('span').textContent = Math.round(round.posterior[i] * 100) + '%';
     }
   }
-  function renderAllocOptimal(){
-    var p = round.posterior;                    // sums to 1 → fills the optimal bar
-    var segs = gid('alloc-optbar').querySelectorAll('.alloc-seg'), left = 0;
-    for (var i = 0; i < segs.length; i++){
-      segs[i].style.left = (left * 100) + '%';
-      segs[i].style.width = (p[i] * 100) + '%';
-      segs[i].textContent = (p[i] >= 0.07) ? eur(p[i]) : '';
-      left += p[i];
-    }
-  }
   function renderBetaHat(){
     var bh = Math.max(BETA_LO, Math.min(BETA_HI, round.betaHat));   // clamp onto the track
     gid('beta-hat').style.top = ((BETA_HI - bh) / (BETA_HI - BETA_LO) * 100) + '%';
@@ -440,23 +462,24 @@
   // ---- Submit → results screen: same layout, truth revealed in place ----
   function submit(){
     if (revealed || !round) return;
+    // Two-step gate: name the step that is unfinished, like the live widget.
+    if (!betDir){ bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.'); return; }
+    if (betPts == null){ bet2Toast('Now set your bet: move the slider.'); return; }
     revealed = true;
     gid('sec-game').classList.add('revealed');
 
-    var stakes = alloc();
-    var t = round.trueIdx;
-    var p = round.posterior;
+    var trueGrow = round.trueIdx > 0;            // STABLE is the lowest-β candidate
 
-    // realised paired-uniform payout (scored against the state that occurred)
-    var winChance = winProbOf(stakes, t);
+    // realised binarised payout, scored against the side that occurred
+    var winChance = winProbFor(betPts, trueGrow);
     var payout = (Math.random() < winChance) ? 1 : 0;
 
-    // ex-ante expected score under the posterior — maximised by betting a = p
-    var expScore = function(a){ var s = 0; for (var k = 0; k < p.length; k++) s += p[k] * winProbOf(a, k); return s; };
-    var wYou = expScore(stakes), wOpt = expScore(p);
+    // ex-ante expected score under the posterior — maximised at bet = 100·P(Growing)
+    var optPts = Math.round(100 * pGrowing());
+    var wYou = expWinFor(betPts), wOpt = expWinFor(optPts);
 
     renderBeliefOverlay();   // your beliefs (rescaled) + optimal posterior overlay (bottom-left)
-    renderAllocOptimal();    // the "optimal" bet bar under your bet (bottom-right)
+    bet2RenderOptimal();     // orange optimal-points marker on the bet slider
     renderBetaHat();         // β̂ marker on the slider (right of the scatter)
     drawGameScatter();       // β̂ + your-slope lines on the scatter (top-left)
 
@@ -468,10 +491,11 @@
     // ---- accumulate this round into the session (once) ----
     if (!scoredThisRound){
       scoredThisRound = true;
-      var betTopIdx = stakes.indexOf(Math.max.apply(null, stakes));   // largest euro stake
       sess.rounds  += 1;
       sess.won     += payout;
-      sess.betHits += (betTopIdx === t) ? 1 : 0;
+      // bet "hit" = the side you leant toward matches the realised side (50 = no call)
+      var hit = (betPts > 50 && trueGrow) || (betPts < 50 && !trueGrow);
+      sess.betHits += hit ? 1 : 0;
     }
 
     // the Submit button becomes "Next round" in place (realised slope is now on the chart)
@@ -484,14 +508,9 @@
     revealed = false;
     scoredThisRound = false;
     gid('sec-game').classList.remove('revealed');
-    // beliefs and the €1 split both start at the prior (0.75 / 0.25 by default)
+    // beliefs start at the prior (0.75 / 0.25 by default); the two-step bet starts
+    // UNSET — no direction, no points — reset by buildBetUI → bet2Reset().
     beliefs = round.states.priors.map(function(p){ return p * MAXBELIEF; });
-    cuts = [];
-    var acc = 0;
-    for (var k = 0; k < round.states.priors.length - 1; k++){
-      acc += round.states.priors[k];
-      cuts.push(acc);
-    }
     betaGuess = 0;
 
     var rl = gid('game-role');
@@ -500,7 +519,7 @@
 
     gid('game-submit').textContent = 'Submit';   // reset the in-place button label
     buildBetUI();
-    renderBeliefBars(); renderAlloc(); renderBeta(); drawGameScatter();
+    renderBeliefBars(); renderBeta(); drawGameScatter();
   }
 
   // ---- session summary screen ----
@@ -551,15 +570,30 @@
   window.__gameState = function(){
     return {
       round: round ? { trueIdx: round.trueIdx, trueBeta: round.trueBeta, isExpert: round.isExpert, n: round.n } : null,
-      betaGuess: betaGuess, alloc: alloc(), revealed: revealed,
+      betaGuess: betaGuess, bet: { dir: betDir, pts: betPts }, revealed: revealed,
       sess: { rounds: sess.rounds, won: sess.won, betHits: sess.betHits }
     };
   };
 
   // ---- init ----
-  // The belief bars and the allocation bar are rebuilt (and re-wired) each round by
-  // buildBetUI; only the β-guess track is a permanent element.
+  // The belief bars are rebuilt (and re-wired) each round by buildBetUI; the β-guess
+  // track and the two-step bet controls are permanent elements, wired once here.
   setupBetaDrag();
+  // two-step bet: step 1 opens the gate + clamps step 2; the shield turns a
+  // slider-first touch into the nudge instead of silence.
+  document.querySelectorAll('#bet2-seg input').forEach(function(r){
+    r.addEventListener('change', function(){ bet2SetDirection(r.value); });
+  });
+  (function(){
+    var s = gid('bet2-slider');
+    s.addEventListener('input', bet2OnInput);
+    s.addEventListener('keydown', function(e){
+      if (!betDir){ e.preventDefault(); bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.'); }
+    });
+    gid('bet2-shield').addEventListener('pointerdown', function(e){
+      e.preventDefault(); bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.');
+    });
+  })();
   // β-axis labels come from the slider bounds so they cannot drift out of sync
   gid('beta-axis').innerHTML = '<span>' + signed(BETA_HI) + '</span><span>0</span><span>' + signed(BETA_LO) + '</span>';
   // one footer button: Submit on the bet screen, Next round on the results screen

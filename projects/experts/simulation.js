@@ -231,8 +231,44 @@ function timedRecompute(silent) {
   const result = recompute(silent);
   const t1 = performance.now();
   $('sim-timer').textContent = formatDuration(t1 - t0);
+  updateParamSummary();
   return result;
 }
+
+// ITEM 3: the collapsed parameter strip shows the CURRENT settings inline, so the
+// user sees the defaults without expanding. Reads the live control state (the
+// segmented toggles write their hidden inputs / module globals) and reflects it.
+function updateParamSummary() {
+  const el = $('param-summary');
+  if (!el) return;
+  const val = id => ($(id) ? $(id).value.trim() : '');
+  const K = candCount;
+  const betas  = (K === 3 ? ['b1', 'b2', 'b3'] : ['b1', 'b2']).map(val);
+  const priors = (K === 3 ? ['p1', 'p2', 'p3'] : ['p1', 'p2']).map(val);
+  const mode = (typeof agentMode !== 'undefined' && agentMode === 'data') ? 'Observed behaviour' : 'Rational';
+  const xd = (typeof xMode !== 'undefined' && xMode === 'random') ? 'Random x' : 'Fixed x';
+  const yv = (typeof intMode !== 'undefined' && intMode) ? 'Integers' : 'Continuous';
+  el.textContent = [
+    K + ' states',
+    'β ' + betas.join(' / '),
+    'π ' + priors.join(' / '),
+    'σ ' + val('sigma'),
+    'n ' + val('nNov') + ' / ' + val('nExp'),
+    mode, xd, yv
+  ].join('  ·  ');
+}
+
+// Expand / collapse the parameter panel.
+(() => {
+  const panel = $('param-panel'), edit = $('param-edit'), done = $('param-done');
+  if (!panel) return;
+  const setOpen = (open) => {
+    panel.classList.toggle('collapsed', !open);
+    if (edit) edit.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+  if (edit) edit.addEventListener('click', () => setOpen(true));
+  if (done) done.addEventListener('click', () => { setOpen(false); updateParamSummary(); });
+})();
 
 // apply the initial #states to the β₃/π₃ inputs (hidden in the 2-state design)
 $('b3-group').classList.toggle('hidden', candCount !== 3);
@@ -367,20 +403,8 @@ function wireInfoPopover(btnId, popId) {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
 }
 wireInfoPopover('xmode-info-btn', 'xmode-popover');
-// "What the simulated people are matched on" — SHOWN BY DEFAULT (the popover
-// ships without [hidden] and the button with aria-expanded="true"). Unlike the
-// transient info popovers this is a persistent intro panel: only the button
-// collapses it, so a stray click elsewhere on the page does not hide it.
-(() => {
-  const btn = $('basis-info-btn'), pop = $('basis-popover');
-  if (!btn || !pop) return;
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const open = pop.hasAttribute('hidden');
-    if (open) pop.removeAttribute('hidden'); else pop.setAttribute('hidden', '');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-})();
+// "What the simulated people are matched on" is now a fixed, always-visible page
+// section (#sec-basis) — no toggle to wire.
 
 // ITEM 1: per-card "nearest" / "most likely" info popovers (dynamically rendered,
 // so handled by event delegation on the document).
@@ -537,6 +561,47 @@ function statedBetForMember(role, pGrowing, seed) {
   return Math.max(0, Math.min(100, bet));
 }
 
+// OBSERVED per-role error & confidence, for the individual-vs-Bayesian mini-figure.
+// Monte-Carlo over (true state ~ prior, β̂ ~ Normal(trueβ, se), behavioural bet):
+//   error      = P(the bet lands on the wrong side of 50)
+//   confidence = mean share of the 100 points the bet puts on the TRUE side
+// Both use the SAME decision rule (side of 50) and the SAME "weight on the true
+// state" definition as the Bayes benchmark it is paired against (avgErrMap /
+// avgConf), so the two series are directly comparable.
+function observedRoleStats(role, se, sortedBetas, sortedPriors, draws) {
+  draws = draws || 3000;
+  const norm = makeNormal(Math.random);
+  let errSum = 0, confSum = 0;
+  for (let d = 0; d < draws; d++) {
+    let u = Math.random(), acc = 0, ti = sortedBetas.length - 1;
+    for (let k = 0; k < sortedBetas.length; k++) { acc += sortedPriors[k]; if (u < acc) { ti = k; break; } }
+    const trueGrow = sortedBetas[ti] > 1e-9;
+    const betaHat = sortedBetas[ti] + se * norm();
+    const pG = pGrowingOf(betaHat, se, sortedBetas, sortedPriors);
+    const bet = statedBetForMember(role, pG, (Math.random() * 4294967296) >>> 0);
+    if ((bet >= 50) !== trueGrow) errSum += 1;
+    confSum += (trueGrow ? bet : 100 - bet) / 100;
+  }
+  return { err: errSum / draws, conf: confSum / draws };
+}
+
+// Render the paired figure: per role, observed vs Bayes for error and confidence.
+function renderIndividualFigure(statsN, statsE, bayes) {
+  const grid = $('ind-fig-grid');
+  if (!grid) return;
+  const bar = (cls, v) => {
+    const p = Math.round(v * 100);
+    return `<span class="if-bar ${cls}"><span class="if-track"><span class="if-fill" style="width:${p}%"></span></span><span class="if-num">${p}%</span></span>`;
+  };
+  const metric = (lab, obs, bay) =>
+    `<span class="if-metric"><span class="if-mlab">${lab}</span><span class="if-bars">${bar('obs', obs)}${bar('bay', bay)}</span></span>`;
+  const block = (role, cls, s, bErr, bConf) =>
+    `<div class="if-role ${cls}"><span class="if-rlab">${role}</span>${metric('error', s.err, bErr)}${metric('confidence', s.conf, bConf)}</div>`;
+  grid.innerHTML =
+    block('NOVICE', 'role-novice', statsN, bayes.errN, bayes.confN) +
+    block('EXPERT', 'role-expert', statsE, bayes.errE, bayes.confE);
+}
+
 // Show/hide the data-driven-only elements and dim the rational-only analytic
 // panels. Called on mode change and once on load.
 function applyModeUI() {
@@ -596,10 +661,20 @@ function recompute(silent) {
   const avgErrMapN = mapAvgErrorX(sortedBetas, sortedPriors, nN, sigmaAn);
   const avgErrMapE = mapAvgErrorX(sortedBetas, sortedPriors, nE, sigmaAn);
 
+  // TOP STRIP: headline avg error + confidence, one line per role. (The MAP /
+  // Bayes-optimal column moved out of the strip; avgErrMap* still feed the log.)
   $('head-nov').textContent = pct(avgErrN);
   $('head-exp').textContent = pct(avgErrE);
-  $('head-nov-map').textContent = pct(avgErrMapN);
-  $('head-exp-map').textContent = pct(avgErrMapE);
+  $('head-nov-conf').textContent = pct(avgConfN);
+  $('head-exp-conf').textContent = pct(avgConfE);
+
+  // Paired individual-vs-Bayesian mini-figure: observed (waves 1+2) error &
+  // confidence per role, beside the Bayes benchmark (MAP error / posterior conf).
+  const obsN = observedRoleStats('NOVICE', seN, sortedBetas, sortedPriors);
+  const obsE = observedRoleStats('EXPERT', seE, sortedBetas, sortedPriors);
+  renderIndividualFigure(obsN, obsE, {
+    errN: avgErrMapN, confN: avgConfN, errE: avgErrMapE, confE: avgConfE,
+  });
 
   renderTable(sortedBetas, sortedPriors, rows, avgErrN, avgErrE, avgConfN, avgConfE);
   renderExamples(sortedBetas, sigma, sigmaAn, nE, nN, sortedPriors);
@@ -1108,7 +1183,7 @@ function renderGroupDecisions(state) {
     // HERO — the outcome the ρ slider drives, live and primary.
     const hero = dataMode
       ? `<div class="gcd-hero ${ddRho.correct ? 'ok' : 'miss'}">
-           <div class="gcd-hero-lab">Group outcome <span class="gcd-hero-scheme">${regime}</span></div>
+           <div class="gcd-hero-lab">Observed behaviour <span class="gcd-hero-scheme">${regime}</span></div>
            <div class="gcd-hero-main">
              <span class="gcd-hero-num">${ddRho.v.toFixed(0)}</span><span class="gcd-hero-unit">/100 on Growing</span>
              <span class="gcd-hero-arrow">→</span>
@@ -1118,7 +1193,7 @@ function renderGroupDecisions(state) {
            <div class="gcd-hero-foot">weighted pool of the members' stated confidences · expert weight ${pctv(expWtRho)}</div>
          </div>`
       : `<div class="gcd-hero ${ratRho.correct ? 'ok' : 'miss'}">
-           <div class="gcd-hero-lab">Group outcome <span class="gcd-hero-scheme">${regime}</span></div>
+           <div class="gcd-hero-lab">Rational pool <span class="gcd-hero-scheme">${regime}</span></div>
            <div class="gcd-hero-main">
              <span class="gcd-hero-num">${pctv(ratRho.err)}</span><span class="gcd-hero-unit">expected error</span>
              <span class="gcd-hero-arrow">→</span>
@@ -1375,7 +1450,7 @@ window.addEventListener('resize', () => {
   wireInfoPopover('rho-info-btn', 'rho-popover');
 })();
 
-window.addEventListener('load', () => { applyModeUI(); recompute(); });
+window.addEventListener('load', () => { applyModeUI(); recompute(); updateParamSummary(); });
 
 
 

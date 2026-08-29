@@ -207,54 +207,86 @@
     letter-spacing: 0;
   }
 
-  /* ---- Individual error rates: one compact table (replaces the large per-role
-     tiles). Rows = role, columns = the two decision rules. Kept tight so the
-     quick individual read takes minimal vertical space before the group section. */
-  table.err-summary {
-    border-collapse: collapse;
-    width: auto;                 /* tight, not full width */
+  /* ---- TOP STRIP: one compact line per role — headline avg error + confidence.
+     (Replaces the nearest / Bayes-optimal summary table.) ---- */
+  .err-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
     margin: 0 0 22px;
-    font-size: 13.5px;
   }
-  table.err-summary th,
-  table.err-summary td {
-    padding: 7px 20px;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
+  .err-role {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    box-shadow: var(--shadow);
   }
-  table.err-summary thead th {
+  .err-role .er-role {
     font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    min-width: 58px;
+  }
+  .err-role.role-novice .er-role { color: var(--novice); }
+  .err-role.role-expert .er-role { color: var(--expert); }
+  .err-metric { display: inline-flex; align-items: baseline; gap: 6px; }
+  .err-metric .er-lab {
+    font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: var(--text-muted);
-    border-bottom: 2px solid var(--border);
-    white-space: nowrap;
-  }
-  table.err-summary th:first-child,
-  table.err-summary td:first-child {
-    text-align: left;
-    font-weight: 700;
     letter-spacing: 0.5px;
+    color: var(--text-muted);
   }
-  table.err-summary td.role-novice { color: var(--novice); }
-  table.err-summary td.role-expert { color: var(--expert); }
-  table.err-summary .es-num {
+  .err-strip .es-num {
     font-family: var(--font-mono);
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
     letter-spacing: -0.5px;
   }
-  /* Bayes-optimal is the reference (lower) number: softened so nearest stays
-     primary, the gap being the cost of base-rate neglect. */
-  table.err-summary .es-map { opacity: 0.62; }
-  table.err-summary thead th.pop-host { cursor: default; }
+  .err-strip .es-conf { opacity: 0.82; }   /* confidence sits just behind error */
+  .err-role .er-sep { color: var(--border); font-weight: 700; }
 
-  @media (max-width: 620px) {
-    table.err-summary th,
-    table.err-summary td { padding: 7px 12px; }
-    table.err-summary .es-num { font-size: 18px; }
+  /* ---- Paired individual-vs-Bayesian mini-figure (observed vs Bayes per role).
+     Tight vertically; the length gap between the two bars is the read. ---- */
+  .ind-fig { margin: -10px 0 22px; }
+  .ind-fig-head {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;
   }
+  .ind-fig-head .if-key { padding: 1px 6px; border-radius: 4px; font-weight: 800; }
+  .ind-fig-head .if-key.obs { color: #b45309; background: rgba(217,119,6,0.13); }
+  .ind-fig-head .if-key.bay { color: var(--blue); background: rgba(37,99,235,0.12); }
+  .ind-fig-grid { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+  .if-role {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 7px 18px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--card);
+    box-shadow: var(--shadow); padding: 8px 14px;
+  }
+  .if-rlab { font-size: 11px; font-weight: 800; letter-spacing: 0.6px; min-width: 58px; }
+  .if-role.role-novice .if-rlab { color: var(--novice); }
+  .if-role.role-expert .if-rlab { color: var(--expert); }
+  .if-metric { display: flex; align-items: center; gap: 8px; }
+  .if-mlab {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-muted); min-width: 62px;
+  }
+  .if-bars { display: flex; flex-direction: column; gap: 3px; }
+  .if-bar { display: flex; align-items: center; gap: 6px; }
+  .if-track {
+    position: relative; width: 92px; height: 8px; border-radius: 4px;
+    background: #eef2f7; overflow: hidden;
+  }
+  .if-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; min-width: 2px; }
+  .if-bar.obs .if-fill { background: #d97706; }
+  .if-bar.bay .if-fill { background: var(--blue); }
+  .if-num { font-family: var(--font-mono); font-size: 11px; font-weight: 800; }
+  .if-bar.obs .if-num { color: #b45309; }
+  .if-bar.bay .if-num { color: var(--blue); }
 
   /* ---- Breakdown table block (the sampling-PDF graph that used to sit beside it
      has been removed; the per-state detail table now stands alone, constrained to
@@ -1070,28 +1102,68 @@
    (Placed after the .exp nesting block; CSS vars resolve via the .exp ancestor.)
    ============================================================================ */
 
-/* ---- Top info module: "what the simulated people are matched on" ---- */
-.basis-bar-wrap { margin-bottom: 18px; }
-.basis-bar { position: relative; display: flex; }
-.basis-toggle {
-  display: inline-flex; align-items: center; gap: 10px; width: 100%;
-  font-family: var(--font-sans); font-size: 13.5px; font-weight: 600; color: var(--text);
-  background: linear-gradient(180deg,#eef4ff,#f8fbff);
-  border: 1px solid #cfe0f5; border-left: 4px solid var(--blue);
-  border-radius: 10px; padding: 12px 16px; cursor: pointer; text-align: left;
-  transition: border-color .15s, background .15s;
+/* ---- "What the simulated people are matched on": a fixed, always-visible page
+   section (no popover/toggle). Styled like the other page sections; the card
+   carries a blue left rule to keep it reading as the orienting note it is. ---- */
+.exp .basis-card { border-left: 4px solid var(--blue); }
+.exp .basis-card .basis-list {
+  margin: 2px 0 0; padding-left: 18px; list-style: disc;
+  font-size: 13.5px; line-height: 1.5; color: var(--text);
 }
-.basis-toggle:hover, .basis-toggle[aria-expanded="true"] {
-  border-color: var(--blue); background: linear-gradient(180deg,#e6efff,#f2f8ff);
+.exp .basis-card .basis-list li { margin: 0 0 5px; }
+.exp .basis-card .basis-list li:last-child { margin-bottom: 0; }
+.exp .basis-card .basis-list li b { color: var(--text); }
+
+/* ---- Parameter panel: collapsed by default (compact summary strip + Edit),
+   expands to the full control layout. ---- */
+.exp .param-panel { margin-bottom: 18px; }
+.exp .param-collapsed {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: var(--shadow); padding: 11px 14px;
 }
-.basis-toggle-i { font-size: 16px; color: var(--blue); line-height: 1; }
-.basis-toggle-hint {
-  margin-left: auto; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.5px; color: var(--blue); background: rgba(37,99,235,0.1);
-  padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+.exp .param-summary {
+  flex: 1 1 auto; min-width: 0;
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; color: var(--text);
+  overflow-wrap: anywhere;
 }
-.exp .basis-bar .info-popover.basis-pop { width: 460px; max-width: 92vw; top: calc(100% + 8px); left: 0; }
-@media (max-width: 560px) { .basis-toggle-hint { display: none; } }
+.exp .param-edit-btn {
+  flex: 0 0 auto; cursor: pointer;
+  font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+  color: var(--blue); background: rgba(37,99,235,0.08);
+  border: 1px solid rgba(37,99,235,0.35); border-radius: 8px; padding: 7px 18px;
+  transition: background .15s, border-color .15s;
+}
+.exp .param-edit-btn:hover { background: rgba(37,99,235,0.14); border-color: var(--blue); }
+.exp .param-expanded { display: block; }
+.exp .param-panel.collapsed .param-expanded { display: none; }
+.exp .param-panel:not(.collapsed) .param-collapsed { display: none; }
+.exp .param-foot { display: flex; justify-content: flex-end; margin-top: 4px; }
+.exp .param-done-btn {
+  cursor: pointer; font-family: var(--font-sans); font-size: 12.5px; font-weight: 700;
+  color: #fff; background: var(--blue); border: 0; border-radius: 8px; padding: 8px 22px;
+}
+.exp .param-done-btn:hover { background: #1d4ed8; }
+
+/* ---- Narrow viewports (phones, ~375px): stack the top strip and the collapsed
+   parameter strip so nothing overflows the width. ---- */
+@media (max-width: 480px) {
+  .exp .err-strip { flex-direction: column; gap: 8px; }
+  .exp .err-role { width: 100%; }
+  .exp .ind-fig-grid { flex-direction: column; gap: 8px; }
+  .exp .if-role { width: 100%; }
+  .exp .if-track { width: 84px; }
+  .exp .param-collapsed { align-items: stretch; }
+  .exp .param-summary { flex-basis: 100%; font-size: 12px; }
+  .exp .param-edit-btn { width: 100%; }
+  .exp .param-done-btn { width: 100%; }
+  .exp .basis-card .basis-list { font-size: 13px; }
+  /* expanded controls: full-width stacked groups, Go spans the row */
+  .exp .param-expanded .card { padding: 14px; }
+  .exp .param-expanded .form-row { gap: 14px; }
+  .exp .param-expanded .control-group { width: 100%; }
+  .exp .param-expanded .go-group { flex-basis: 100%; margin-left: 0; }
+}
 
 /* ---- Group decision: ρ-driven hero outcome + rational benchmark ---- */
 .gcd-primary { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; align-items: stretch; }
