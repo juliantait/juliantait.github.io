@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=15">
+<link rel="stylesheet" href="simulation.css?v=16">
 <link rel="stylesheet" href="game.css?v=11">
 </head>
 <body>
@@ -59,12 +59,35 @@
       </button>
       <div class="info-popover basis-pop" id="basis-popover" hidden>
         <p class="basis-title"><b>What the simulated people are matched on</b></p>
-        <p><b>Matched on the mapping, not the transcript.</b> Each simulated member computes the <b>exact Bayesian posterior</b> from its own simulated sample of noisy points. Its <i>stated</i> view is then generated from the behaviour measured in the pilot — a <b>reaction slope</b> of bet on posterior estimated per role, <b>residual scatter</b> around that line, a <b>base-rate shift</b> that over-places on Growing when the state is Stable, and occasional <b>exact answers of 0, 50, or 100</b>. So a member is matched on the <b>posterior-to-bet mapping</b> estimated from the collected data, <b>not</b> on replaying specific pilot rounds.</p>
-        <p><b>The world.</b> Islands produce coconuts. The true state is either Stable (0 extra per century) or Growing (2 or 3 more per century, set by the growth toggle). The prior is 75 / 25 Stable to Growing, noise is Gaussian, and coconut counts are integers — exactly the parameterisation of the live pilot experiment.</p>
-        <p><b>Rational mode.</b> Every member reports that exact posterior, so differences between roles are purely a matter of sample size.</p>
-        <p><b>Data-driven mode</b> (the default). Members still compute the same posterior, but state a bet from the wave-1 reaction model: novices overreact to the signal (reaction slope about 1.3 versus the truthful 1.0), experts compress toward an even split (about 0.4), and both put roughly 20 points too much on Growing when the state is Stable.</p>
-        <p><b>Groups.</b> The group panels pool these stated views, so group outcomes are an extrapolation from individually measured behaviour; real group discussion was not part of the pilot.</p>
-        <p class="xmode-current">Parameters currently come from the <b>first wave</b> (August 2026, 10 completers, 24 rounds each) and will be re-estimated as data accumulates.</p>
+        <ul class="basis-list">
+          <li><b>Matched on:</b> posterior-to-bet mapping from the pilot</li>
+          <li><b>Not replayed:</b> actual pilot rounds &mdash; draws are fresh</li>
+          <li><b>Sample:</b> waves 1+2, 126 completers, 24 rounds each</li>
+        </ul>
+        <p class="basis-sub">Each member</p>
+        <ul class="basis-list">
+          <li>Exact Bayesian posterior from own noisy points</li>
+          <li>Bet from the fitted reaction line, not the transcript</li>
+        </ul>
+        <p class="basis-sub">The world</p>
+        <ul class="basis-list">
+          <li>Islands &rarr; coconuts; state Stable or Growing</li>
+          <li>Growing = +2 or +3 per century (growth toggle)</li>
+          <li>Prior 75 / 25 Stable : Growing; Gaussian noise; integer counts</li>
+        </ul>
+        <p class="basis-sub">Per role, from data</p>
+        <ul class="basis-list">
+          <li>Reaction slope: 1.07 novice, 0.58 expert</li>
+          <li>Residual noise; base-rate shift (over-places on Growing when Stable)</li>
+          <li>Corner answers: exact 0 / 50 / 100</li>
+        </ul>
+        <p class="basis-sub">Modes</p>
+        <ul class="basis-list">
+          <li><b>Rational:</b> every member reports the exact posterior</li>
+          <li><b>Data-driven</b> (default): posterior computed, bet stated from the model</li>
+          <li><b>Groups:</b> pool stated views &mdash; extrapolation, no real discussion in pilot</li>
+        </ul>
+        <p class="xmode-current">Waves 1+2 &middot; 126 completers &middot; Aug 2026 &middot; re-estimated as data arrives</p>
       </div>
     </div>
   </section>
@@ -150,7 +173,7 @@
 
             <!-- Group: agent behaviour. Rational = the current truthful-Bayesian
                  engine (unchanged). Data driven = each member still computes its
-                 posterior but STATES a bet from the wave-1 empirical reaction model.
+                 posterior but STATES a bet from the waves-1+2 empirical reaction model.
                  Corner lumps add the empirical 0/50/100 point-masses. -->
             <div class="control-group">
               <div class="cg-title">
@@ -161,7 +184,7 @@
                   <label>behaviour</label>
                   <div class="seg seg-mode" id="seg-agentmode">
                     <button data-mode="rational">Rational (Bayesian)</button>
-                    <button class="active" data-mode="data">Data driven (wave 1)</button>
+                    <button class="active" data-mode="data">Data driven (waves 1+2)</button>
                   </div>
                 </div>
                 <div class="input-group dd-only" hidden>
@@ -227,7 +250,7 @@
         </div>
 
         <!-- 2. Headline (two rules per role: nearest vs Bayes-optimal MAP) -->
-        <p class="mode-note dd-only" hidden>Rational-Bayesian benchmark &mdash; data-driven agents compute these internally but <b>act</b> via the wave-1 behavioural model (see the group section below).</p>
+        <p class="mode-note dd-only" hidden>Rational-Bayesian benchmark &mdash; data-driven agents compute these internally but <b>act</b> via the waves-1+2 behavioural model (see the group section below).</p>
         <div class="headline rational-only">
           <div class="head-cell novice">
             <div class="head-role">NOVICE &middot; avg error</div>
@@ -275,7 +298,7 @@
 
         <!-- Breakdown table -->
         <div class="card rational-only">
-          <p class="mode-note dd-only" hidden style="margin:0 0 10px">Rational-Bayesian benchmark &mdash; error and confidence for the ideal estimator, not the wave-1 stated bets.</p>
+          <p class="mode-note dd-only" hidden style="margin:0 0 10px">Rational-Bayesian benchmark &mdash; error and confidence for the ideal estimator, not the waves-1+2 stated bets.</p>
           <div class="bd-legend">
             <span class="pop-host">Each cell: <span class="tag">err</span> (top) / <span class="tag">conf</span> (bottom)<button type="button" class="info-btn mini-info" aria-label="What do the table cells show?" aria-expanded="false">i</button>
               <div class="info-popover pick-pop" hidden>Each cell stacks two different quantities, being right vs feeling right. <b>err</b> (top) = mistake rate, how often the member is wrong. <b>conf</b> (bottom) = average confidence in the correct state, how sure the member is. The two rows are <span class="role-novice">NOVICE</span> and <span class="role-expert">EXPERT</span>. The table and its <b>AVERAGE</b> column use the nearest-candidate rule, so the AVERAGE matches the headline <b>nearest</b> value.</div>
@@ -298,7 +321,7 @@
         <section class="page-section">
           <h2 class="section-title">Simulated group dynamics</h2>
           <p class="sim-lead"><b>Bottom half — groups.</b> The same simulation, played out for a handful of true slopes. Each panel draws one fresh group — <b>1 EXPERT</b> (<i class="mvar">n</i>=30) plus <b>NOVICES</b> (<i class="mvar">n</i>=3), group size set below — and shows the <b>group decision</b> that results from pooling their estimates. Press <b>Go</b> above for a new realisation.</p>
-          <p class="dd-caveat dd-only" hidden>Parameters from <b>wave 1</b>, n = 10 completers, estimated at the <b>same 0.75 / 0.25 prior</b> the site runs — individual play only, so group dynamics here are an <b>extrapolation</b> from the individual reaction model.</p>
+          <p class="dd-caveat dd-only" hidden>Parameters: <b>waves 1+2</b>, n = 126 completers. <b>Same 0.75 / 0.25 prior</b> as the site. Individual play only &mdash; group dynamics an <b>extrapolation</b> from the individual reaction model.</p>
 
         <!-- Examples (group rows, fully dynamic) -->
         <div class="card">
@@ -479,7 +502,7 @@
 
 </main>
 
-<script src="simulation.js?v=15"></script>
+<script src="simulation.js?v=16"></script>
 
 <script src="game.js?v=14"></script>
 

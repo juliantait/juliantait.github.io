@@ -1001,6 +1001,19 @@
   .info-popover p { margin: 0 0 8px; }
   .info-popover p:last-child { margin-bottom: 0; }
   .info-popover b { color: var(--text); font-weight: 700; }
+  /* Telegraphic, slide-style info module: bold sub-heads + tight bullet lists. */
+  .info-popover .basis-sub {
+    margin: 0 0 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+  }
+  .info-popover .basis-list { margin: 0 0 9px; padding-left: 16px; }
+  .info-popover .basis-list li { margin: 0 0 3px; line-height: 1.4; }
+  .info-popover .basis-list li:last-child { margin-bottom: 0; }
+  .info-popover .basis-list li b { color: var(--text); }
   .info-popover .xmode-current {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -1027,7 +1040,7 @@
 #sec-stimuli .size-note { font-size: 12px; color: var(--text-muted); }
 #sec-stimuli .size-note b { color: var(--text); font-family: var(--font-mono); }
 
-  /* ============ Data-driven (wave 1) mode ============ */
+  /* ============ Data-driven (waves 1+2) mode ============ */
   /* Agent-behaviour toggle: wider labels than the numeric segs, so let it fill
      the stacked control column and shrink the type a touch. */
   .seg.seg-mode { width: 100%; }
@@ -1069,7 +1082,7 @@
   .dd-lean { font-size: 11.5px; color: var(--text-muted); }
   .dd-lean b { color: var(--text); }
 
-  /* wave-1 stated-pool line inside the group-decision tiles */
+  /* waves-1+2 stated-pool line inside the group-decision tiles */
   .gt-dd {
     margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border);
     font-size: 11.5px; color: var(--text); line-height: 1.5;

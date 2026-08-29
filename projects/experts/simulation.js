@@ -323,7 +323,7 @@ wireSizeSeg('seg-nnov', 'nNov');
 wireSizeSeg('seg-nexp', 'nExp');
 
 // Agent-behaviour toggle: 'rational' (the unchanged truthful-Bayesian engine)
-// vs 'data' (members state a bet from the wave-1 empirical reaction model).
+// vs 'data' (members state a bet from the waves-1+2 empirical reaction model).
 document.querySelectorAll('#seg-agentmode button').forEach(b => {
   b.addEventListener('click', () => {
     if (agentMode === b.dataset.mode) return;
@@ -462,10 +462,11 @@ function validate() {
   return { errs, betas, sigma, nN, nE };
 }
 
-// ============ Data-driven (wave 1) behavioural model ============
-// Copied verbatim from _ai_build/empirical_params_wave1.json (wave-1 completers,
-// 10 participants × 24 rounds). Inlined rather than fetched so the page needs no
-// server round-trip and no _ai_build deploy. The generative rule (json README §4):
+// ============ Data-driven (waves 1+2) behavioural model ============
+// Copied verbatim from _ai_build/empirical_params_wave12.json (waves 1+2
+// completers, 126 participants × 24 rounds; 2026-08-29). Inlined rather than
+// fetched so the page needs no server round-trip and no _ai_build deploy. The
+// generative rule (json README §4):
 //   bet = intercept + slope·(100·posterior_Growing) + Normal(0, residual_sd),
 //   then clamp to [0,100].
 // pooled-OLS reaction line per role; corner probabilities are the observed mass
@@ -476,20 +477,20 @@ function validate() {
 // is an ALTERNATIVE way to inject the bias for a site that draws bets straight from
 // 100·posterior. Our reaction line is fit on bet ~ 100·posterior over ALL rounds,
 // so its intercept already absorbs that over-placement (on a Stable draw the low
-// posterior maps to intercept + slope·low ≈ posterior + ~17/23 pts). Adding the
+// posterior maps to intercept + slope·low ≈ posterior + ~14/17 pts). Adding the
 // shift on top would double-count it, exactly the trap the brief warns against.
 const WAVE1_PARAMS = {
-  wave: 'prolific_wave1_2026-08-23',
-  n_completers: 10,
+  wave: 'prolific_wave1+2_2026-08-29',
+  n_completers: 126,
   roles: {
-    NOVICE: { slope: 1.3151, intercept: 10.7137, residualSd: 24.847,
-              corner0: 0.0333, corner50: 0.0167, corner100: 0.0333 },
-    EXPERT: { slope: 0.3967, intercept: 30.9778, residualSd: 21.396,
-              corner0: 0,      corner50: 0.0250, corner100: 0.0083 },
+    NOVICE: { slope: 1.0739, intercept: 12.5274, residualSd: 25.585,
+              corner0: 0.1225, corner50: 0.0473, corner100: 0.0578 },
+    EXPERT: { slope: 0.5829, intercept: 23.2812, residualSd: 26.163,
+              corner0: 0.1151, corner50: 0.0134, corner100: 0.0508 },
   },
 };
 
-// 'rational' = current unchanged engine; 'data' = wave-1 stated bets.
+// 'rational' = current unchanged engine; 'data' = waves-1+2 stated bets.
 let agentMode = (() => {
   const act = document.querySelector('#seg-agentmode button.active');
   return act ? act.dataset.mode : 'rational';
@@ -506,7 +507,7 @@ function pGrowingOf(betaHat, se, sortedBetas, priors) {
   return p;
 }
 
-// One member's STATED bet (points on Growing, 0–100) under the wave-1 model.
+// One member's STATED bet (points on Growing, 0–100) under the waves-1+2 model.
 // Deterministic in `seed` so it is stable across ρ drags and view switches (the
 // draw only changes on a Go press). Corner lumps, when on, replace the reaction
 // draw with an exact 0/50/100 at the empirical probabilities.
@@ -1057,7 +1058,7 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
         simulateMember(rowIdx, j + 1, trueBeta, nNovice, sigma, cardBaseSeed)
       ));
     }
-    // Data-driven stated bets: each member's posterior → P(Growing) → wave-1
+    // Data-driven stated bets: each member's posterior → P(Growing) → waves-1+2
     // reaction line + noise (+ corner lumps). Attached here so the ρ slider and
     // view switches re-pool the SAME draw without resampling. seObs uses sigmaAn
     // (the analysis σ), matching every other posterior on the page.
@@ -1138,7 +1139,7 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
                 </div>
                 ${agentMode === 'data' ? `
                 <div class="dd-stated">
-                  <div class="dd-stated-head">wave-1 stated bet <span class="dd-sub">— ${m.role === 'EXPERT' ? 'compresses' : 'overreacts'}</span></div>
+                  <div class="dd-stated-head">waves 1+2 stated bet <span class="dd-sub">— ${m.role === 'EXPERT' ? 'compresses' : 'overreacts'}</span></div>
                   <div class="dd-stated-body">
                     <span class="dd-bet ${m.statedBet >= 50 ? 'growing' : 'stable'}">${Math.round(m.statedBet)}<span class="dd-bet-u">/100 on Growing</span></span>
                     <span class="dd-lean">P(Growing)=${(m.pGrowing * 100).toFixed(0)}% → <b>${m.statedBet >= 50 ? 'Growing' : 'Stable'}</b></span>
