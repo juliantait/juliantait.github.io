@@ -450,8 +450,25 @@
     min-width: 0;
   }
 
+  /* PHONE: member cards become a horizontal swipe row (scroll-snap carousel)
+     instead of stacking — swipe left/right through the members, next card peeks. */
   @media (max-width: 560px) {
-    .example-row { grid-template-columns: 1fr; }
+    .example-row {
+      display: flex;
+      grid-template-columns: none;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 12px;
+      padding-bottom: 8px;
+      scroll-padding: 0 4px;
+      scrollbar-width: thin;
+    }
+    .example-row > .example-card {
+      flex: 0 0 84%;
+      min-width: 0;
+      scroll-snap-align: center;
+    }
   }
 
   .monotonicity-box {
@@ -681,6 +698,41 @@
   .pick-line .val.pick-nearest { color: var(--text); }
   /* "most likely" matches the highlighted (blue) posterior bar. */
   .pick-line .val.pick-likely { color: var(--blue); font-weight: 800; }
+
+  /* ---- CONDENSED member card (point-first) ---- */
+  /* stated bet, up front: "38/100 on Growing → Stable" */
+  .ex-bet {
+    display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+    padding: 6px 8px; border-radius: 7px;
+    background: #f6f8fc; border: 1px solid var(--border);
+  }
+  .ex-bet.growing { border-left: 3px solid var(--expert); }
+  .ex-bet.stable  { border-left: 3px solid var(--novice); }
+  .ex-bet-num { font-family: var(--font-mono); font-weight: 800; font-size: 15px; color: var(--text); }
+  .ex-bet-u   { font-family: var(--font-mono); font-weight: 500; font-size: 10.5px; color: var(--text-muted); margin-left: 2px; }
+  .ex-bet-arrow { color: var(--text-muted); font-weight: 700; }
+  .ex-bet-pick { font-weight: 800; font-size: 13px; }
+  .ex-bet.growing .ex-bet-pick { color: var(--expert); }
+  .ex-bet.stable  .ex-bet-pick { color: var(--novice); }
+  /* one compact stats line: β̂ · SE · P(Growing), no label-colon wall */
+  .ex-facts {
+    display: flex; flex-wrap: wrap; gap: 4px 12px;
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted);
+  }
+  .ex-fact { white-space: nowrap; }
+  .ex-fact .mvar { color: var(--text); font-style: italic; }
+  /* conditional one-line pick marker (only when a pick differs from the bet) */
+  .ex-pick {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin-top: 2px; padding-top: 6px; border-top: 1px dashed var(--border);
+    font-size: 11px; color: var(--text-muted);
+  }
+  .ex-pick-mark {
+    font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--novice);
+  }
+  .ex-pick-detail { font-family: var(--font-mono); }
+  .ex-pick-detail b { color: var(--text); }
 
   .info-btn.mini-info { width: 14px; height: 14px; font-size: 10px; }
   .info-popover.pick-pop {
@@ -1046,6 +1098,27 @@
 }
 #sec-stimuli .size-note { font-size: 12px; color: var(--text-muted); }
 #sec-stimuli .size-note b { color: var(--text); font-family: var(--font-mono); }
+
+/* ---- Weighting control promoted to its own card (same family as the group cards).
+   The card provides the frame, so the inner control drops its own grey panel. ---- */
+#sec-stimuli .weighting-card { padding: 16px 18px; }
+#sec-stimuli .weighting-card .agg-controls {
+  background: transparent; border: none; border-radius: 0; padding: 0; margin: 0;
+}
+#sec-stimuli .weighting-card .size-control { margin: 14px 0 0; }
+
+/* ---- Draw-new-group control: re-rolls only the illustration realisation ---- */
+#sec-stimuli .draw-group-bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+#sec-stimuli .draw-group-btn {
+  padding: 9px 18px; font-size: 13.5px; font-weight: 700; letter-spacing: 0.3px;
+  background: var(--blue); color: #fff; border: none; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+#sec-stimuli .draw-group-btn:hover { background: #1d4ed8; }
+#sec-stimuli .draw-group-btn:active { transform: translateY(1px); }
+#sec-stimuli .draw-group-note { font-size: 11.5px; color: var(--text-muted); }
 
   /* ============ Data-driven (waves 1+2) mode ============ */
   /* Agent-behaviour toggle: wider labels than the numeric segs, so let it fill

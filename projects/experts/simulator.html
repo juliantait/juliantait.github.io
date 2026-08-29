@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
-<link rel="stylesheet" href="simulation.css?v=20">
+<link rel="stylesheet" href="simulation.css?v=21">
 <link rel="stylesheet" href="game.css?v=13">
 </head>
 <body>
@@ -254,26 +254,13 @@
           <p class="sim-lead">A group — <b>1 EXPERT</b> plus <b>NOVICES</b> (size below) — pools its members' stated views into one <b>group decision</b>.</p>
           <p class="dd-caveat dd-only" hidden>Group play <b>extrapolates</b> the individual pilot-data model.</p>
 
-          <!-- AGGREGATE headline (item 4): expectation over many simulated groups at
-               the current settings, recomputed live on parameter / ρ change. The
-               fresh single-group panels below stay as the illustration. -->
-          <div class="group-agg" id="group-agg">
-            <div class="ga-head">Over many groups at these settings, the <b>group decides correctly</b></div>
-            <div class="ga-nums">
-              <div class="ga-stat obs"><span class="ga-v" id="ga-obs">--</span><span class="ga-k">observed behaviour</span></div>
-              <div class="ga-stat bay"><span class="ga-v" id="ga-bay">--</span><span class="ga-k">Bayes-rational</span></div>
-            </div>
-          </div>
-
-        <!-- Examples (group rows, fully dynamic) -->
-        <div class="card">
-          <div class="example-legend">
-            <span>scatter, β̂, SE, picks all regenerate on Go from a fresh base seed per (row, member)</span>
-            <span style="margin-left:auto">each Go press = new MC realisation</span>
-          </div>
-
-          <!-- Behavioural-weighting knob ρ. Governs the "behavioural" tile in the
-               averaged group-decision panel; updates live without resampling. -->
+          <!-- ORDER: the reader sets the weighting (and size) FIRST, because the
+               aggregate expectation below depends on them; then reads the resulting
+               aggregate; then draws a single illustration group. -->
+          <!-- Weighting control in its own card (same card family as the
+               group-decision card). Knob ρ governs the pooled group view AND the
+               aggregate expectation below; updates live without resampling. -->
+          <div class="card weighting-card">
           <div class="agg-controls">
             <div class="ac-top">
               <span class="ac-title">Evidence weighting</span>
@@ -304,7 +291,7 @@
               <span class="ac-val" id="rho-val">ρ = 0.00</span>
               <span class="ac-regime" id="rho-regime">equal weighting (⅓ each)</span>
             </div>
-          </div>
+          </div><!-- /agg-controls -->
 
           <div class="size-control">
             <span class="size-title">Group size</span>
@@ -316,9 +303,31 @@
             </div>
             <span class="size-note">always 1 EXPERT + <b id="size-nov">2</b> <span id="size-nov-word">NOVICES</span> per group</span>
           </div>
+          </div><!-- /weighting-card -->
 
-          <div id="example-groups"></div>
-        </div>
+          <!-- AGGREGATE headline: a STABLE expectation over many simulated groups at
+               the current settings (recomputed only when a pool-affecting setting
+               changes; ρ re-weights the cached pool). Depends on the weighting above. -->
+          <div class="group-agg" id="group-agg">
+            <div class="ga-head">Over many groups at these settings, the <b>group decides correctly</b></div>
+            <div class="ga-nums">
+              <div class="ga-stat obs"><span class="ga-v" id="ga-obs">--</span><span class="ga-k">observed behaviour</span></div>
+              <div class="ga-stat bay"><span class="ga-v" id="ga-bay">--</span><span class="ga-k">Bayes-rational</span></div>
+            </div>
+          </div>
+
+          <!-- Illustration: draw ONE group; the resulting group pick + member cards. -->
+          <div class="card">
+            <div class="draw-group-bar">
+              <button type="button" class="draw-group-btn" id="draw-group">⟳ Draw new group</button>
+              <span class="draw-group-note">re-rolls this illustration only — the aggregate above stays fixed</span>
+            </div>
+            <div id="example-groups"></div>
+            <div class="example-legend">
+              <span>scatter, β̂, SE and picks re-roll on <b>Draw new group</b> (or Go) from a fresh base seed per (row, member)</span>
+              <span style="margin-left:auto">each draw = new MC realisation</span>
+            </div>
+          </div>
 
         </section>
   </section>
@@ -454,7 +463,7 @@
 
 </main>
 
-<script src="simulation.js?v=20"></script>
+<script src="simulation.js?v=21"></script>
 
 <script src="game.js?v=16"></script>
 

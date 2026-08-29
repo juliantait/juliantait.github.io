@@ -220,6 +220,10 @@ let candCount = (() => {
 // Caches so switching nav views can redraw canvases at the now-visible
 // width without resampling (Monte-Carlo data only changes on a Go press).
 let lastExamples = null;
+// The settings the illustration was last built from, so "Draw new group" can
+// re-roll ONLY the single-group realisation (fresh member draws + group pick)
+// without a full recompute and WITHOUT touching the stable aggregate headline.
+let lastExamplesArgs = null;
 
 function formatDuration(ms) {
   if (ms < 1000) return `simulation took: ${ms.toFixed(1)} ms`;
@@ -433,6 +437,16 @@ wireInfoPopover('xmode-info-btn', 'xmode-popover');
 
 $('go').addEventListener('click', () => timedRecompute());
 
+// "Draw new group": re-roll ONLY the single illustration realisation (fresh member
+// draws + the resulting group pick), reusing the last computed settings. The
+// aggregate headline is a stable expectation and is deliberately NOT rebuilt here.
+function drawNewGroup() {
+  if (!lastExamplesArgs) { timedRecompute(); return; }
+  const a = lastExamplesArgs;
+  renderExamples(a.sortedBetas, a.sigma, a.sigmaAn, a.nE, a.nN, a.sortedPriors);
+}
+(() => { const b = $('draw-group'); if (b) b.addEventListener('click', drawNewGroup); })();
+
 // ITEM 4: pressing Enter ANYWHERE on the page presses Go and resimulates.
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter' || e.isComposing) return;
@@ -610,10 +624,34 @@ function renderIndividualFigure(statsN, statsE, bayes) {
 // Bayes-rational truthful bet (100·P(Growing)). The ρ slider re-weights this SAME
 // sample (w ∝ τ^ρ), so the headline responds smoothly to ρ without resampling.
 let aggSample = null;
+let aggSampleKey = null;
+
+// The aggregate headline is a STABLE expectation at the current settings, not a
+// fresh Monte-Carlo realisation. So the pool is drawn from a FIXED seed (so the
+// draw sequence is reproducible) with a large draw count, and rebuilt ONLY when a
+// setting that changes the pool changes — never on a Go press. The ρ slider does
+// not enter the key: it re-weights this SAME cached pool in renderGroupAggregate.
+const AGG_SEED = 0x9e3779b9;  // fixed seed → reproducible pool → no jitter across Go presses
+const AGG_DRAWS = 2000;       // large enough to pin the shown (integer-%) headline; stays responsive
+
+// Everything that changes the pool of drawn groups (NOT ρ, which is re-weighted).
+function aggSettingsKey(seN, seE, sortedBetas, sortedPriors) {
+  return [
+    seN.toFixed(6), seE.toFixed(6), N_NOVICES_PER_GROUP,
+    agentMode, cornerLumps ? 1 : 0,
+    sortedBetas.map(b => b.toFixed(6)).join(','),
+    sortedPriors.map(p => p.toFixed(6)).join(','),
+  ].join('|');
+}
 
 function buildAggSample(seN, seE, sortedBetas, sortedPriors, draws) {
-  draws = draws || 400;
-  const norm = makeNormal(Math.random);
+  draws = draws || AGG_DRAWS;
+  const key = aggSettingsKey(seN, seE, sortedBetas, sortedPriors);
+  // Only rebuild when a pool-affecting setting changed; identical settings reuse
+  // the cached pool, so the headline is byte-for-byte reproducible.
+  if (aggSample && aggSampleKey === key) return;
+  const rng = mulberry32(AGG_SEED);   // single seeded stream drives the whole pool
+  const norm = makeNormal(rng);
   // shared true-slope for the group currently being drawn (set per group below)
   let aggTrueBeta = 0;
   const drawMember = (role, se) => {
@@ -622,13 +660,13 @@ function buildAggSample(seN, seE, sortedBetas, sortedPriors, draws) {
     const pG = pGrowingOf(betaHat, se, sortedBetas, sortedPriors);
     return {
       tau: 1 / (se * se),
-      obs: statedBetForMember(role, pG, (Math.random() * 4294967296) >>> 0),
+      obs: statedBetForMember(role, pG, (rng() * 4294967296) >>> 0),
       bay: 100 * pG,
     };
   };
   const groups = [];
   for (let d = 0; d < draws; d++) {
-    let u = Math.random(), acc = 0, ti = sortedBetas.length - 1;
+    let u = rng(), acc = 0, ti = sortedBetas.length - 1;
     for (let k = 0; k < sortedBetas.length; k++) { acc += sortedPriors[k]; if (u < acc) { ti = k; break; } }
     aggTrueBeta = sortedBetas[ti];
     const trueGrow = aggTrueBeta > 1e-9;
@@ -637,6 +675,7 @@ function buildAggSample(seN, seE, sortedBetas, sortedPriors, draws) {
     groups.push({ trueGrow, members });
   }
   aggSample = groups;
+  aggSampleKey = key;
 }
 
 // Re-pool the cached sample at the current ρ and write the two headline rates.
@@ -729,6 +768,9 @@ function recompute(silent) {
   buildAggSample(seN, seE, sortedBetas, sortedPriors);
   renderGroupAggregate();
 
+  // Cache the illustration inputs so "Draw new group" can re-roll just this
+  // realisation, then draw the first realisation.
+  lastExamplesArgs = { sortedBetas, sigma, sigmaAn, nE, nN, sortedPriors };
   renderExamples(sortedBetas, sigma, sigmaAn, nE, nN, sortedPriors);
 
   if (!silent) {
@@ -1035,6 +1077,15 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
             const seR = sigmaAn / Math.sqrt(ssxR);
             const nearestPick = nearestCandidate(m.betaHat, sortedBetas);
             const mostLikelyPick = posteriorModeCandidate(m.betaHat, seR, sortedBetas, priors);
+            const dataMode = agentMode === 'data';
+            // Which side the member's stated view lands on (its "lean").
+            const leanGrow = dataMode ? (m.statedBet >= 50) : (m.pGrowing >= 0.5);
+            // Surface the pick rules ONLY when they'd tell a different story than the
+            // bet lean: either the two rules split (base-rate neglect), or the
+            // Bayesian pick points against the member's own bet.
+            const pickSplit = Math.abs(nearestPick - mostLikelyPick) > 1e-9;
+            const pickVsLean = (mostLikelyPick > 1e-9) !== leanGrow;
+            const showPick = pickSplit || pickVsLean;
             return `
               <div class="example-card ${m.role.toLowerCase()}">
                 <div class="example-header">
@@ -1043,37 +1094,24 @@ function renderExamples(sortedBetas, sigma, sigmaAn, nExpert, nNovice, priors) {
                 </div>
                 <canvas class="scatter" id="sc-${g.rowIdx}-${j}"></canvas>
                 <canvas class="mini" id="mini-${g.rowIdx}-${j}"></canvas>
-                <div class="example-stats">
-                  <div class="stat-line"><span class="lab">true β</span><span class="val">${fmtSigned(g.trueBeta)}</span></div>
-                  <div class="stat-line"><span class="lab">β̂</span><span class="val">${fmtSigned(m.betaHat)}</span></div>
-                  <div class="stat-line"><span class="lab">baseline</span><span class="val">${m.baseline}</span></div>
-                  <div class="stat-line"><span class="lab">SE</span><span class="val">${seR.toFixed(4)}</span></div>
-                </div>
-                ${agentMode === 'data' ? `
-                <div class="dd-stated">
-                  <div class="dd-stated-head">stated bet · pilot data <span class="dd-sub">— ${m.role === 'EXPERT' ? 'compresses' : 'overreacts'}</span></div>
-                  <div class="dd-stated-body">
-                    <span class="dd-bet ${m.statedBet >= 50 ? 'growing' : 'stable'}">${Math.round(m.statedBet)}<span class="dd-bet-u">/100 on Growing</span></span>
-                    <span class="dd-lean">P(Growing)=${(m.pGrowing * 100).toFixed(0)}% → <b>${m.statedBet >= 50 ? 'Growing' : 'Stable'}</b></span>
-                  </div>
+                ${dataMode ? `
+                <div class="ex-bet ${m.statedBet >= 50 ? 'growing' : 'stable'}">
+                  <span class="ex-bet-num">${Math.round(m.statedBet)}<span class="ex-bet-u">/100 on Growing</span></span>
+                  <span class="ex-bet-arrow">→</span>
+                  <span class="ex-bet-pick">${m.statedBet >= 50 ? 'Growing' : 'Stable'}</span>
                 </div>` : ''}
-                <div class="pick-block">
-                  <div class="pick-head pop-host">
-                    <span class="pick-head-lab">pick rule</span>
-                    <button type="button" class="info-btn mini-info" aria-label="Why do the two pick rules differ?" aria-expanded="false">i</button>
-                    <div class="info-popover pick-pop" hidden>The gap between these two is <b>base-rate neglect</b>. <b>nearest</b> ignores the prior (the base rate over the states); <b>most likely</b> (the Bayesian / posterior mode) uses it. When they disagree, choosing nearest over most likely means neglecting the base rate.</div>
-                  </div>
-                  <div class="pick-line pop-host">
-                    <span class="lab">nearest<button type="button" class="info-btn mini-info" aria-label="What does nearest mean?" aria-expanded="false">i</button></span>
-                    <span class="val pick-nearest">${fmtSigned(nearestPick)}</span>
-                    <div class="info-popover pick-pop" hidden><b>nearest</b> = the candidate closest to the point estimate <i class="mvar">β</i>&#770;. Prior-free; flips at the midpoint between candidates.</div>
-                  </div>
-                  <div class="pick-line pop-host">
-                    <span class="lab">most likely<button type="button" class="info-btn mini-info" aria-label="What does most likely mean?" aria-expanded="false">i</button></span>
-                    <span class="val pick-likely">${fmtSigned(mostLikelyPick)}</span>
-                    <div class="info-popover pick-pop" hidden><b>most likely</b> = highest posterior probability given the data <i>and</i> the prior, P(<i class="mvar">β</i>&nbsp;|&nbsp;data) ∝ prior × likelihood &mdash; the tallest bar above. With an uneven prior it switches further out, so it can differ from <b>nearest</b>.</div>
-                  </div>
+                <div class="ex-facts">
+                  <span class="ex-fact"><i class="mvar">β̂</i> ${fmtSigned(m.betaHat)}</span>
+                  <span class="ex-fact">SE ${seR.toFixed(4)}</span>
+                  <span class="ex-fact">P(Growing) ${(m.pGrowing * 100).toFixed(0)}%</span>
                 </div>
+                ${showPick ? `
+                <div class="ex-pick pop-host">
+                  <span class="ex-pick-mark">pick ≠ bet</span>
+                  <span class="ex-pick-detail">nearest <b>${fmtSigned(nearestPick)}</b> · most-likely <b>${fmtSigned(mostLikelyPick)}</b></span>
+                  <button type="button" class="info-btn mini-info" aria-label="Why the pick differs from the bet" aria-expanded="false">i</button>
+                  <div class="info-popover pick-pop" hidden><b>nearest</b> ignores the prior (the base rate); <b>most likely</b> (the Bayesian posterior mode) uses it. When they split — or point against the member's own bet — that's <b>base-rate neglect</b> showing through.</div>
+                </div>` : ''}
               </div>
             `;
           }).join('')}
