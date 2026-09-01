@@ -50,7 +50,7 @@
       <!-- ============ SECTION 1: Simulation ============ -->
         <section class="page-section">
           <h2 class="section-title">Individual-level simulation</h2>
-          <p class="sim-lead">Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=30 vs <b>NOVICE</b> <i class="mvar">n</i>=3). Tune the parameters below; the group dynamics further down show how individual estimates aggregate into a group decision.</p>
+          <p class="sim-lead">Each member estimates a regression slope <i class="mvar">β</i> from <i class="mvar">n</i> noisy points — more data ⇒ smaller SE ⇒ sharper estimate (<b>EXPERT</b> <i class="mvar">n</i>=20 vs <b>NOVICE</b> <i class="mvar">n</i>=3). Tune the parameters below; the group dynamics further down show how individual estimates aggregate into a group decision.</p>
 
         <!-- 1. Control panel — COLLAPSIBLE (item 3). Collapsed by default: a compact
              strip shows the current defaults inline with an Edit button; expanding
@@ -80,18 +80,18 @@
                   <!-- Growth arm: writes β₂ = (amount gained per 100 years) / 100,
                        i.e. the per-year slope. DISCRETE TOGGLE over exactly the two
                        arms the pilot ran — 2 vs 3 per 100 yrs (β = 0.02 / 0.03),
-                       default 3 (0.03). β₂ stays the source of truth (readonly below). -->
+                       default 2 (0.02). β₂ stays the source of truth (readonly below). -->
                   <div class="input-group">
                     <label>growth &middot; per 100 yrs</label>
                     <div class="seg" id="seg-growth">
-                      <button data-g="2">2</button>
-                      <button class="active" data-g="3">3</button>
+                      <button class="active" data-g="2">2</button>
+                      <button data-g="3">3</button>
                     </div>
                   </div>
                 </div>
                 <div class="beta-grid">
                   <div class="input-group"><label><i class="mvar">&beta;</i><sub>1</sub></label><input id="b1" type="text" value="0"></div>
-                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.03" readonly title="set by the growth toggle (0.02 / 0.03)"></div>
+                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.02" readonly title="set by the growth toggle (0.02 / 0.03)"></div>
                   <div class="input-group" id="b3-group"><label><i class="mvar">&beta;</i><sub>3</sub></label><input id="b3" type="text" value="-0.02"></div>
                   <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.75"></div>
                   <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.25"></div>
@@ -123,10 +123,10 @@
                   <label>n EXPERT</label>
                   <div class="seg" id="seg-nexp">
                     <button data-n="15">15</button>
-                    <button data-n="20">20</button>
-                    <button class="active" data-n="30">30</button>
+                    <button class="active" data-n="20">20</button>
+                    <button data-n="30">30</button>
                   </div>
-                  <input id="nExp" type="hidden" value="30">
+                  <input id="nExp" type="hidden" value="20">
                 </div>
               </div>
             </div>
@@ -348,7 +348,7 @@
         <h2>The betting game</h2>
         <div class="intro-block">
           <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
-          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.03</b> (+3 per 100 units of x), flat <b>3 times in 4</b>, with <i class="mvar">σ</i> = 2.5 and <b>integer</b> y values.</p>
+          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.02</b> (+2 per 100 units of x), flat <b>3 times in 4</b>, with <i class="mvar">σ</i> = 2.5 and <b>integer</b> y values.</p>
           <ul>
             <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
           </ul>
@@ -372,7 +372,7 @@
         <!-- header -->
         <div class="game-go-row">
           <span class="game-title">Place your bet on this island</span>
-          <span class="game-role expert" id="game-role">EXPERT · n=30</span>
+          <span class="game-role expert" id="game-role">EXPERT · n=20</span>
         </div>
 
         <!-- TOP panel: the data — one scatter, full width. The round is BET-ONLY
@@ -463,9 +463,9 @@
 
 </main>
 
-<script src="simulation.js?v=21"></script>
+<script src="simulation.js?v=22"></script>
 
-<script src="game.js?v=16"></script>
+<script src="game.js?v=17"></script>
 
 </body>
 </html>

@@ -1,0 +1,306 @@
+{# THE BET — a TWO-STEP control (2026-08-17). ONE partial, included by all three
+   pages that show it (the task screen, the instructions practice demo and the
+   quiz's hands-on item), so they can never drift.
+
+   STEP 1  a BINARY DIRECTION: two segmented buttons, Stable LEFT and Growing
+           RIGHT, backed by real radio inputs so they work with NO JavaScript.
+           They live INSIDE the elicitation container so the task screen's
+           forced-view lock covers them along with everything else.
+   STEP 2  the 100-point slider, restricted to ONE HALF of the scale by the
+           chosen direction.
+
+   THE BET WIDGET IS IN THE LAYOUT FROM THE FIRST PAINT. It is rendered greyed
+   and inert (by elicit.js, on load — see NO-JAVASCRIPT below), never revealed
+   late and never moved: the same rule the forced-view countdown note follows on
+   the task screen, and for the same reason (anything that enters the layout
+   after the first paint jumps everything below it down).
+
+   THE SCALE. The range keeps min 0 / max 100, so 50 is the PHYSICAL CENTRE of
+   the track whatever the block point is, and the value still IS points on
+   Growing: 0 at the left end (all points on Stable), 100 at the right end (all
+   on Growing), the handle pointing at the option you favour. Recorded field
+   allocation_pos_pct is unchanged in name and meaning.
+
+     Growing  clamps the value to [block, 100] and greys the LEFT half
+     Stable   clamps the value to [0, block]   and greys the RIGHT half
+
+   BOTH RANGES INCLUDE THE BLOCK POINT, so the even split is reachable from
+   BOTH directions — "50 points on each" is the honest statement of "I genuinely
+   cannot tell" and must not be a thing only one button can say. The block point
+   comes from the session config (bet_block_point) via the data-block-point
+   attribute below; NEITHER this template NOR elicit.js contains the number.
+
+   THERE IS NO STARTING VALUE. The range carries no `value` attribute, no thumb
+   is shown and both readout numbers are em-dashes until the participant moves
+   it. Changing the direction CLEARS the bet back to unset — it never mirrors
+   the old value across the centre, which would put a bet in the participant's
+   mouth that they never made. (The retired settings.slider_start opened the
+   control at the prior; an untouched submission then recorded a belief nobody
+   stated. That is the whole reason this control has no default.)
+
+   NO-JAVASCRIPT (load-bearing — do not "fix" this by rendering it disabled).
+   Everything below is rendered in its NO-JS-USABLE state: the radios are real
+   radios, ONE of them is rendered `checked` (a radio posts nothing otherwise,
+   so an all-unchecked first view would leave a scriptless participant refused
+   on every submit with no way forward), the range is a real named range, and
+   the shield is `hidden`. It is elicit.js that locks the widget down on load —
+   including UNCHECKING that default, so a scripted participant still answers
+   step 1 themselves. A participant without JavaScript therefore meets a plain,
+   fully working control and the SERVER enforces the two steps (error_message on
+   the task screen and on the quiz). Rendering the widget disabled server-side
+   would strand them on a slider they could never satisfy.
+
+   data-server-direction is what tells the script the two apart: EMPTY on a
+   first view (the checked button is only the no-JS default, so clear it), and
+   the participant's own direction on a re-render after a rejected submission
+   (so restore it, with their bet). #}
+<section class="elicit bet-widget" id="bet_widget"
+         data-block-point="{{ bet_block_point }}"
+         data-server-direction="{{ bet_direction }}"
+         data-unset-display="{{ bet_unset_display }}">
+    {# NO CARD TITLE (2026-08-17, Julian). The card used to open with a "Your
+       bet" heading; the two numbered steps below now say what the card is for,
+       and the heading was one more line of chrome in a card whose height budget
+       is the fold. The head row keeps only the "?" affordance, pushed to the
+       right by .elicit-head's justify-content (see allocation.css — with the
+       title gone, space-between would have moved it to the LEFT edge). #}
+    <div class="elicit-head">
+        {# The "?" and its help popover live together in .info-anchor so the
+           popover floats anchored to the button (absolute, out of flow) and
+           never pushes the control or page down. The popup--anchored class is
+           the design system's name for that behaviour (base.css, POPUP TIERS);
+           .info-panel keeps its own concrete styling in allocation.css. #}
+        <span class="info-anchor">
+            <button type="button" class="info-btn" id="info_btn" aria-expanded="false"
+                    aria-controls="info_panel" title="How the points pay">?</button>
+            <div id="info_panel" class="info-panel popup popup--anchored" role="dialog"
+                 aria-label="How the points pay">
+                {# 1. one intuition line #}
+                <p class="info-intuition">
+                    The more of your 100 points are on the island's
+                    <strong>actual type</strong>, the higher your chance of winning.
+                </p>
+                {# 2. the formula, then one worked example below it as plain
+                   text. PERCENTAGES ONLY (2026-08-11, Randolph feedback point
+                   4): the panel used to introduce the share s = a / 100 and then
+                   mix fractions with percentages in the same three lines, so a
+                   reader had to convert units mid-explanation. Everything here is
+                   now in percent and the letter s is gone — do NOT reintroduce a
+                   share, a decimal or a 0-to-1 probability anywhere in this
+                   panel.
+
+                   THIS STILL MIRRORS main/scoring.py (binarised_win_prob =
+                   1 - (1 - m)^2 with m = a / 100); keep the two in sync. The
+                   percent form below is that same rule multiplied by 100:
+                   100 - (100 - a)^2 / 100. Checked against scoring.py at
+                   a = 0 / 50 / 70 / 100 (0 / 75 / 91 / 100 percent) in
+                   tests/test_ui_batch_http.py.
+
+                   The letter a keeps the accent colour (.info-a) on both its
+                   occurrences in the formula so its role reads at a glance. #}
+                <p class="info-formula">
+                    With <span class="info-a">a</span> of your 100 points on the actual type,
+                    your chance of winning is<br>100 &minus; (100 &minus; <span class="info-a">a</span>)<sup>2</sup> / 100 percent.
+                </p>
+                <p class="info-deriv">
+                    For example, if you put 70 of your 100 points on the actual
+                    type your chance of winning is
+                    100 &minus; 900 / 100 = 91 percent.
+                </p>
+                {# 3. answer-every-round reminder #}
+                <p class="info-reminder">
+                    You won't know which rounds pay, so answer every round as if it pays.
+                </p>
+            </div>
+        </span>
+    </div>
+
+    {# ---- STEP 1: which type is it? --------------------------------------
+       Two segmented buttons backed by radios. Stable is the LEFT button and
+       Growing the RIGHT one, the SAME order as the readout, the slider ends and
+       the instructions — the participant never has to re-map the sides.
+
+       THE QUESTION IS ASKED HERE, AND ONLY HERE (2026-08-17, Julian). It used
+       to be a standalone heading above this card, which put it a long way from
+       the buttons that answer it; that heading is now deleted and its string
+       lives at badge 1. The wording below is a VERBATIM COPY of that heading's
+       text, moved rather than retyped, so the apostrophe entity and the phrasing
+       are the same characters they always were. This is now the only occurrence
+       in the app: there is nothing left for it to drift from. #}
+    <div class="bet-step bet-step--direction">
+        <p class="bet-step-label"><span
+            id="bet_step1_text">Is this island&rsquo;s production stable or growing?</span></p>
+        {# aria-labelledby, not a duplicated aria-label: the accessible name IS
+           the visible question, so there is one string and a screen-reader user
+           hears exactly what is on the page. It points at the TEXT span, not the
+           whole label, so the "1" badge is not read out as part of the
+           question. #}
+        <div class="segmented" id="bet_direction" role="radiogroup"
+             aria-labelledby="bet_step1_text">
+            <label class="seg-btn seg-btn--stable" for="allocation_direction_stable">
+                <input type="radio" name="allocation_direction"
+                       id="allocation_direction_stable"
+                       value="{{ dir_stable_value }}"
+                       data-word="{{ dir_stable_word }}"
+                       {% if bet_direction_stable %}checked{% endif %}>
+                <span class="seg-face"><span class="swatch"></span>Stable</span>
+            </label>
+            <label class="seg-btn seg-btn--growing" for="allocation_direction_growing">
+                <input type="radio" name="allocation_direction"
+                       id="allocation_direction_growing"
+                       value="{{ dir_growing_value }}"
+                       data-word="{{ dir_growing_word }}"
+                       {% if bet_direction_growing %}checked{% endif %}>
+                <span class="seg-face">Growing<span class="swatch"></span></span>
+            </label>
+        </div>
+    </div>
+
+    {# ---- STEP 2: how confident? -----------------------------------------
+       In the layout from the first paint, greyed and inert until step 1 is
+       answered.
+
+       THE HEADING NAMES THE CHOSEN DIRECTION ("How confident are you that it is
+       growing?"), because the second question is ABOUT the answer to the first
+       and a bare "How confident are you?" leaves that to be inferred from the
+       readout labels.
+
+       ITS BOX IS RESERVED FROM THE FIRST PAINT, BY A GHOST. NEVER use
+       `display: none` or the `hidden` attribute here: those take the heading out
+       of flow, so it would enter the layout on the first click and push the
+       whole bet control down. That is exactly the bug the forced-view countdown
+       pill had, and this is the same fix in the same shape.
+
+       WHY A GHOST AND NOT JUST THE HIDDEN SENTENCE. Reserving with the live
+       element only works while the sentence that is revealed is never SHORTER
+       than the one reserved — and the two directions are different lengths, so
+       at a width where "growing" wraps to two lines and "stable" does not, the
+       box would SHRINK when Stable is chosen. That is the same jump upside
+       down. So the box is sized by a permanently-invisible ghost carrying the
+       LONGER rendering, and the live sentence is laid over it out of flow. The
+       height is then the taller variant's height in every state, structurally
+       rather than coincidentally, at any width. Measured at 1180 / 768 / 375 in
+       tests/test_two_step_bet_browser_http.py.
+
+       The ghost is aria-hidden: it is a layout device, and a screen reader must
+       not read the sentence twice.
+
+       ONE SOURCE FOR THE WORDING (see betwidget.CONFIDENCE_TPL, and
+       main.LOCK_NOTE_TPL for the identical pattern): the server ships the
+       rendered first frame AND the template, and the script only substitutes
+       {type}. The sentence is never built in JavaScript — a drift between the
+       reserved frame and a later one would change the height and reintroduce
+       the jump.
+
+       ibis does not auto-escape: the template is a server constant, never
+       participant input, but the attribute is escaped explicitly so no future
+       wording can break out of the quotes. #}
+    <div class="bet-step bet-step--bet">
+        <p class="bet-step-label" id="bet_step2_label"
+           data-msg-tpl="{{ bet_step2_tpl|escape }}">
+            <span class="bet-step2-slot"><span
+                class="bet-step2-ghost" aria-hidden="true"
+                >{{ bet_step2_reserve|escape }}</span><span id="bet_step2_text"
+                class="bet-step2-text{% if bet_step2_visible %} is-visible{% endif %}"
+                >{{ bet_step2_initial|escape }}</span></span>
+        </p>
+
+        <div class="bet-gate" id="bet_gate">
+            {# Live numbers, one per side. LEFT = Stable, RIGHT = Growing, to
+               match the slider ends below. Em-dashes until a bet is set: the
+               control has no starting value, so there is no number to show and
+               showing one would be a bet nobody made. #}
+            <div class="alloc-readout">
+                <div class="alloc-side zero">
+                    <span class="alloc-name"><span class="swatch"></span>Stable</span>
+                    <span class="alloc-num" id="pts_zero">{{ bet_stable_display }}</span>
+                    <span class="alloc-unit">points</span>
+                </div>
+                <div class="alloc-side pos">
+                    <span class="alloc-name">Growing<span class="swatch"></span></span>
+                    <span class="alloc-num" id="pts_pos">{{ bet_pos_display }}</span>
+                    <span class="alloc-unit">points</span>
+                </div>
+            </div>
+
+            {# The HALF the chosen direction rules out is greyed by painting the
+               range's own TRACK with a two-stop gradient that turns at the block
+               point (allocation.css). The turn point is a CSS custom property
+               that elicit.js sets from the config — a custom property FEEDS the
+               stylesheet rather than overriding it, so the media queries still
+               apply, unlike a style= layout attribute (the logo-row lesson in
+               CLAUDE.md). It is painted on the track itself rather than by an
+               overlay so nothing can ever sit on top of the handle. With no
+               JavaScript nothing is greyed, which is correct: there is no
+               clamping to illustrate and the SERVER does the enforcing. #}
+            <div class="bet-slider-wrap" id="bet_slider_wrap">
+                {# A plain left-to-right range whose value IS points on Growing.
+                   NO `value` attribute on a first view: the control has no
+                   starting position. On a re-render after a rejected submission
+                   the value the participant sent is put back (server-side, so it
+                   does not depend on a script running).
+
+                   aria-disabled, NOT disabled, while the gate is shut: a
+                   disabled input cannot be focused, so a keyboard participant
+                   would get no explanation at all. It stays focusable and
+                   elicit.js turns a key press into the same toast nudge a
+                   pointer gets. #}
+                <input type="range" id="allocation_pos_pct" name="allocation_pos_pct"
+                       min="0" max="100" step="1"
+                       {% if bet_unset %}{% else %}value="{{ bet_value }}"{% endif %}
+                       aria-label="Points on Growing">
+            </div>
+
+            {# THREE SCALE LABELS (2026-08-19, coauthor comment, Julian's
+               call): the two ends plus a CENTRE label at the block point. The
+               ends keep the SAME Stable-left / Growing-right order as the
+               readout above; the centre names the one value on the scale that
+               means the same thing whichever direction was pressed (50 points
+               on each), and it was the only unlabelled part of the scale.
+
+               THE CENTRE SPAN IS THE MIDDLE CHILD, NOT THE LAST ONE. The two
+               direction-dimming rules in allocation.css select the dead end by
+               POSITION (span:first-child / span:last-child); appending the
+               centre label would have made it the "growing" end for those
+               rules and left the real one undimmed. As the middle child it is
+               matched by neither, which is what the block point needs: it is
+               reachable from BOTH halves, so it is never the dead side.
+
+               It is positioned off --bet-block-pct rather than left to
+               space-between, because the two end labels are not the same width
+               and a flex middle child would land a few pixels off the hard rule
+               it names. It is out of flow on its OWN line below the ends (the
+               row reserves that line with padding) — at 375px and at the 768px
+               two-column breakpoint the three strings cannot share one line
+               without wrapping, and wrapping in this card grows it. Measured at
+               1180 / 768 / 375 in tests/test_two_step_bet_browser_http.py.
+               Muted grey via .scale-ends. #}
+            <div class="scale-ends">
+                <span>Fully confident stable</span>
+                <span class="scale-mid">Not confident at all</span>
+                <span>Fully confident growing</span>
+            </div>
+
+            {# A DISABLED INPUT FIRES NO POINTER EVENTS, so a participant who
+               reaches for the slider before answering step 1 would get silence.
+               This transparent shield catches the attempt instead: elicit.js
+               shows the toast below and counts it into
+               allocation_gate_bump_count. Rendered `hidden` so it is inert
+               without JavaScript, and armed only AFTER the task screen's
+               forced-view countdown has expired — never during it, where the
+               whole elicitation half is already inert and a nudge would be
+               answering a question the participant has not been allowed to
+               ask. #}
+            <div class="bet-shield" id="bet_shield" hidden aria-hidden="true"></div>
+
+            {# The nudge. A TOAST (base.css, POPUP TIERS): no backdrop,
+               absolutely positioned so it can NEVER push the layout down, clears
+               itself after a few seconds, and is announced politely rather than
+               stealing focus. #}
+            <div class="popup popup--toast" id="bet_toast" role="status"
+                 aria-live="polite" hidden>
+                Choose <strong>Stable</strong> or <strong>Growing</strong> first.
+            </div>
+        </div>
+    </div>
+</section>

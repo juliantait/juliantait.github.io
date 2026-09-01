@@ -33,14 +33,14 @@
      olsBetaHat, ssOfX, posteriorOverCandidates, readPriors, candCount, fmtSigned.
    The candidate slopes, their prior, σ and the EXPERT/NOVICE sample sizes are all
    read LIVE from the Simulation controls, so the Game always runs the design the
-   panel shows (2 states, prior 0.75 / 0.25, β₂ = 0.03 by default), with these
+   panel shows (2 states, prior 0.75 / 0.25, β₂ = 0.02 by default), with these
    fallbacks if the panel is unreadable. The belief bars, the €1 allocation bar
    and its handles are therefore built per round, one slot per candidate.
    ============================================================================ */
 (function(){
   'use strict';
 
-  var FALLBACK_BETAS  = [0, 0.03];
+  var FALLBACK_BETAS  = [0, 0.02];
   var FALLBACK_PRIORS = [0.75, 0.25];
 
   // ---- mutable round + control state ----
@@ -97,7 +97,7 @@
   function genRound(){
     var sigma = readParam('sigma', 2.5);
     var nNov  = Math.round(readParam('nNov', 3));
-    var nExp  = Math.round(readParam('nExp', 30));
+    var nExp  = Math.round(readParam('nExp', 20));
     var states = readStates();
 
     var isExpert = Math.random() < 0.5;        // P(expert) = P(novice) = ½

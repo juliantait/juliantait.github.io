@@ -6,7 +6,7 @@
 //   y_i = baseline + β · x_i + ε_i,   ε_i ~ N(0, σ²),   x_i ∈ [0, 100]
 //
 // β is therefore a per-year slope: the pilot's two growth arms are 2 or 3 per 100
-// years, i.e. β = 0.02 / 0.03, default 0.03, against a flat state β = 0
+// years, i.e. β = 0.02 / 0.03, default 0.02, against a flat state β = 0
 // (prior 0.75 / 0.25).
 // The baseline is an integer draw ~ Uniform[40, 80] per series so the dots sit at
 // realistic heights; it shifts a series bodily and leaves β̂, SE and every
@@ -215,7 +215,7 @@ const $ = (id) => document.getElementById(id);
 // a hardcoded value here silently diverges when the HTML default changes.
 let candCount = (() => {
   const act = document.querySelector('#seg-count button.active');
-  return act ? parseInt(act.dataset.k, 10) : 3;
+  return act ? parseInt(act.dataset.k, 10) : 2;
 })();
 // Caches so switching nav views can redraw canvases at the now-visible
 // width without resampling (Monte-Carlo data only changes on a Go press).
