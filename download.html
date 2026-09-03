@@ -6,11 +6,6 @@
   <title>Downloads – Julian Tait</title>
   <link rel="stylesheet" href="static/css/style.css" />
   <style>
-    .download-lead {
-      color: var(--text-secondary);
-      margin: 0 0 var(--space-3);
-    }
-
     .download-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -29,8 +24,8 @@
     a.download-card {
       position: relative;
       display: flex;
-      align-items: flex-start;
-      gap: var(--space-2);
+      align-items: center;
+      gap: var(--space-3, var(--space-2));
       padding: var(--space-2);
       background: var(--bg-raised);
       border: 1px solid var(--border);
@@ -53,7 +48,7 @@
     .download-card-media {
       flex: 0 0 auto;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
     }
 
@@ -65,36 +60,53 @@
     }
     .download-card-icon svg { width: 100%; height: 100%; }
 
-    /* Rendered first-page thumbnail for PDFs */
+    /* Rendered first-page thumbnail for PDFs.
+       The JS sizes the canvas with inline width/height for a 120px-wide
+       render; we override those (!important) so the thumbnail instead
+       scales as a replaced element to fit within a max box while keeping
+       its aspect ratio — so tall portraits stay capped in height and wide
+       16:9 decks stay capped in width, both without distortion. */
     .download-card-thumb {
       display: block;
-      width: 120px;
-      height: auto;
+      width: auto !important;
+      height: auto !important;
+      max-width: 120px;
+      max-height: 152px;
       border-radius: 6px;
       border: 1px solid var(--border);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
       background: #fff;
     }
 
-    .download-card-body { min-width: 0; flex: 1; padding-right: 24px; }
+    .download-card-body {
+      min-width: 0;
+      flex: 1;
+      padding-right: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
 
     .download-card-title {
       font-family: var(--font-sans);
       font-size: 16px;
       font-weight: 600;
       color: var(--text-primary);
-      margin: 0 0 4px;
+      margin: 0;
       line-height: 1.3;
     }
 
     .download-card-desc {
       font-size: 14px;
       color: var(--text-secondary);
-      margin: 0 0 8px;
+      margin: 5px 0 0;
       line-height: 1.4;
     }
 
+    /* Meta sits tight under the title (or the description) as one stacked unit */
     .download-card-meta {
+      display: block;
+      margin-top: 3px;
       font-family: var(--font-sans);
       font-size: 11px;
       font-weight: 600;
@@ -118,6 +130,23 @@
       color: var(--accent);
       transform: translateY(2px);
     }
+
+    /* Narrow phones: one column, smaller thumbnail, comfortable spacing */
+    @media (max-width: 520px) {
+      .download-grid {
+        grid-template-columns: 1fr;
+      }
+      a.download-card {
+        gap: var(--space-2);
+      }
+      .download-card-thumb {
+        max-width: 92px;
+        max-height: 120px;
+      }
+      .download-card-title {
+        font-size: 15px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -127,8 +156,6 @@
     <div class="page-title">
       <h1>Downloads</h1>
     </div>
-
-    <p class="download-lead">Files, templates, and resources — click any card to download.</p>
 
     <!--
       ============================================================
