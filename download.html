@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Downloads – Julian Tait</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+  <style>
+    .download-lead {
+      color: var(--text-secondary);
+      margin: 0 0 var(--space-3);
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--space-2);
+    }
+
+    /* Runtime states (loading / empty / error) span the whole grid */
+    .download-status {
+      grid-column: 1 / -1;
+      color: var(--text-secondary);
+      margin: 0;
+      padding: var(--space-2) 0;
+    }
+
+    /* Whole card is the download link */
+    a.download-card {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-2);
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    a.download-card:hover,
+    a.download-card:focus-visible {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    /* Media column — holds either the small file icon or a PDF preview thumbnail */
+    .download-card-media {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .download-card-icon {
+      flex: 0 0 auto;
+      width: 40px;
+      height: 40px;
+      color: var(--accent);
+    }
+    .download-card-icon svg { width: 100%; height: 100%; }
+
+    /* Rendered first-page thumbnail for PDFs */
+    .download-card-thumb {
+      display: block;
+      width: 120px;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      background: #fff;
+    }
+
+    .download-card-body { min-width: 0; flex: 1; padding-right: 24px; }
+
+    .download-card-title {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 4px;
+      line-height: 1.3;
+    }
+
+    .download-card-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0 0 8px;
+      line-height: 1.4;
+    }
+
+    .download-card-meta {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary, var(--text-secondary));
+    }
+
+    /* Download-arrow affordance, top-right */
+    .download-card-arrow {
+      position: absolute;
+      top: var(--space-2);
+      right: var(--space-2);
+      width: 20px;
+      height: 20px;
+      color: var(--text-tertiary, var(--text-secondary));
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+    a.download-card:hover .download-card-arrow,
+    a.download-card:focus-visible .download-card-arrow {
+      color: var(--accent);
+      transform: translateY(2px);
+    }
+  </style>
+</head>
+<body>
+  <div data-nav></div>
+
+  <main class="page-container">
+    <div class="page-title">
+      <h1>Downloads</h1>
+    </div>
+
+    <p class="download-lead">Files, templates, and resources — click any card to download.</p>
+
+    <!--
+      ============================================================
+      HOW THIS PAGE WORKS  (private, unlisted utility page)
+
+      The grid below is built AUTOMATICALLY at page load — there is
+      no per-file HTML to edit. On load the page calls the GitHub
+      Contents API for the  live/files/  folder and renders one
+      download card for every file it finds there.
+
+      TO ADD A DOWNLOAD:
+        1. Drop the file into  live/files/
+        2. Commit and push to GitHub (bossman deploys).
+        3. Reload this page — a card for it appears automatically.
+           The card title, type and size are derived from the
+           filename and the file's byte size.  No HTML editing.
+
+      OPTIONAL — nicer title + a description:
+        Add an entry to  live/files/labels.json  — an object keyed
+        by the EXACT filename, each value an object that may set a
+        "title" and/or a one-line "desc". Example:
+
+          {
+            "my-slides-2026.pdf": {
+              "title": "Behavioural Econ — Lecture Slides",
+              "desc":  "Full slide deck for the 2026 course."
+            }
+          }
+
+        Files without an entry fall back to a title derived from the
+        filename and carry no description. labels.json (and the
+        folder's .gitkeep) are never shown as cards.
+
+      EXTRAS the card shows automatically:
+        - LAST-UPDATED DATE: fetched from the GitHub commits API for
+          each file and appended to the meta line (e.g.
+          "PDF · 1.8 MB · 3 Sep 2026"). Fetched in parallel after the
+          cards render, so dates pop in; a failed lookup just omits
+          the date.
+        - PDF PREVIEW: for .pdf files, page 1 is rendered with pdf.js
+          (loaded from cdnjs) as a thumbnail in place of the icon, so
+          decks are recognisable at a glance. Non-PDFs keep the icon,
+          and a PDF that fails to render falls back to the icon too.
+
+      NOTE: the card href is a SAME-ORIGIN relative link
+      ( href="files/<name>" ) plus the `download` attribute, so the
+      click saves the file. The API's cross-origin download_url is
+      deliberately NOT used — browsers ignore `download` across
+      origins, which would open the file instead of saving it.
+      ============================================================
+    -->
+
+    <div class="download-grid" id="download-grid">
+      <p class="download-status">Loading files…</p>
+    </div>
+  </main>
+
+  <div data-footer></div>
+  <script src="static/js/partials.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    (function () {
+      var REPO = "juliantait/juliantait.github.io";
+      var FOLDER = "files";
+      var API = "https://api.github.com/repos/" + REPO + "/contents/" + FOLDER + "?ref=main";
+      var COMMITS_API = "https://api.github.com/repos/" + REPO + "/commits";
+      var PDF_VERSION = "3.11.174";
+      var grid = document.getElementById("download-grid");
+
+      // Point pdf.js at its matching worker (harmless if the lib failed to load).
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/" + PDF_VERSION + "/pdf.worker.min.js";
+      }
+
+      // Files that must never appear as cards.
+      var HIDDEN = { ".gitkeep": true, "labels.json": true };
+
+      var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      // --- Inline SVG icons (stroke=currentColor, dark-mode friendly) ---
+      function iconDoc() {
+        return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>';
+      }
+      function iconCode() {
+        return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 9l-3 3 3 3m8-6l3 3-3 3M14 5l-4 14" /></svg>';
+      }
+      function iconArchive() {
+        return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8m18 0l-1.6-3.2A2 2 0 0017.6 4H6.4a2 2 0 00-1.8 1.1L3 8m18 0H3m9 0v8m0 0l-2.5-2.5M12 16l2.5-2.5" /></svg>';
+      }
+      function iconFile() {
+        return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>';
+      }
+      function arrowSvg() {
+        return '<svg class="download-card-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4m-9 8h10" /></svg>';
+      }
+
+      function extOf(name) {
+        var i = name.lastIndexOf(".");
+        return i > -1 && i < name.length - 1 ? name.slice(i + 1).toLowerCase() : "";
+      }
+
+      function iconFor(ext) {
+        if (ext === "pdf" || ext === "doc" || ext === "docx") return iconDoc();
+        if (ext === "r" || ext === "py" || ext === "csv" || ext === "txt") return iconCode();
+        if (ext === "zip" || ext === "tar" || ext === "gz") return iconArchive();
+        return iconFile();
+      }
+
+      // "my-slides-2026.pdf" -> "My Slides 2026"
+      function titleFrom(name) {
+        var base = name;
+        var i = base.lastIndexOf(".");
+        if (i > 0) base = base.slice(0, i);
+        base = base.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+        return base.replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      }
+
+      function humanSize(bytes) {
+        if (typeof bytes !== "number" || isNaN(bytes)) return "";
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      }
+
+      // ISO date -> "3 Sep 2026"
+      function humanDate(iso) {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return "";
+        return d.getDate() + " " + MONTHS[d.getMonth()] + " " + d.getFullYear();
+      }
+
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
+      }
+
+      function showStatus(msg) {
+        grid.innerHTML = '<p class="download-status">' + esc(msg) + "</p>";
+      }
+
+      function buildCard(item, labels) {
+        var name = item.name;
+        var ext = extOf(name);
+        var label = labels && labels[name] ? labels[name] : null;
+        var title = label && label.title ? label.title : titleFrom(name);
+        var desc = label && label.desc ? label.desc : null;
+
+        var metaParts = [];
+        if (ext) metaParts.push(ext.toUpperCase());
+        var size = humanSize(item.size);
+        if (size) metaParts.push(size);
+        var baseMeta = metaParts.join(" · ");
+
+        var a = document.createElement("a");
+        a.className = "download-card";
+        a.setAttribute("href", "files/" + encodeURIComponent(name));
+        a.setAttribute("download", "");
+
+        a.innerHTML =
+          '<span class="download-card-media"><span class="download-card-icon">' + iconFor(ext) + "</span></span>" +
+          '<span class="download-card-body">' +
+            '<span class="download-card-title">' + esc(title) + "</span>" +
+            (desc ? '<span class="download-card-desc">' + esc(desc) + "</span>" : "") +
+            '<span class="download-card-meta">' + esc(baseMeta) + "</span>" +
+          "</span>" +
+          arrowSvg();
+
+        // Stash state used by the async date + preview passes.
+        a._fileName = name;
+        a._ext = ext;
+        a._baseMeta = baseMeta;
+        a._metaEl = a.querySelector(".download-card-meta");
+        a.dataset.sortKey = title.toLowerCase();
+        return a;
+      }
+
+      // Last-commit date for one file (null on any failure).
+      function fetchDate(name) {
+        var url = COMMITS_API + "?path=" + FOLDER + "/" + encodeURIComponent(name) + "&per_page=1";
+        return fetch(url)
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (arr) {
+            if (Array.isArray(arr) && arr[0] && arr[0].commit &&
+                arr[0].commit.committer && arr[0].commit.committer.date) {
+              return arr[0].commit.committer.date;
+            }
+            return null;
+          })
+          .catch(function () { return null; });
+      }
+
+      // Render page 1 of a PDF into the card's media slot, replacing the icon.
+      function renderPdfPreview(card) {
+        if (!window.pdfjsLib) return;
+        var media = card.querySelector(".download-card-media");
+        fetch("files/" + encodeURIComponent(card._fileName))
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.arrayBuffer();
+          })
+          .then(function (buf) { return pdfjsLib.getDocument({ data: buf }).promise; })
+          .then(function (pdf) { return pdf.getPage(1); })
+          .then(function (page) {
+            var vp1 = page.getViewport({ scale: 1 });
+            var cssW = 120;
+            var dpr = window.devicePixelRatio || 1;
+            var scale = (cssW / vp1.width) * dpr;
+            var vp = page.getViewport({ scale: scale });
+            var canvas = document.createElement("canvas");
+            canvas.className = "download-card-thumb";
+            canvas.width = Math.round(vp.width);
+            canvas.height = Math.round(vp.height);
+            canvas.style.width = cssW + "px";
+            canvas.style.height = Math.round(cssW * (vp1.height / vp1.width)) + "px";
+            var ctx = canvas.getContext("2d");
+            return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
+              media.innerHTML = "";
+              media.appendChild(canvas);
+            });
+          })
+          .catch(function () { /* keep the fallback icon */ });
+      }
+
+      function render(files, labels) {
+        var cards = files.map(function (f) { return buildCard(f, labels); });
+        cards.sort(function (a, b) {
+          return a.dataset.sortKey < b.dataset.sortKey ? -1 :
+                 a.dataset.sortKey > b.dataset.sortKey ? 1 : 0;
+        });
+        grid.innerHTML = "";
+        cards.forEach(function (c) { grid.appendChild(c); });
+
+        // Kick off PDF previews lazily/async — cards are already visible.
+        cards.forEach(function (c) {
+          if (c._ext === "pdf") renderPdfPreview(c);
+        });
+
+        // Fetch last-updated dates in parallel; fill each meta line as it resolves.
+        Promise.all(cards.map(function (c) {
+          return fetchDate(c._fileName).then(function (iso) {
+            if (!iso) return;
+            var ds = humanDate(iso);
+            if (ds && c._metaEl) {
+              c._metaEl.textContent = c._baseMeta ? c._baseMeta + " · " + ds : ds;
+            }
+          });
+        }));
+      }
+
+      // Optional labels override — a missing file is harmless.
+      function fetchLabels() {
+        return fetch("files/labels.json", { cache: "no-store" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; });
+      }
+
+      fetch(API)
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!Array.isArray(data)) throw new Error("Unexpected response");
+          var files = data.filter(function (item) {
+            return item.type === "file" && !HIDDEN[item.name];
+          });
+          if (files.length === 0) {
+            showStatus("No files here yet.");
+            return;
+          }
+          return fetchLabels().then(function (labels) {
+            render(files, labels);
+          });
+        })
+        .catch(function () {
+          showStatus("Couldn't load the file list.");
+        });
+    })();
+  </script>
+</body>
+</html>
