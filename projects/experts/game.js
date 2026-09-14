@@ -95,7 +95,7 @@
 
   // ---- generate one fresh round ----
   function genRound(){
-    var sigma = readParam('sigma', 2.5);
+    var sigma = readParam('sigma', 2.0);
     var nNov  = Math.round(readParam('nNov', 3));
     var nExp  = Math.round(readParam('nExp', 20));
     var states = readStates();

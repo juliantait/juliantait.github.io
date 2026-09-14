@@ -109,7 +109,7 @@
             <div class="control-group">
               <div class="cg-title">Model</div>
               <div class="cg-body">
-                <div class="input-group"><label>residual SD <i class="mvar">&sigma;</i></label><input id="sigma" type="text" value="2.5"></div>
+                <div class="input-group"><label>residual SD <i class="mvar">&sigma;</i></label><input id="sigma" type="text" value="2.0"></div>
                 <div class="input-group">
                   <label>n NOVICE</label>
                   <div class="seg" id="seg-nnov">
@@ -348,7 +348,7 @@
         <h2>The betting game</h2>
         <div class="intro-block">
           <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
-          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.02</b> (+2 per 100 units of x), flat <b>3 times in 4</b>, with <i class="mvar">σ</i> = 2.5 and <b>integer</b> y values.</p>
+          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.02</b> (+2 per 100 units of x), flat <b>3 times in 4</b>, with <i class="mvar">σ</i> = 2.0 and <b>integer</b> y values.</p>
           <ul>
             <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
           </ul>
@@ -463,9 +463,9 @@
 
 </main>
 
-<script src="simulation.js?v=22"></script>
+<script src="simulation.js?v=23"></script>
 
-<script src="game.js?v=17"></script>
+<script src="game.js?v=18"></script>
 
 </body>
 </html>
