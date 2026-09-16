@@ -44,13 +44,14 @@
     </div>
 
     <p>
-      Make any working oTree project run in your lab with <strong>one click</strong>.
+      Runs a working oTree project in your lab, and sets up the database, participant lists and
+      experiment room for you.
     </p>
     <ul>
-      <li><strong>Point it at any working oTree project</strong> — no changes to your study needed.</li>
-      <li><strong>One click sets up the room</strong> — Postgres, participant lists and experiment rooms, all wired up for you.</li>
-      <li><strong>A first-run setup wizard</strong> — asks the lab questions once, then launching is a single click every time after.</li>
-      <li><strong>Open source and built for Windows labs</strong> — the setup most computer labs actually run.</li>
+      <li><strong>Point it at any working oTree project.</strong> No changes to your study are needed.</li>
+      <li><strong>It sets up the room for a session.</strong> Postgres, participant lists and experiment rooms, all wired up for you.</li>
+      <li><strong>A first-run setup wizard.</strong> It asks the lab questions once, then launching is a single click after that.</li>
+      <li><strong>Open source, built for Windows labs.</strong> The setup most computer labs run.</li>
     </ul>
 
     <section id="what-it-does">
@@ -59,17 +60,17 @@
       </div>
       <p>
         You have an oTree study that runs on your own machine. Getting it running across a room of
-        lab PCs is the annoying part. Three things have to be set up before a session can start:
+        lab PCs is the fiddly part. Three things have to be set up before a session can start:
       </p>
       <ul>
-        <li><strong>A Postgres database</strong> — created and pointed at.</li>
-        <li><strong>The participant list</strong> — loaded in.</li>
-        <li><strong>An experiment room</strong> — defined so each seat connects to the right session.</li>
+        <li><strong>A Postgres database.</strong> Created and pointed at.</li>
+        <li><strong>The participant list.</strong> Loaded in.</li>
+        <li><strong>An experiment room.</strong> Defined so each seat connects to the right session.</li>
       </ul>
       <p>
-        The <strong>Lab Launcher</strong> does all of that for you. Point it at any working oTree
-        project, <strong>click once</strong>, and it wires up <strong>Postgres</strong>, participant
-        lists and experiment rooms, then starts the server ready for the room to connect.
+        The Lab Launcher does all of that for you. Point it at any working oTree project and it sets
+        up Postgres, the participant lists and the experiment room, then starts the server ready for
+        the room to connect.
       </p>
     </section>
 
@@ -81,23 +82,23 @@
         Everything that is specific to your lab lives in <strong>one file</strong>:
       </p>
       <ul>
-        <li><strong><code>lab_info.json</code></strong> — a gitignored file holding the settings the launcher needs: database credentials, the host address, which study is running. Nothing lab-specific is committed to the experiment repository, and the same project <strong>moves between labs by swapping that one file</strong>.</li>
-        <li><strong><code>maps/</code></strong> — room layouts sit alongside it, <strong>one map per room</strong>, describing which seats exist and how they are labelled.</li>
+        <li><strong><code>lab_info.json</code>.</strong> A gitignored file holding the settings the launcher needs: database credentials, the host address, which study is running. Nothing lab-specific is committed to the experiment repository, so the same project moves between labs by swapping that one file.</li>
+        <li><strong><code>maps/</code>.</strong> Room layouts sit alongside it, one map per room, describing which seats exist and how they are labelled.</li>
       </ul>
       <p>
-        The first time you run the launcher, a <strong>setup wizard</strong> fills all of this in
-        for you. It walks through the questions once, writes <code>lab_info.json</code> and the room
-        maps, and from then on <strong>launching is the single click</strong>.
+        The first time you run the launcher, a setup wizard fills all of this in for you. It walks
+        through the questions once, writes <code>lab_info.json</code> and the room maps, and from
+        then on launching is a single click.
       </p>
       <p>
-        Once the server is running, each lab PC opens its own <strong>per-seat link</strong> — one
-        URL per desktop that drops that participant straight into their seat in the experiment room:
+        Once the server is running, each lab PC opens its own per-seat link, one URL per desktop
+        that puts that participant in their seat in the experiment room:
       </p>
       <pre class="code-block"><code>http://HOST:8000/room/study?participant_label=SEAT</code></pre>
       <p>
-        You <strong>place that link on each desktop once</strong>, with <code>HOST</code>, the study
-        name and the seat's <code>SEAT</code> label filled in from the room map. After that the
-        operator just clicks launch and the room is ready.
+        You place that link on each desktop once, with <code>HOST</code>, the study name and the
+        seat's <code>SEAT</code> label filled in from the room map. After that the operator clicks
+        launch and the room is ready.
       </p>
     </section>
 
@@ -114,9 +115,8 @@
         </div>
       </div>
       <p>
-        The Lab Launcher is <strong>open source</strong> and free to use. It is built for
-        <strong>Windows</strong> lab machines, the setup most computer labs actually run, so the
-        <strong>setup wizard</strong> and <strong>per-seat links</strong> are geared to that
+        The Lab Launcher is open source and free to use. It is built for Windows lab machines, the
+        setup most computer labs run, so the setup wizard and per-seat links are geared to that
         environment.
       </p>
     </section>
