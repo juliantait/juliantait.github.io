@@ -27,6 +27,16 @@
       margin: var(--space-2) 0 var(--space-3);
     }
     .code-block code { background: transparent; padding: 0; }
+
+    .app-screenshot {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: var(--space-3) 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+    }
   </style>
 </head>
 <body>
@@ -48,6 +58,9 @@
       working oTree project. It sets up Postgres so your data persists, loads the participant list,
       and creates the experiment room, so a new study just means selecting its oTree folder.
     </p>
+
+    <img src="images/otree-lab-launcher.png" alt="oTree Lab Launcher main window" class="app-screenshot" />
+
     <ul>
       <li><strong>Set up once, reused for every study.</strong> A new experiment just means selecting its oTree folder, no changes to your study needed.</li>
       <li><strong>Rooms handled for you.</strong> It creates the participant lists and experiment rooms so each seat connects to the right session.</li>
