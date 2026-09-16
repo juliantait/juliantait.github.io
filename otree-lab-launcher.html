@@ -44,83 +44,27 @@
     </div>
 
     <p>
-      Runs a working oTree project in your lab, and sets up the database, participant lists and
-      experiment room for you. Set it up once and it works for any future experiment, just point it
-      at the new oTree folder.
+      A tool for running oTree studies in a computer lab. You set it up once, then point it at any
+      working oTree project. It sets up Postgres so your data persists, loads the participant list,
+      and creates the experiment room, so a new study just means selecting its oTree folder.
     </p>
     <ul>
-      <li><strong>Set up once, reused for every study.</strong> The one-time lab setup carries over, so a new experiment just means selecting its oTree folder.</li>
-      <li><strong>Point it at any working oTree project.</strong> No changes to your study are needed.</li>
-      <li><strong>It sets up the room for a session.</strong> Postgres, participant lists and experiment rooms, all wired up for you.</li>
-      <li><strong>A first-run setup wizard.</strong> It asks the lab questions once, then launching is a single click after that.</li>
-      <li><strong>Open source, built for Windows labs.</strong></li>
+      <li><strong>Set up once, reused for every study.</strong> A new experiment just means selecting its oTree folder, no changes to your study needed.</li>
+      <li><strong>Rooms handled for you.</strong> It creates the participant lists and experiment rooms so each seat connects to the right session.</li>
+      <li><strong>Data persists.</strong> It sets up a Postgres database, so results are kept.</li>
+      <li><strong>Open source and free.</strong> Built for Windows lab machines.</li>
     </ul>
 
-    <section id="what-it-does">
-      <div class="section-header">
-        <h2>What it does</h2>
-      </div>
-      <p>
-        You have an oTree study that runs on your own machine. Getting it running across a room of
-        lab PCs is the fiddly part. Three things have to be set up before a session can start:
-      </p>
-      <ul>
-        <li><strong>A Postgres database.</strong> Created and pointed at.</li>
-        <li><strong>The participant list.</strong> Loaded in.</li>
-        <li><strong>An experiment room.</strong> Defined so each seat connects to the right session.</li>
-      </ul>
-      <p>
-        The Lab Launcher does all of that for you. Point it at any working oTree project and it sets
-        up Postgres, the participant lists and the experiment room, then starts the server ready for
-        the room to connect.
-      </p>
-    </section>
+    <p>Full details and setup are on GitHub.</p>
 
-    <section id="how-it-works">
-      <div class="section-header">
-        <h2>How it works</h2>
-      </div>
-      <p>
-        Everything that is specific to your lab lives in <strong>one file</strong>:
-      </p>
-      <ul>
-        <li><strong><code>lab_info.json</code>.</strong> A gitignored file holding the settings the launcher needs: database credentials, the host address, which study is running. Nothing lab-specific is committed to the experiment repository, so the same project moves between labs by swapping that one file.</li>
-        <li><strong><code>maps/</code>.</strong> Room layouts sit alongside it, one map per room, describing which seats exist and how they are labelled.</li>
-      </ul>
-      <p>
-        The first time you run the launcher, a setup wizard fills all of this in for you. It walks
-        through the questions once, writes <code>lab_info.json</code> and the room maps, and from
-        then on launching is a single click.
-      </p>
-      <p>
-        Once the server is running, each lab PC opens its own per-seat link, one URL per desktop
-        that puts that participant in their seat in the experiment room:
-      </p>
-      <pre class="code-block"><code>http://HOST:8000/room/study?participant_label=SEAT</code></pre>
-      <p>
-        You place that link on each desktop once, with <code>HOST</code>, the study name and the
-        seat's <code>SEAT</code> label filled in from the room map. After that the operator clicks
-        launch and the room is ready.
-      </p>
-    </section>
-
-    <section id="open-source">
-      <div class="section-header">
-        <h2>Open source</h2>
-        <div class="btn-group">
-          <a href="https://github.com/juliantait/otree-lab-launcher" class="github-btn" target="_blank" rel="noopener noreferrer">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-            </svg>
-            View on GitHub
-          </a>
-        </div>
-      </div>
-      <p>
-        The Lab Launcher is open source and free to use. It is built for Windows lab machines, so
-        the setup wizard and per-seat links are geared to that environment.
-      </p>
-    </section>
+    <div class="btn-group">
+      <a href="https://github.com/juliantait/otree-lab-launcher" class="github-btn" target="_blank" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+        </svg>
+        View on GitHub
+      </a>
+    </div>
   </main>
 
   <div data-footer></div>
