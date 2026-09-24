@@ -176,7 +176,7 @@ nav {
 .site-footer {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: var(--space-4) var(--space-3);
+  padding: var(--space-2) var(--space-3);
   text-align: center;
 }
 
