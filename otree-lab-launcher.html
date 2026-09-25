@@ -37,6 +37,37 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow-soft);
     }
+
+    .run-steps { margin: var(--space-2) 0 var(--space-4); }
+    .run-steps::after { content: ""; display: block; clear: both; }
+    .run-steps ol { margin: 0; padding-left: 1.4em; }
+    .run-steps li { margin-bottom: var(--space-2); }
+
+    .step-figure {
+      margin: 0 0 var(--space-2) 0;
+      max-width: 340px;
+    }
+    .step-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+    }
+    .step-figure figcaption {
+      margin-top: var(--space-1);
+      font-size: 13px;
+      color: var(--text-muted, #666);
+    }
+
+    @media (min-width: 700px) {
+      .step-figure {
+        float: right;
+        margin-left: var(--space-4);
+        max-width: 380px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -68,6 +99,24 @@
     </ul>
 
     <img src="images/otree-lab-launcher.png" alt="oTree Lab Launcher main window" class="app-screenshot" />
+
+    <h2>Running in the lab</h2>
+    <p>Put your oTree project on the lab computer, in a folder on the desktop identified with your name.</p>
+
+    <div class="run-steps">
+      <figure class="step-figure">
+        <img src="images/win-desktop-shortcut.png" alt="Windows desktop showing the auto-created 'Start oTree LabLauncher' shortcut icon on the desktop" />
+        <figcaption>The desktop shortcut the launcher creates, named "Start oTree LabLauncher".</figcaption>
+      </figure>
+      <ol start="0">
+        <li>Put your project on the lab computer, in a desktop folder named after you.</li>
+        <li>Double-click "Start oTree LabLauncher" on the desktop (the shortcut with the little icon).</li>
+        <li>Click "Browse" and point it at your oTree study folder.</li>
+        <li>Get it ready for the lab.</li>
+        <li>Launch.</li>
+        <li>Optional: Save a one-click shortcut to the desktop for next time.</li>
+      </ol>
+    </div>
 
     <p>Full details and setup are on GitHub.</p>
 
