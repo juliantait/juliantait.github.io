@@ -60,6 +60,13 @@
       font-size: 13px;
       color: var(--text-muted, #666);
     }
+    /* Step 1 shows just the small app icon, not a bordered screenshot card. */
+    .step-figure.icon-only { max-width: 84px; }
+    .step-figure.icon-only img {
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+    }
 
     @media (min-width: 700px) {
       .step-figure {
@@ -104,9 +111,9 @@
     <p>Put your oTree project on the lab computer, in a folder on the desktop identified with your name.</p>
 
     <div class="run-steps">
-      <figure class="step-figure">
-        <img src="images/win-desktop-shortcut.png" alt="Windows desktop showing the auto-created 'Start oTree LabLauncher' shortcut icon on the desktop" />
-        <figcaption>The desktop shortcut the launcher creates, named "Start oTree LabLauncher".</figcaption>
+      <figure class="step-figure icon-only">
+        <img src="images/lablauncher-logo.png" alt="The oTree LabLauncher app icon" />
+        <figcaption>The "Start oTree LabLauncher" app icon.</figcaption>
       </figure>
       <ol start="0">
         <li>Put your project on the lab computer, in a desktop folder named after you.</li>
