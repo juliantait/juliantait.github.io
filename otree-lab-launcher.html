@@ -60,12 +60,12 @@
       font-size: 13px;
       color: var(--text-muted, #666);
     }
-    /* Step 1 shows just the small app icon, not a bordered screenshot card. */
-    .step-figure.icon-only { max-width: 84px; }
-    .step-figure.icon-only img {
-      border: none;
-      box-shadow: none;
-      border-radius: 0;
+    /* Step 1 shows just the small app icon, inline at the end of the line. */
+    .step-inline-icon {
+      height: 1.6em;
+      width: auto;
+      vertical-align: middle;
+      margin-left: 0.4em;
     }
 
     @media (min-width: 700px) {
@@ -111,13 +111,8 @@
     <p>Put your oTree project on the lab computer, in a folder on the desktop identified with your name.</p>
 
     <div class="run-steps">
-      <figure class="step-figure icon-only">
-        <img src="images/lablauncher-logo.png" alt="The oTree LabLauncher app icon" />
-        <figcaption>The "Start oTree LabLauncher" app icon.</figcaption>
-      </figure>
-      <ol start="0">
-        <li>Put your project on the lab computer, in a desktop folder named after you.</li>
-        <li>Double-click "Start oTree LabLauncher" on the desktop (the shortcut with the little icon).</li>
+      <ol>
+        <li>Double-click "Start oTree LabLauncher" on the desktop.<img src="images/lablauncher-logo.png" alt="The oTree LabLauncher app icon" class="step-inline-icon" /></li>
         <li>Click "Browse" and point it at your oTree study folder.</li>
         <li>Get it ready for the lab.</li>
         <li>Launch.</li>
