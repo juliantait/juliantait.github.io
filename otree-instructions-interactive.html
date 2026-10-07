@@ -147,74 +147,100 @@ a { color: var(--accent); }
 .experimental-screen {
     display: flex;
     justify-content: center;   /* horizontal centring */
-    align-items: center;       /* vertical centring of a short card */
-    /* Fill the viewport so a card that does not need to scroll sits centred both
-       ways. min-height (not height) means a card TALLER than the viewport simply
-       grows the page: it stays fully reachable and scrolls downward, rather than
-       being clipped. */
+    /* THE CARD TOP IS ANCHORED, NOT CENTRED, YET SYMMETRIC AT REST (Julian,
+       2026-08-18). The card's top edge must sit at the SAME position on every
+       page — a viewport-centred card moves its top up and down as content height
+       changes, which is exactly the jump he does not want. So the card is aligned
+       to the START of the shell (top-anchored) in ALL THREE modes, at a top
+       offset of --card-margin below the viewport top. Because the resting floor
+       is `--card-min = 100dvh − 2·--card-margin`, a resting card fills the middle
+       and leaves the SAME margin below it as above (top = bottom = --card-margin)
+       — symmetric, so at rest it reads as centred — while a card TALLER than the
+       floor grows DOWNWARD from that fixed top and the whole page scrolls, top
+       unmoved. One token, --card-margin, sets both the offset here and the floor,
+       so the anchor is a viewport FRACTION and the two cannot drift.
+       `safe center` is gone from here on purpose — it was the vertical centring
+       that moved the top. */
+    align-items: flex-start;
+    /* Fill the viewport so a resting card sits in a full-height frame; min-height
+       (not height) means a card TALLER than the viewport simply grows the page
+       downward from the anchored top: it stays fully reachable and the page
+       scrolls, rather than being clipped. */
     min-height: 100vh;
-    /* EQUAL MARGINS. One symmetric gutter on all four sides, so the grey band
-       above the card matches the band beside it. The middle term is 3vw — the
-       SAME as the card's own 94vw side gutter ((100 − 94)/2 = 3vw) — so when the
-       card is width-limited the top gap equals each side gap exactly. Vertical
-       centring then keeps top = bottom on a short card. */
-    padding: clamp(16px, 3vw, 40px);
+    /* VERTICAL padding = --card-margin, so the top offset equals the resting
+       bottom margin (symmetry) and tracks the viewport. HORIZONTAL padding is the
+       3vw side gutter — the SAME as the card's own 94vw side gutter
+       ((100 − 94)/2 = 3vw) — so a width-limited card sits in an even side band. */
+    padding: var(--card-margin) clamp(16px, 3vw, 40px);
     background: var(--page-bg);
 }
 
 /* COMPONENT — card frame. INTENTION: the single white card every page sits in.
-   ONE card width for EVERY page; only its height responds to content. Long-form
-   text stays readable because running text carries its own reading band;
-   functional components (tables, widgets) span the card's inner width.
+   ONE card width for EVERY page; its height responds to content. Long-form text
+   stays readable because running text carries its own reading band; functional
+   components (tables, widgets) span the card's inner width.
 
-   HEIGHT: A FLOOR *AND* A CEILING. The card is never shorter than --card-min
-   (so a one-line page does not look stubby) and never taller than --card-max
-   (so the page background always frames it — the white edge must never touch the
-   top or bottom of the screen). Between the two it sizes to its content. Past
-   the ceiling the card does NOT grow: the middle region scrolls inside it (see
-   .experimental-content), which is why this element is a flex column.
+   HEIGHT — MODE 1, THE DEFAULT: A FLOOR, AND NO CEILING (2026-08-18 scroll-model
+   overhaul; see DECISIONS.md "The scroll model is three modes" and
+   _ai/scroll_model/). The card is never shorter than --card-min, so a one-line
+   page still fills the screen and does not collapse to a stub. There is NO
+   max-height: a card taller than the floor simply grows with its content and the
+   WHOLE BROWSER VIEWPORT scrolls — header, copy and logo footer together — with
+   the forward / decision control at the natural bottom. This is the SAFE default:
+   it is exactly what renders if no page script runs, so nothing a participant
+   needs can be hidden by a fit-check that fails silently (CLAUDE.md's warning).
 
-   dvh with a vh fallback: on mobile `vh` ignores the retracting URL bar, so a
-   88vh card can still overflow the visible area on a phone. Browsers that do not
-   know `dvh` drop the second declaration and keep the first. */
+   THE OTHER TWO MODES DO NOT LIVE ON THIS RULE, on purpose:
+     * MODE 2 (single-page fit) is progressive enhancement layered ON TOP of
+       Mode 1 by the `.single-page-fit` class global.js adds — font + spacing
+       only, never a ceiling. See THE SINGLE-PAGE FIT below.
+     * MODE 3 (inner-card scroll) is the DORMANT opt-in `.inner-scroll` further
+       down — it, and ONLY it, restores the max-height ceiling and the inner
+       scroll region. The results page uses it; any page may re-enable it. */
 :root {
-    /* THE FLOOR IS DERIVED FROM THE TASK SCREEN (change_requests item 5,
-       2026-08-11). A card shorter than the game screen makes the frame jump
-       between pages, which is what Julian saw: measured at 1280x720, short
-       pages (lab gate, Prolific ID, game screen) sat at the 75vh floor = 540px
-       while tall pages (consent, quiz, results) sat at the 88vh cap = 634px —
-       a 94px jump every time the participant moved between them.
-       HOW THE NUMBER IS DERIVED, so it stays stable rather than following
-       whatever the placeholder task screen happens to contain today:
-       scripts/tests/render_check.py renders the task pages with the floor DISABLED and
-       records their NATURAL height (geometry.json -> card_min_derivation). For
-       this template that is ~300px at 1280x720 — far BELOW the tall pages — so
-       the binding constraint is "never shorter than the tall pages" and the
-       derived floor rounds up to the ceiling: one constant card height, no
-       jumping. A real study re-derives --card-derived from ITS task screen;
-       the render check FAILS if the task screen ever grows past the floor,
-       which is the signal to re-derive rather than let the jumping return.
-       THE min() IS LOAD-BEARING. A floor expressed in px alone would, on a
-       short window, exceed the ceiling — and CSS lets min-height beat
-       max-height, so the card would grow past 88vh, touch the top and bottom
-       of the screen and start scrolling the page. Taking the min with
-       --card-max means the ceiling always wins on a short window and the card
-       simply sits at the cap with its content region scrolling, which is what
-       short windows already do. */
-    --card-derived: 88vh;
-    --card-max: 88vh;
-    --card-min: min(var(--card-derived), var(--card-max));
+    /* --card-margin — THE RESTING MARGIN (Julian, 2026-08-18). A PROPORTIONAL,
+       viewport-scaled band that sits above AND below the card at rest, so the
+       resting card looks CENTRED (equal top and bottom) even though it is
+       top-ANCHORED. It is ONE token feeding two things — the resting floor below
+       and the shell's top offset (see .experimental-screen) — so the two cannot
+       drift and the anchor point is a fraction of the viewport, not a fixed pixel
+       count. dvh so it tracks the real visible height on mobile (a bare vh
+       ignores the retracting URL bar); the vh here is the fallback for browsers
+       without dvh, overridden below. ~6dvh reproduces the old 88vh resting card. */
+    --card-margin: 6vh;
+    /* --card-min — THE RESTING FLOOR, AND IT IS A FIXED FRAME, NOT A SHRINK-WRAP.
+       = the viewport MINUS the two resting margins, so at rest the card fills the
+       middle band exactly and its top margin equals its bottom margin (symmetric,
+       reads as centred). Because it is a `min-height` (see .screen-card), a card
+       whose content is SHORTER than this stays pinned at --card-min and NEVER
+       hugs its content — the content fills or centres INSIDE the fixed frame — so
+       two short pages with different amounts of content show the identical card
+       with no jump between them. Only content TALLER than --card-min grows the
+       card, DOWNWARD past the bottom margin, and the whole page scrolls while the
+       anchored top stays put (Mode 1). There is NO max-height on the default card
+       — see .screen-card. */
+    --card-min: calc(100vh - 2 * var(--card-margin));
+    /* --inner-scroll-max — MODE 3'S CEILING, equal to the resting floor. With the
+       min and the max coinciding an `.inner-scroll` card (the results page) is a
+       FIXED --card-min frame whose overflow scrolls INSIDE the card. Used ONLY by
+       `.inner-scroll` (see `.inner-scroll .experimental-content`), never by the
+       default card. */
+    --inner-scroll-max: var(--card-min);
     /* The width a scroll region reserves for its scrollbar on EACH edge
        (`scrollbar-gutter: stable both-edges`). It must equal the
        ::-webkit-scrollbar width below; anything that needs to line up with the
        content INSIDE a scroll region reads it from here. */
     --scroll-gutter: 10px;
+    /* --single-page-font-floor — MODE 2'S LEGIBILITY FLOOR. The smallest body
+       font the single-page fit may shrink to before it GIVES UP and falls back
+       to Mode 1 whole-window scroll. Tied to the base scale (base font is
+       clamp(16px..19px)); ~15px is a narrow band down from it, still readable. */
+    --single-page-font-floor: 15px;
 }
 .screen-card {
     width: 100%;
     max-width: min(94vw, 1200px);
     min-height: var(--card-min);
-    max-height: var(--card-max);
     margin-inline: auto;
     background: var(--card-bg);
     border: 1px solid var(--line);
@@ -227,50 +253,43 @@ a { color: var(--accent); }
     /* Flush-left is the default; the narrative family (below) opts into
        centring, and the card itself is never centre-aligned by default. */
     text-align: left;
-    /* DO NOT add transform / filter / backdrop-filter / contain to this rule.
-       Any of them makes the card a containing block for position:fixed, which
-       would trap the tab-monitor's full-screen overlay inside the card. */
+    /* DO NOT add transform / filter / backdrop-filter / contain / zoom to this
+       rule — nor to the single-page-fit scaling below. Any of them makes the
+       card a containing block for position:fixed, which would trap the
+       tab-monitor's full-screen overlay inside the card. This is WHY Mode 2
+       scales with font-size and spacing tokens and never with transform/zoom. */
 }
 @supports (height: 1dvh) {
-    :root { --card-max: 88dvh; }
+    /* The dvh forms; --inner-scroll-max references --card-min, so it follows. */
+    :root {
+        --card-margin: 6dvh;
+        --card-min: calc(100dvh - 2 * var(--card-margin));
+    }
 }
 
-/* THE SCROLL REGION — ON A WIDE SCREEN. The header strip and the button row are
-   PINNED (they are flex:0 0 auto siblings) and only this middle region scrolls.
+/* THE CONTENT REGION — MODE 1 (THE DEFAULT): PLAIN DOCUMENT FLOW, NO INNER
+   SCROLL. The header strip and the button row are still flex siblings, but with
+   no max-height on the card there is nothing to scroll INSIDE: the region grows
+   with its content, the card grows with the region, and the WHOLE BROWSER
+   VIEWPORT scrolls — so the forward / decision control sits at the natural
+   bottom of the content and is reached by scrolling PAST it, never pinned beside
+   it. That is the property this template wants everywhere now, for the reason it
+   already wanted it on a phone: a pinned action on a screen where the choice is
+   below the cut is the "reach the action before seeing what you are agreeing to"
+   shape, which consent and the agreement page must never have.
 
-   THE INTENTION, STATED HONESTLY (rewritten 2026-08-12, improvement_suggestions
-   item 1). This used to read "so the forward action is always on screen". That
-   is TRUE ON A WIDE SCREEN and is why the pattern exists: a participant on a
-   laptop never has to hunt for Next. IT IS DELIBERATELY NOT TRUE ON A PHONE.
-   Below 520px the card-scroll model is switched off entirely (see the phone
-   breakpoint further down): the card grows, the PAGE scrolls, and Next sits
-   after the content in document order — so on a phone the forward action is
-   reached BY scrolling past the content rather than being pinned beside it.
+   THE INNER-SCROLL MODEL IS NOT GONE — it is the DORMANT `.inner-scroll` opt-in
+   below (Mode 3), which the results page uses and any page may re-enable. Its
+   scroll region, its `min-height: 0` load-bearing line and all four affordance
+   layers live there, scoped to `.inner-scroll .experimental-content`, with their
+   reasoning preserved. On a Mode-1 page the region never overflows (the card
+   grows instead), so global.js never sets the `.is-scrollable-*` classes and the
+   fade/cue simply never fire — no script, no phantom shadow.
 
-   Why the difference is on purpose, and not a compromise: at 375x667 the
-   consent page's copy is ~750px in a ~415px region, so no arrangement of a
-   pinned layout puts the consent options above the fold — the one thing this
-   template may not do is trim consent copy. A pinned Next on a screen where the
-   choice is below the cut is the "reach the action before seeing what you are
-   agreeing to" shape, which is worse than scrolling. Phone participants also
-   expect to scroll a page rather than a box inside it. So: pinned action on a
-   wide screen, natural document flow on a narrow one, and the property claimed
-   here holds exactly where it is claimed.
-
-   `min-height: 0` IS LOAD-BEARING. A flex child's default min-height is `auto`,
-   which refuses to shrink below its content — without this line the region
-   silently never scrolls and the card grows past its max-height instead. This is
-   the single most common way this pattern fails; do not remove it.
-
-   `safe center` keeps the short-page vertical centring while guaranteeing that
-   overflowing content is never cut off at the TOP (plain `center` makes the
-   overflow above the box unreachable). Browsers without `safe` keep plain
-   `center`, which is correct for them because they only reach this rule when the
-   content is short enough not to overflow anyway.
-
-   The padding is not decoration: `overflow-y: auto` also clips horizontally, and
-   a :focus-visible ring is 3px + 2px offset. Without room the focus outline on
-   the first/last option card would be sliced off by the scroll edge. */
+   `safe center` keeps a SHORT page's content vertically centred in the region
+   (the region fills the card's --card-min floor); a tall page just flows from
+   the top. Browsers without `safe` keep plain `center`, correct for them because
+   a Mode-1 card grows rather than clipping. */
 .experimental-content {
     /* NO `width: 100%` HERE, and that is deliberate. As a flex item of the card
        this region already stretches to the card's content width; adding
@@ -284,15 +303,45 @@ a { color: var(--accent); }
     flex-direction: column;
     gap: 16px;
     flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
     justify-content: center;
     justify-content: safe center;
+    /* The symmetric padding/negative-margin pair holds a :focus-visible ring's
+       gutter open without shifting anything (it nets to zero). Kept from the
+       inner-scroll era because it costs nothing and keeps the band-centring math
+       identical whether or not a page opts into inner scroll. */
     padding: 8px;
-    margin: -8px;           /* cancel the focus-ring gutter so nothing shifts */
+    margin: -8px;
     scroll-padding-block: 8px;
+}
 
-    /* SCROLL AFFORDANCE — THREE LAYERS. Measured 2026-08-10: the background
+/* ===========================================================================
+   MODE 3 — INNER-CARD SCROLL. THE DORMANT OPT-IN. (2026-08-18 scroll overhaul.)
+   ---------------------------------------------------------------------------
+   `.inner-scroll` on a `.screen-card` restores the OLD model: the card is capped
+   at --inner-scroll-max and its MIDDLE region scrolls inside it while the header
+   and the footer stay pinned. It is retained for ONE live user — the results
+   page (outro/Results.html), whose round-payment detail is collapsed by default
+   so the collapsed state fits one page and expanding it scrolls INSIDE the white
+   card — and documented as a reusable opt-in any page can turn back on. The
+   reasoning below is the reasoning that used to sit on the unconditional rule;
+   it is preserved because it is still true wherever this mode is used.
+
+   `min-height: 0` IS LOAD-BEARING. A flex child's default min-height is `auto`,
+   which refuses to shrink below its content — without this line the region
+   silently never scrolls and the card grows past its max-height instead. This is
+   the single most common way this pattern fails; do not remove it.
+
+   The padding/margin pair is not decoration here either: `overflow-y: auto` also
+   clips horizontally, and a :focus-visible ring is 3px + 2px offset, so without
+   the gutter the focus outline on the first/last option card would be sliced off
+   by the scroll edge. It is inherited from the default rule above (same value),
+   so it does not need repeating. */
+.screen-card.inner-scroll { max-height: var(--inner-scroll-max); }
+.inner-scroll .experimental-content {
+    min-height: 0;
+    overflow-y: auto;
+
+    /* SCROLL AFFORDANCE — FOUR LAYERS. Measured 2026-08-10: the background
        gradients alone (layer 2) were far too quiet to read as "there is more
        below", and a background can only ever paint BEHIND the text, so a
        partially visible line was still sliced cleanly through the glyphs and
@@ -313,7 +362,8 @@ a { color: var(--accent); }
        3. A CONTENT FADE (the .is-scrollable-* rules below), applied as a MASK
           so it fades the text itself. It is driven by global.js, which knows
           the scroll position, so the LAST line is never faded — the fade means
-          "there is more", always. */
+          "there is more", always.
+       4. THE WIDE LOW PULSING V (the scroll-cue component further down). */
     scrollbar-gutter: stable both-edges;
     /* THE MASKING GRADIENTS MUST BE FULLY OPAQUE FOR AT LEAST THE SHADOW'S
        HEIGHT (16px). They are 30px tall and solid to 60% of that = 18px, then
@@ -322,16 +372,75 @@ a { color: var(--accent); }
        scroll — a phantom band across a card that fits, which is worse than no
        affordance at all (measured on the lab gate and the instructions page,
        2026-08-11).
-       NB 2026-08-11 (2): the `/*` that opens this comment was MISSING, so CSS
-       error recovery swallowed everything from here to the end of the
-       `background` declaration below — layer 2 was silently absent from every
-       page. A comment that does not open is not a comment; it is a deleted
-       rule. */
+       NB the `/*` that opens this comment was once MISSING, so CSS error
+       recovery swallowed everything to the end of the `background` declaration
+       below — layer 2 was silently absent from every page. A comment that does
+       not open is not a comment; it is a deleted rule. */
     background:
         linear-gradient(var(--card-bg) 60%, rgba(255, 255, 255, 0)) top / 100% 30px no-repeat local,
         linear-gradient(rgba(255, 255, 255, 0), var(--card-bg) 40%) bottom / 100% 30px no-repeat local,
         radial-gradient(farthest-side at 50% 0, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) top / 100% 16px no-repeat scroll,
         radial-gradient(farthest-side at 50% 100%, rgba(16, 32, 52, .30), rgba(255, 255, 255, 0)) bottom / 100% 16px no-repeat scroll;
+}
+
+/* ===========================================================================
+   MODE 2 — SINGLE-PAGE FIT. PROGRESSIVE ENHANCEMENT, DESKTOP, TWO PAGES.
+   ---------------------------------------------------------------------------
+   COMPONENT — single-page fit. INTENTION: fit all of a short-ish page's content
+   in ONE viewport with no scroll, by tightening spacing and reducing the body
+   font within a narrow band — used on exactly the consent welcome page
+   (before/welcome+consent.html) and the tab-monitor agreement
+   (before/tab_monitor_agree.html), and only on desktop.
+
+   A page opts in by marking its `.screen-card` `data-single-page`. global.js's
+   `initSinglePageFit` then MEASURES and, on a desktop only, adds
+   `.single-page-fit` and sets `--single-page-font` to the largest body font
+   (from the base scale DOWN TO --single-page-font-floor) at which the whole card
+   fits one viewport. If it fits at or above the floor: one centred screen, no
+   scroll. If even the floor will not fit, the JS GIVES UP — removes the class —
+   and the page is plain Mode 1 whole-window scroll.
+
+   SCALES WITH FONT-SIZE AND SPACING ONLY — never transform/zoom/filter, each of
+   which would make the card a containing block and trap the tab-monitor overlay
+   inside it (see the .screen-card warning). Dropping the card's font shrinks
+   every em-based pad/gap with it; this block tightens the few fixed px/vw rhythms
+   on top of that. `font-size` is set from the JS-provided custom property so the
+   value the fit chose is data, not a hard-coded step.
+
+   THE DECISION CONTROLS ARE NEVER PINNED: accept / decline / acknowledge stay at
+   the end of the content (the ordinary foot button row), so a participant cannot
+   reach the choice without passing the reading, and cannot miss that there is
+   more. Phones never run this (always Mode 1); with no JS the class is never
+   added, so the SAFE Mode-1 default always shows through.
+   Specimen in _static/global/html/template.html. */
+.screen-card.single-page-fit {
+    font-size: var(--single-page-font, 1rem);
+    gap: clamp(10px, 1.6vw, 18px);
+}
+.screen-card.single-page-fit .experimental-header { gap: 8px; }
+.screen-card.single-page-fit .experimental-content { gap: 8px; }
+.screen-card.single-page-fit > .button-row { padding-top: 12px; }
+.screen-card.single-page-fit .panel { padding: clamp(10px, 1.8vw, 16px); }
+/* MODE 2 tightens the READING RHYTHM too, not only the font. INTENTION: the
+   base body line-height (1.65) is generous for comfortable Mode-1 reading; in the
+   one-viewport Mode-2 fit it costs height on every wrapped line, so it tightens
+   to 1.4 — still an easy-to-read measure, and the largest single reclaim
+   available without dropping below the legibility font floor. This is what lets
+   the Prolific consent page carry its quiz-attempts return-request disclosure AND
+   keep the consent control above the fold at 1280x720 (before/welcome+consent.html);
+   the agreement page, which has spare height, is simply a touch tighter. Scoped
+   to .single-page-fit so Mode-1 reading is untouched. */
+.screen-card.single-page-fit .experimental-content :is(p, .section-text, .panel, label) {
+    line-height: 1.4;
+}
+/* A stacked form's last field (e.g. the consent radio) carries a trailing
+   form-field margin (oTree's .mb-3) that only pushes the fold down in Mode 2 —
+   the flex gap above and the button row below already own the spacing. Reclaim
+   it. Harmless in Mode 1 because this is .single-page-fit-scoped. */
+.screen-card.single-page-fit .stacked-form > *:last-child {
+    /* !important: oTree's .mb-3 is a Bootstrap utility (margin-bottom !important),
+       so a plain rule cannot beat it. */
+    margin-bottom: 0 !important;
 }
 
 /* Layer 1 — the scrollbar itself. WebKit/Blink ignores scrollbar-width when a
@@ -623,6 +732,31 @@ a { color: var(--accent); }
     box-shadow: inset 3px 0 0 var(--danger);
 }
 
+/* COMPONENT — elicitation box. INTENTION: the SHARED FRAME every elicitation
+   sits in, so a slider, an allocation, a rating or any other ACTIVE input
+   region looks the same and reads as "here is where you answer" — visual
+   separation of the response from the surrounding prose, as a CONVENTION rather
+   than styling local to one control. The next agent adding an elicitation drops
+   the control inside `<div class="elicitation">…</div>` and it is framed
+   automatically; the control itself (e.g. .slider-elicit) carries only its own
+   internal look.
+
+   DISTINCT FROM .panel ON PURPOSE, and it must stay two classes not one. .panel
+   is the quiet grey box for SECONDARY INFORMATION (a note, a reminder); this
+   frames an ACTIVE INPUT the participant acts on. So it is the raised WHITE
+   surface with a stronger border and a soft lift — it stands forward off the
+   card as the thing to interact with, where the panel sits back into it. Do not
+   collapse them by tinting a panel: the intention differs, so the class does.
+   Specimen in _static/global/html/template.html (the slider elicitation is its
+   first user). */
+.elicitation {
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(16px, 2.6vw, 22px);
+}
+
 .hint { color: var(--ink-mute); font-size: 0.86em; }
 
 /* COMPONENT — template note. INTENTION: a muted italic aside addressed to the
@@ -636,6 +770,28 @@ a { color: var(--accent); }
     color: var(--ink-mute);
     font-style: italic;
 }
+
+/* COMPONENT — closing instruction. INTENTION: the ONE sentence that points a
+   participant at the control that ends the study ("click the button below…").
+   It is CENTRED on every ending page, in every card family, because it belongs
+   to the control below it rather than to the running copy above it.
+
+   WHY IT IS A COMPONENT AND NOT A PAGE RULE (2026-08-21). The sentence is
+   written on BOTH endings — outro/Results.html and outro/Ended.html — and its
+   centring used to be decided in two different places, which is the inverted
+   collapsed-distinction fault in CLAUDE.md: on Ended it came free from
+   `.narrative-card .section-text`, while Results (a plain `.screen-card`, no
+   narrative family) had nothing centring it at all and the line simply sat
+   flush-left under a centred receipt. Nothing errored and no test went red —
+   one concept, two implementations, and they had already drifted. Now both
+   pages compose the SAME class and the alignment is decided once.
+
+   Compose it with `.section-text`, which supplies the reading measure and
+   centres the BLOCK; this class only sets the TEXT alignment inside it. Pinned
+   by scripts/tests/render_check.py leg AH (measured, both endings) and by
+   scripts/tests/ending_copy_test.py (document order). Specimen in
+   _static/global/html/template.html. */
+.closing-instruction { text-align: center; }
 
 /* FAMILY — narrative card. INTENTION: narrative screens (welcome, consent, the
    agreement and part/block-start screens) CENTRE their script — the page title,
@@ -694,7 +850,165 @@ a { color: var(--accent); }
     padding-top: 4px;
 }
 
+/* THE BUTTON-ROW ORDER RULE (Julian, 2026-08-21) — THE PRIMARY ACTION IS THE
+   RIGHTMOST CONTROL IN THE ROW, and every secondary action sits to its left.
+
+   It is A RULE OF THE COMPONENT, not a decision each page makes, and it is
+   enforced here rather than by everyone remembering. Nearly every page in this
+   template has a one-button row, so the convention was invisible and the one
+   page that has two got it backwards: the online quiz rendered
+   `[Next] [Re-read the instructions]`, putting a SECONDARY control in the slot
+   a participant's eye and thumb both go to first. Julian read it as an offer to
+   leave the quiz rather than as the way on — which is exactly what the right
+   edge of a button row promises.
+
+   THE PRIMARY IS `.next-button` WITHOUT `.ghost`. The ghost variant IS the
+   secondary shape of the same button (the instructions pager's "Back"), so
+   keying on `.next-button` alone would put "Back" and "Next" in the same slot
+   and settle nothing. `.quiz-reread-btn`, `.skip-button` and `.exit-button` are
+   not `.next-button` at all, so they order before the primary for free — a new
+   secondary control therefore obeys the rule without being added to a list here.
+
+   DOM ORDER STILL MATTERS AND IS STILL WRITTEN CORRECTLY. `order` is a backstop,
+   not the plan: where the markup already reads secondary-then-primary (the
+   instructions pager, the quiz row since this change) this rule changes nothing
+   and the visual order, the DOM order and the TAB order agree. It is here so a
+   page that gets the markup wrong renders right anyway, which is the lesser of
+   the two faults.
+
+   NOT `.modal-actions`. That is a different component with its own settled
+   convention (primary first — see the specimen in template.html and the quiz
+   failure modals), and every modal in the template already agrees with itself.
+   Left alone deliberately; do not "unify" them without deciding that question
+   on its own merits. */
+.button-row > .next-button:not(.ghost) { order: 1; }
+
 .screen-card > .button-row { margin-top: auto; padding-top: 24px; }
+
+/* COMPONENT — THE ROOM ENTRY GATE  (Julian, 2026-08-18)
+   =============================================================================
+   INTENTION: vertically centre the content on oTree's room-entry interstitial
+   (`_templates/room_welcome.html`, wired via `welcome_page` on settings.ROOMS),
+   instead of foot-anchoring its one button the way every in-app page does.
+
+   WHY THIS PAGE IS AN EXCEPTION, AND WHY IT IS *NOT* THE SAME EXCEPTION AS ANY
+   OTHER. The default card layout (above) does two things a normal page wants:
+   it holds the `--card-min` floor so the frame never jumps between screens, and
+   it pushes the forward action to the FOOT (`.screen-card > .button-row`,
+   `margin-top: auto`) so content sits up top and the action sits near the
+   bottom. That reads well when the card is FULL — a consent page, the quiz, the
+   task. The room gate is the degenerate case: one line of copy and a Start
+   button. Foot-anchoring the button there leaves the copy stranded at the top
+   and the button alone at the bottom with a wide dead band between them
+   (measured ~270px in the downstream study this mirrors). So the gate KEEPS the
+   floor — visual consistency with every other screen is the whole reason not to
+   just shrink the card — but CENTRES its header+content+button as a group within
+   that floor rather than splitting them to the two edges. (The header is the
+   study's styled `Welcome` — eyebrow + title — added 2026-08-18; the group it
+   centres is those three, top to bottom.)
+
+   THIS IS ITS OWN CLASS ON PURPOSE. It does NOT reuse or extend `.narrative-card`
+   (which only decides HORIZONTAL text treatment — the gate still composes that
+   for its centred copy), nor any other page's exception. One class silently
+   governing two unrelated screens is exactly the trap: a future tweak aimed at
+   some other short page would quietly move the FIRST screen every participant
+   sees. `.room-gate` names one screen and one screen only; do not reach for it
+   from anywhere else, and if another short page ever wants centring, give it its
+   own class rather than sharing this one.
+
+   HOW IT CENTRES, with the footer still at the foot. The card is a flex column.
+   TWO auto margins, BOTH OWNED BY THIS BLOCK, share the free space equally: a
+   `margin-top: auto` on `.experimental-header` (the FIRST element of the group)
+   and a `margin-bottom: auto` on the button row. The result is F/2 above the
+   header and F/2 between the button and the logo, so the header+content+button
+   trio is centred in the space above the footer, and that same lower margin
+   pushes the logo strip flush to the card's bottom edge — the LOGO FOOTER RULE's
+   outcome (order 999, divider above, at the foot) is preserved; only the
+   mechanism that pins it there changes. (The upper margin lived on
+   `.experimental-content` until 2026-08-18, when the header was added above the
+   copy; an auto margin on the content would now split the header off the top
+   instead of centring the whole group, so it moved up to the header.)
+
+   WHY THIS BLOCK PINS THE FOOTER ITSELF INSTEAD OF LEANING ON THE FOOTER RULE'S
+   OWN `margin-top: auto`. Because that margin is NOT there on the screens that
+   matter. The `@media (max-height: 820px)` block below zeroes
+   `.logo-section`'s margin-top to buy back rhythm — and a 1280x720 laptop (the
+   single most common participant display) and every phone match it. Had this
+   block used the footer's margin as the second centring margin, only ONE auto
+   margin would survive on those screens, it would eat all the free space, and
+   the copy would sit at the BOTTOM of the card instead of centred — green on a
+   tall desktop, broken on the screen most participants actually arrive on. So
+   this block sets `.logo-section`'s margin-top to 0 in ALL viewports and does
+   its own pinning with the button's bottom margin. Two margins, both here, no
+   dependency on a rule a media query rewrites out from under it.
+
+   For the two margins to have space to share, the content region must NOT grow
+   (it defaults to `flex: 1 1 auto`, which would eat the free space first and
+   leave the margins nothing) and the button must NOT foot-anchor (or it lands at
+   the bottom, not under its copy). Both are overridden below. This page is
+   always short by construction, so dropping the grow/scroll behaviour costs
+   nothing here.
+
+   NOTE ON ASSET LOADING — this is easy to get wrong. The gate links base.css
+   ITSELF (see the template header), NOT via css_bundle.html, so this rule only
+   reaches the page because it lives in base.css. Do not move `.room-gate` into a
+   per-page stylesheet: the gate does not load those, and the class would
+   silently do nothing, falling back to the plain foot-anchored card. And because
+   the gate's own <link> carries no `?v=` cache-buster (no page context for
+   C.STATIC_VERSION), a change here is easy to miss in a version bump — verify by
+   fetching the RENDERED page. Measured by scripts/tests/render_check.py leg AR. */
+/* ZERO THE CARD'S FLEX GAP, and let explicit margins carry the header->copy and
+   copy->button rhythm instead. This is not cosmetic — it is what makes the
+   centring EXACT. The card's `gap` is inserted BETWEEN flex items, so there is a
+   gap between the button row and the logo but NONE above the header (it is the
+   first child). That single unmirrored trailing gap rides the whole group up by
+   half its size — measured as an 8px error at the 16px laptop gap and 12px at
+   the 26px desktop gap, i.e. exactly gap/2, and it grows with the gap. With the
+   gap at 0, the two auto margins are the only vertical space, so they frame the
+   group symmetrically. (The header->copy spacing is the content's own
+   margin-top below, and the copy->button spacing is the button row's
+   padding-top, the same rhythm every page's forward action already uses.) */
+.room-gate.screen-card { gap: 0; }
+/* THE UPPER HALF OF THE CENTRING lives on the HEADER, because the header is the
+   FIRST element of the centred group (eyebrow + Welcome title, added 2026-08-18
+   to restore the styled heading the .room-gate work had left off). It used to
+   sit on `.experimental-content` back when the copy was the first child; with a
+   header above the copy, an auto margin on the content would open a gap BETWEEN
+   the header and the copy and strand the header at the top instead of centring
+   the whole group. `.experimental-header` is already `flex: 0 0 auto` (it will
+   not grow), so this margin is free to take the upper share of the slack. */
+.room-gate .experimental-header { margin-top: auto; }
+.room-gate .experimental-content {
+    /* Hug the copy instead of ballooning to fill the card, so the free space
+       survives for the two auto margins to centre the group. */
+    flex: 0 0 auto;
+    /* The base rule pairs `padding: 8px` with `margin: -8px` to hold a focus-ring
+       gutter open inside the scroll region. This page never scrolls, so the
+       gutter is pointless here — and its negative BOTTOM margin would pull the
+       button up into the copy, overlapping the rhythm the button row's
+       padding-top is meant to set. Drop both — netting to zero horizontally, as
+       the phone breakpoint already does. The TOP margin is now header->copy
+       RHYTHM (not centring — the centring auto margin moved up to the header
+       above): the card's normal inter-block gap, so the space under the Welcome
+       title matches the header->content spacing every other screen gets from
+       that same gap. */
+    padding: 0;
+    margin: clamp(16px, 2.6vw, 26px) 0 0 0;
+}
+/* Un-foot-anchor the button (margin-top: 0) so it hugs directly under its copy —
+   the padding-top from the base rule stays as ordinary rhythm; that 24px is
+   spacing, not the dead band this fixes. `margin-bottom: auto` is the lower half
+   of the centring AND what pins the logo strip to the foot (see the block header
+   for why this block owns that pin rather than the footer rule). Higher
+   specificity than `.screen-card > .button-row`. */
+.room-gate.screen-card > .button-row { margin-top: 0; margin-bottom: auto; }
+/* Take the footer's own top margin out of the centring maths in EVERY viewport,
+   so exactly two auto margins (both above) do the work. On short screens the
+   media query already sets this to 0; here we also beat the tall-screen
+   `.screen-card > .logo-section { margin-top: auto }` (same specificity, this
+   rule is later). The strip still lands at the foot — the button's bottom margin
+   puts it there. */
+.room-gate .logo-section { margin-top: 0; }
 
 .next-button,
 button.next-button,
@@ -1082,21 +1396,28 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
     :root { --logo-box-h: 32px; --logo-box-w: 224px; }
     .logo-row { gap: 18px; }
 
-    .screen-card { max-height: none; }
-    /* A card that now EXCEEDS the viewport must not be centred by the old
-       rule: `align-items: center` on an overflowing flex item pushes its top
-       above the container's start edge, where it cannot be scrolled back to.
-       `safe center` centres a card that fits and falls back to start-aligning
-       one that does not; browsers without `safe` keep the flex-start line
-       above it, which is the correct behaviour for them for the same reason. */
-    .experimental-screen {
-        align-items: flex-start;
-        align-items: safe center;
-    }
-    .experimental-content {
+    /* THE INNER-SCROLL OPT-IN LETS GO ON A PHONE. A Mode-1 card already has no
+       ceiling and no inner scroll, so these only affect a `.inner-scroll` page
+       (the results page): on a phone it drops the cap and scrolls the PAGE like
+       everything else, rather than trapping the receipt in a box inside the card.
+       `.inner-scroll …` is needed on both because the opt-in rules out-rank the
+       bare-class defaults on specificity (a media query adds none). The
+       affordance background is cleared with it, or its local gradients would
+       paint phantom bands once the region no longer scrolls. */
+    .inner-scroll.screen-card { max-height: none; }
+    .inner-scroll .experimental-content {
         overflow: visible;
-        /* the padding/negative-margin pair existed to stop `overflow-y: auto`
-           clipping a focus ring; with nothing clipping, it only adds width. */
+        background: none;
+        scrollbar-gutter: auto;
+    }
+    /* The card top is already anchored (base `.experimental-screen`,
+       align-items: flex-start), so a phone card that exceeds the viewport grows
+       downward and the page scrolls — no per-breakpoint alignment override is
+       needed any more. */
+    .experimental-content {
+        /* the padding/negative-margin pair held a focus-ring gutter open inside
+           the (now absent) inner scroller; with nothing clipping it only adds
+           width, so drop it on a phone. */
         padding: 0;
         margin: 0;
     }
@@ -1119,6 +1440,17 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
    only 634px tall. Measured 2026-08-10: on that screen the consent options sat
    entirely below the fold, so a participant could reach Next without ever seeing
    the choice they were consenting to.
+
+   ITS ROLE UNDER THE THREE-MODE MODEL (2026-08-18): this block is NO LONGER what
+   clears the consent fold — consent and the agreement are Mode 2 single-page fit
+   on a desktop, which fits the whole choice in one viewport by tightening
+   font+spacing itself, and on a phone / on a Mode-1 fallback the choice is
+   reached by scrolling the page (bypass-proof, never pinned). What survives is
+   this block's ORIGINAL, broader job: on any SHORT screen it tightens the
+   card's vw-driven rhythm so a Mode-1 page needs less scrolling and a short page
+   frames its content better. It is general Mode-1 short-screen tightening now,
+   not a fold-clearing patch for a capped scroller — the capped scroller is the
+   dormant `.inner-scroll` opt-in above.
 
    This block buys back ~60px of visible content on a 720px-tall screen by
    tightening spacing ONLY — no font size, no copy, no component changes, so
@@ -1583,7 +1915,177 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
     transition: width .3s ease;
 }
 
-/* --- COMPONENT: warning modal ------------------------------------------------
+/* ===========================================================================
+   THE NOTIFICATION TIER LADDER — the study's four ways of putting something in
+   front of a participant, numbered 0–3 by how far OUTSIDE the experiment frame
+   the message sits. ONE place, so a new pop-up is a CHOICE BETWEEN FOUR
+   DOCUMENTED BEHAVIOURS rather than a fresh invention with its own z-index and
+   its own idea of how to be dismissed (Julian, 2026-08-17; brief in
+   _ai/template_adoption_brief.md, Topic A — local only, _ai/ is gitignored).
+
+   The tier decides BEHAVIOUR (backdrop? how is it dismissed? can it move the
+   page layout?); the component keeps its own SKIN. Apply as
+   `class="popup popup--<tier>"`, plus the component's own skin class.
+
+     popup--anchored  (tier 0) NO backdrop. A small panel floated beside the
+                      control that opened it, absolute and out of flow, so
+                      opening it can never push the page down. Dismissed by an
+                      outside click or Escape. The page underneath stays usable.
+
+     popup--toast     (tier 1) NO backdrop, NOT dismissible by hand, absolutely
+                      positioned so it can never move layout, and it CLEARS
+                      ITSELF after a few seconds (or when the action completes).
+                      Julian calls this the SIDETONE. Announced politely
+                      (role="status") so a screen reader hears it without focus
+                      being stolen.
+
+     popup--modal     (tier 2) DIMMED BACKDROP, EXPLICIT DISMISSAL: it blocks
+                      the page until the participant acts. Escape-dismissible BY
+                      DEFAULT; a modal that must be ACKNOWLEDGED opts in to
+                      button-only dismissal with `popup--acknowledge`. It KEEPS
+                      THE STUDY'S VISUAL LANGUAGE — the card radius, the lift
+                      shadow, the shared button — because it is still the study
+                      talking, not the browser. IMPLEMENTED BY the warning-modal
+                      component below (.modal-backdrop / .modal-card); popup--modal
+                      is its ladder name, one rule block, not a second modal.
+
+     popup--takeover  (tier 3) FULL-BLEED and BLURRED, opaque backdrop, NO
+                      DISMISSAL AT ALL — it clears only when the blocking
+                      CONDITION clears, never by a button. The study has stopped
+                      and the participant cannot carry on from here. IMPLEMENTED
+                      BY .tabmon-overlay (tabmonitor.css, the red away-overlay),
+                      which predates this ladder; popup--takeover is its alias
+                      there, so tier 3 is catalogued, not rebuilt.
+
+   HOW A TIER IS CHOSEN AT THE CALL SITE — the one-line test:
+     in flow beside a control            → anchored
+     a fading acknowledgement of an act  → toast
+     must be decided before continuing   → modal
+     the study has stopped               → takeover
+   A takeover NEVER has a close control; if you need a button, it is a modal.
+   Copy is study-specific and passed in the markup (counts/prizes/rounds come
+   from config, per the no-hardcoded-quantities rule); the toast timeout is the
+   one allowed literal, an interaction timing, exposed as data-popup-timeout.
+
+   The BEHAVIOUR (open/close, ARIA, keyboard, focus trap, auto-dismiss) lives in
+   ONE place — global.js's "POPUP LADDER" block — keyed off these classes and
+   data-popup-* attributes, so a study author writes MARKUP ONLY. Specimens of
+   all four are in _static/global/html/template.html (CARD 3). Tiers 2 and 3
+   already had live instances when the ladder landed; those keep their own JS
+   (the warning modal, the quiz dialogs, the tab monitor) and are brought in by
+   NAME + the shared focus trap, not rewired — the tab-switch warning modal in
+   particular is left on its own tabmonitor chrome on purpose (it owns the
+   disqualification route; see DECISIONS.md).
+   =========================================================================== */
+
+/* Every popup sits above the page and never inherits the surrounding text
+   alignment. Nothing here positions anything — each tier does that itself,
+   because "does this take part in layout" is exactly what separates them. */
+.popup { text-align: left; }
+.popup[hidden] { display: none; }
+
+/* --- TIER 0: ANCHORED --------------------------------------------------------
+   INTENTION (lifted verbatim from the TODO entry that commissioned it): tier 0
+   is for something the participant ASKED FOR BY CLICKING — an explainer beside a
+   figure or a label, the meaning of a term, a reminder of the exchange rate or
+   of how the bonus is worked out; content that does not interrupt, does not
+   require a decision, and can be dismissed by looking away. What does NOT belong
+   here: anything the study needs the participant to acknowledge, anything that
+   reports a rule being broken, anything time-critical.
+
+   Distinct from .popover-anchor / .popover-panel above: THAT is a CSS-only
+   hover/focus tooltip (role="tooltip"), shown while hovered and gone when not.
+   THIS is CLICK-to-open and stays open until dismissed (role="dialog"), which is
+   why it needs the JS in global.js. Use the popover for a passive hint, tier 0
+   for something the participant deliberately opened.
+
+   The trigger is wrapped in .popup-anchor (position: relative) and the panel is
+   absolute under it, so opening the panel never pushes the page down. */
+.popup-anchor { position: relative; display: inline-flex; }
+
+.popup-trigger {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--card-bg);
+    color: var(--ink-mute);
+    font: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color .14s ease, color .14s ease, background-color .14s ease;
+}
+.popup-trigger:hover,
+.popup-trigger[aria-expanded="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.popup--anchored {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    width: min(320px, 78vw);
+    padding: 12px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lift);
+    font-size: .84em;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+.popup--anchored p { margin: 0; }
+.popup--anchored p + p { margin-top: .6em; }
+
+/* --- TIER 1: TOAST (the sidetone) --------------------------------------------
+   CANNOT MOVE THE LAYOUT — that is the whole contract. Absolutely positioned
+   inside its host (which must be position: relative — use .popup-toast-host, or
+   any relatively-positioned wrapper), so it is out of flow in every state and
+   appearing or clearing shifts nothing. Centred over the control it is talking
+   about, and pointer-transparent so it can never swallow the click the
+   participant makes next. It auto-clears on a timer (global.js, default 4000ms,
+   overridable with data-popup-timeout) — never dismissed by hand. */
+.popup-toast-host { position: relative; }
+
+.popup--toast {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 60;
+    max-width: min(320px, 92%);
+    padding: .6em 1em;
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lift);
+    font-size: .84em;
+    line-height: 1.4;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .16s ease;
+}
+.popup--toast strong { color: #fff; }
+.popup--toast.is-visible { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    .popup--toast { transition: none; }
+}
+
+/* --- COMPONENT: warning modal  (TIER 2 of the ladder above) ------------------
    ALL WARNINGS ARE CENTRED, SCREEN-DIMMING MODALS (change_requests item 9,
    Julian 2026-08-11) — never a banner that pushes the page down under the
    participant. These rules used to live in quiz.css and serve the lab's
@@ -1592,11 +2094,19 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
    exactly this chrome on every page. An overlay, so revealing it moves nothing
    underneath (the stability rule).
 
+   THIS IS TIER 2 (popup--modal) OF THE LADDER. `.popup--modal` is the ladder
+   name for exactly this backdrop; the two selectors share one rule block below
+   so there is one implementation, not two. A page adds `popup popup--modal` to
+   the backdrop and `.modal-card` (+ optional `popup--acknowledge` for button-only
+   dismissal) and gets the tier's behaviour from global.js.
+
    DELIBERATELY NOT SHARED: the tab monitor's full-screen red overlay
-   (tabmonitor.css). That is an ENFORCEMENT warning covering the whole viewport
-   on purpose, not a validation message, and Julian confirmed it stays as it is.
+   (tabmonitor.css). That is tier 3 (an ENFORCEMENT takeover covering the whole
+   viewport on purpose), not a validation message, and Julian confirmed it stays
+   as it is.
 
    [hidden] must win over the flex display. */
+.popup--modal,
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1608,6 +2118,7 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
     padding: 24px;
 }
 
+.popup--modal[hidden],
 .modal-backdrop[hidden] { display: none; }
 
 .modal-card {
@@ -1715,6 +2226,61 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
     resize: vertical;
 }
 
+/* =========================================================================
+   BOT DETECTION (bucket A) — see _ai/ai_bot_detection_spec.md
+   ========================================================================= */
+
+/* COMPONENT — welcome decoy honeypot concealment (A1, §6a).
+   EXCEPTION: this component has NO specimen in template.html, deliberately. It
+   is a DECOY control a real participant must NEVER see, so a visible specimen
+   would either be invisible (pointless) or reveal the decoy (defeating it).
+   INTENTION: hide the decoy consent control from every human — with AND without
+   JavaScript — using a STATIC rule (not a JS toggle: if JS hid it, a no-JS human
+   would see and could tick it, causing a false ejection). It stays in the DOM
+   and remains fillable, so an agent that fills or clicks every control on the
+   page still engages it. Off-screen rather than display:none so it is a real,
+   submittable control for such an agent. */
+.hp-decoy {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* COMPONENT — DOT-BI visual gate (A2). INTENTION: present the moving challenge
+   and, by PROGRESSIVE ENHANCEMENT, show the no-JS fallback instead when the
+   page's own script has not run. The default (no JS) state HIDES the challenge
+   and SHOWS the fallback; dot_bi.js adds `.dotbi-ready` to `.dotbi-wrap`, which
+   flips them. Static rules — the JS only toggles the class it keys on. */
+.dotbi-challenge { display: none; }
+.dotbi-nojs { display: block; }
+.dotbi-wrap.dotbi-ready .dotbi-challenge { display: block; }
+.dotbi-wrap.dotbi-ready .dotbi-nojs { display: none; }
+
+/* The animation is centred and capped so it fits a laptop and a phone without
+   forcing the page to scroll horizontally; the intrinsic frame is 400x336. */
+.dotbi-stage { text-align: center; margin: 16px 0; }
+.dotbi-image {
+    max-width: 100%;
+    width: 400px;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+.dotbi-answer-row { align-items: center; }
+.dotbi-input {
+    font: inherit;
+    color: var(--color-text);
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    max-width: 12ch;
+    text-align: center;
+}
+
 /* === instructions.css === */
 /* Instruction pager. Class names are load-bearing: _static/global/js/instructions.js
    pages through .instruction-block and writes #instruction-counter. */
@@ -1794,50 +2360,40 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
     padding-inline: calc(2 * var(--scroll-gutter));
 }
 
-/* --- scroll chain EXCEPTION (instructions page only) -------------------------
-   base.css makes .experimental-content the scroll region and pins the card's
-   .button-row. The instructions page has no .button-row: its Back/Next pager
-   (.instruction-controls) lives INSIDE the content, so under the shared rule it
-   would scroll away with a long slide.
+/* --- MODE 1 on the instructions page (2026-08-18 scroll overhaul) -----------
+   The instructions page is a Mode-1 content page like every other: the card
+   grows with the slide and the WHOLE WINDOW scrolls, with the Back/Next pager at
+   the natural bottom of the slide rather than pinned inside a capped scroller.
+   This is the PERMANENT SCROLL DEMO — the merged payoff-matrix slide in
+   intro/instructions_text.html is deliberately tall enough to overflow a 1280x720
+   laptop, so the box that starts from this template demonstrates Mode 1
+   whole-window scroll out of the gate.
 
-   Fix: pass the available height down the chain so the SLIDE BODY becomes the
-   scroller and the pager stays pinned beneath it. Every link needs
-   `min-height: 0`, because a flex child defaults to min-height:auto and refuses
-   to shrink below its content; miss one link and the page silently stops
-   scrolling and overflows instead.
-
-   THE CHAIN IS ONLY TWO LINKS, and that is not an oversight. The DOM is
-       .experimental-content > .instructions > .instruction-wrapper
-   with no form element in between: oTree wraps the whole PAGE in
-   <form class="otree-form">, and instructing.html deliberately writes no form
-   of its own. (A nested <form method="post"> start tag used to sit there — the
-   HTML5 parsing spec DROPS it, so it never reached the DOM; it was removed
-   2026-08-13 so the markup matches this chain.) If an element is ever
-   introduced between these links, it needs `min-height: 0` adding here. */
-.instructions { flex: 1 1 auto; min-height: 0; }
+   HISTORY: this page used to be the ONE inner-scroll exception. The slide body
+   (.instruction-wrapper) was the scroll region and the pager was pinned beneath
+   it by passing the available height down a two-link flex chain
+   (.experimental-content > .instructions > .instruction-wrapper, each
+   `min-height: 0`, no form element between them because oTree wraps the whole
+   page in <form class="otree-form">). That chain is gone with the inner-scroll
+   default; a study that wants the pager pinned again opts the card into
+   `.inner-scroll` (base.css) and restores the chain here. */
+.instructions {
+    /* Fill the content region so the pager's `margin-top: auto` can foot-anchor
+       it on a SHORT slide (the card is a stable floor-height frame); on a tall
+       slide there is no free space, so the pager follows the slide in document
+       order and is reached by scrolling — Mode 1. */
+    flex: 1 1 auto;
+    min-height: 0;
+}
 
 .instruction-wrapper {
+    /* PLAIN FLOW — no inner scroll. The wrapper is just the current slide's box;
+       it grows with the slide and the PAGE scrolls. It keeps its id/class because
+       instructions.js still targets #instruction-wrapper, and base.css still
+       styles a scrollbar for it should a study re-enable `.inner-scroll`. */
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    /* MUST stay 0 — see the scroll-chain note above. NOTE there is deliberately
-       NO min-height floor here any more. The old floor (and the matching inline
-       min-height that instructions.js used to set from each slide's scrollHeight)
-       existed to stop the controls jumping between slides of different lengths.
-       The flex fill now does that job perfectly: the wrapper always expands to
-       all remaining space, so the pager sits at a constant position whatever the
-       slide contains. Re-introducing a floor here would stop the wrapper
-       shrinking and silently break scrolling on short viewports. */
-    min-height: 0;
-    overflow-y: auto;
-    /* room so a :focus-visible ring inside a slide is not sliced by the
-       scroll edge (overflow-y:auto clips horizontally too). The negative margin
-       cancels it again — which only works while this element has NO explicit
-       `width`: with `width: 100%` the box cannot widen, so the negative left
-       margin just shifts the whole slide 6px off the card's centre line (the
-       same defect measured on .experimental-content, base.css). */
-    padding: 6px;
-    margin: -6px;
+    overflow: visible;
 }
 
 /* THE INSTRUCTIONS COLUMN — where this page's text column begins and ends,
@@ -2036,6 +2592,13 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
    are the full width of the card anyway. */
 .instruction-controls {
     flex: 0 0 auto;
+    /* FOOT-ANCHOR on a short slide, natural bottom on a tall one — the pager's
+       equivalent of `.screen-card > .button-row { margin-top: auto }`. On a short
+       slide `.instructions` fills the content region and this margin pushes the
+       pager to its foot (the stable frame's bottom); on a tall slide there is no
+       free space, so the pager simply follows the slide and the page scrolls to
+       it (Mode 1 — controls at the natural bottom, never pinned mid-scroll). */
+    margin-top: auto;
     display: flex;
     gap: 12px;
     justify-content: space-between;
@@ -2059,25 +2622,10 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
     .instruction-controls { gap: 8px; }
     .instruction-progress { padding-inline: 2px; font-size: .78em; }
 
-    /* THE PHONE MODEL: the page scrolls, not a box inside the card
-       (improvement_suggestions item 1 — the shared half is in base.css's phone
-       breakpoint, which explains the whole decision).
-       IT HAS TO BE REPEATED HERE, not merely written there: this file loads
-       AFTER base.css, so `.instruction-wrapper { overflow-y: auto }` above wins
-       over an identical-specificity rule in base.css whatever the media query
-       says. Miss this and the instructions page keeps its inner scroller on a
-       phone while every other page has let go of it — which is exactly how it
-       failed the eyebrow check on the first attempt (the wrapper kept its
-       reserved scrollbar gutter, so the copy sat 10px right of the eyebrow).
-       The pager follows the slide in document order, so with the wrapper in
-       normal flow Next lands after the text, which is the point. */
-    .instruction-wrapper {
-        overflow: visible;
-        padding: 0;
-        margin: 0;
-    }
-    /* No scroll container, no reserved gutters: the strip lines up with the
-       copy directly (base.css, THE GUTTER COUPLING). */
+    /* The slide body is already plain flow at every width now (Mode 1 — see the
+       .instruction-wrapper rule above), so there is no phone-specific inner
+       scroller to switch off any more. The header strip still drops its reading
+       band on a phone so the eyebrow lines up with the full-width copy. */
     .screen-card:has(.instructions) .experimental-header {
         max-width: 100%;
         padding-inline: 0;
@@ -2450,7 +2998,13 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
 
 /* The dialog is the shared modal chrome, widened: it holds a whole document,
    not a sentence. Height-capped so the card can never grow past the viewport;
-   the BODY inside it is what scrolls. */
+   the BODY inside it is what scrolls.
+   NB (2026-08-18 scroll overhaul): this 86vh cap + inner-scrolling body is a
+   MODAL's own inner scroll — a dialog holding a whole document — NOT the page
+   card's scroll model. The page card is Mode 1 (whole-window scroll) by default
+   and Mode 3 (`.inner-scroll`, base.css) only on results; a modal that holds a
+   document has always scrolled its body internally and continues to, on the same
+   family of reasoning as the dormant `.inner-scroll` opt-in. Left unchanged. */
 .reread-backdrop .modal-card.reread-card {
     position: relative;
     max-width: min(1140px, 92vw);
@@ -2800,7 +3354,7 @@ body.preview-interactive .preview-screen.is-active { display: flex; }
     .preview-screen { page-break-inside: avoid; margin-bottom: 16px; }
     body { background: #fff; }
 }
-</style></head><body class="preview-interactive"><div class="preview-switcher" aria-label="Preview controls"><div class="preview-switcher-title">Treatment</div><button data-treatment="0">Row player</button><button data-treatment="1">Column player</button><div class="preview-switcher-secondary"><button id="preview-reset" type="button" title="Return to setup screen">Reset</button><button id="preview-matrix-toggle" type="button">Show matrix</button></div></div><div id="preview-matrix-overlay" class="preview-matrix-overlay"><div class="preview-matrix-overlay-inner"><h3>Treatment matrix</h3><table id="preview-matrix-overlay-table" class="preview-matrix-table"><thead><tr><th>Variable</th><th>Row player</th><th>Column player</th></tr></thead><tbody><tr><th>treatment</th><td>row</td><td>column</td></tr><tr><th>stag_payoff</th><td>4</td><td>4</td></tr><tr><th>hare_payoff</th><td>2</td><td>2</td></tr><tr><th>stag_alone</th><td>0</td><td>0</td></tr><tr><th>num_experimental_rounds</th><td>10</td><td>10</td></tr><tr><th>showup</th><td>€2.50</td><td>€2.50</td></tr><tr><th>quiz_bonus</th><td>€5.00</td><td>€5.00</td></tr></tbody></table><button type="button" class="preview-matrix-overlay-close">Close</button></div></div><section class="experimental-screen preview-screen preview-setup-screen" ><div class="screen-card"><div class="experimental-header"><h2 class="header-title">Preview setup</h2><p class="header-text"></p></div><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><p style="font-size:17px;color:#555;">This is a preview of the instructions. Pick a treatment to begin; you can switch at any time from the panel in the top-right corner.</p><div class="preview-matrix-wrap" style="margin:8px 0 0;"><h3>Treatment matrix</h3><table id="preview-matrix-setup-table" class="preview-matrix-table"><thead><tr><th>Variable</th><th>Row player</th><th>Column player</th></tr></thead><tbody><tr><th>treatment</th><td>row</td><td>column</td></tr><tr><th>stag_payoff</th><td>4</td><td>4</td></tr><tr><th>hare_payoff</th><td>2</td><td>2</td></tr><tr><th>stag_alone</th><td>0</td><td>0</td></tr><tr><th>num_experimental_rounds</th><td>10</td><td>10</td></tr><tr><th>showup</th><td>€2.50</td><td>€2.50</td></tr><tr><th>quiz_bonus</th><td>€5.00</td><td>€5.00</td></tr></tbody></table></div><form class="preview-setup-form" onsubmit="return false;"><fieldset><legend>Start with treatment</legend><label><input type="radio" name="preview-treatment-pick" value="0" checked> Row player</label><label><input type="radio" name="preview-treatment-pick" value="1"> Column player</label></fieldset><button type="button" id="preview-begin" class="next-button" style="margin-top:4px;">Begin</button></form></div></div></div></div></section><section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
+</style></head><body class="preview-interactive"><div class="preview-switcher" aria-label="Preview controls"><div class="preview-switcher-title">Treatment</div><button data-treatment="0">Row player</button><button data-treatment="1">Column player</button><div class="preview-switcher-secondary"><button id="preview-reset" type="button" title="Return to setup screen">Reset</button><button id="preview-matrix-toggle" type="button">Show matrix</button></div></div><div id="preview-matrix-overlay" class="preview-matrix-overlay"><div class="preview-matrix-overlay-inner"><h3>Treatment matrix</h3><table id="preview-matrix-overlay-table" class="preview-matrix-table"><thead><tr><th>Variable</th><th>Row player</th><th>Column player</th></tr></thead><tbody><tr><th>treatment</th><td>row</td><td>column</td></tr><tr><th>stag_payoff</th><td>4</td><td>4</td></tr><tr><th>hare_payoff</th><td>2</td><td>2</td></tr><tr><th>stag_alone</th><td>0</td><td>0</td></tr><tr><th>num_experimental_rounds</th><td>10</td><td>10</td></tr><tr><th>payment_show_up</th><td>€2.50</td><td>€2.50</td></tr><tr><th>payment_quiz_bonus</th><td>€5.00</td><td>€5.00</td></tr></tbody></table><button type="button" class="preview-matrix-overlay-close">Close</button></div></div><section class="experimental-screen preview-screen preview-setup-screen" ><div class="screen-card"><div class="experimental-header"><h2 class="header-title">Preview setup</h2><p class="header-text"></p></div><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><p style="font-size:17px;color:#555;">This is a preview of the instructions. Pick a treatment to begin; you can switch at any time from the panel in the top-right corner.</p><div class="preview-matrix-wrap" style="margin:8px 0 0;"><h3>Treatment matrix</h3><table id="preview-matrix-setup-table" class="preview-matrix-table"><thead><tr><th>Variable</th><th>Row player</th><th>Column player</th></tr></thead><tbody><tr><th>treatment</th><td>row</td><td>column</td></tr><tr><th>stag_payoff</th><td>4</td><td>4</td></tr><tr><th>hare_payoff</th><td>2</td><td>2</td></tr><tr><th>stag_alone</th><td>0</td><td>0</td></tr><tr><th>num_experimental_rounds</th><td>10</td><td>10</td></tr><tr><th>payment_show_up</th><td>€2.50</td><td>€2.50</td></tr><tr><th>payment_quiz_bonus</th><td>€5.00</td><td>€5.00</td></tr></tbody></table></div><form class="preview-setup-form" onsubmit="return false;"><fieldset><legend>Start with treatment</legend><label><input type="radio" name="preview-treatment-pick" value="0" checked> Row player</label><label><input type="radio" name="preview-treatment-pick" value="1"> Column player</label></fieldset><button type="button" id="preview-begin" class="next-button" style="margin-top:4px;">Begin</button></form></div></div></div></div></section><section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
     
     <h2>Instructions</h2>
     <p class="template-note">
@@ -2815,9 +3369,11 @@ body.preview-interactive .preview-screen.is-active { display: flex; }
         this room. You will play <span class="preview-var" data-var="num_experimental_rounds">‹num_experimental_rounds›</span> rounds in total.
     </p>
     
+    
+    
     <p>
         Your final payment will be the sum of your earnings from the rounds,
-        plus a show-up fee of <span class="preview-var" data-var="showup">‹showup›</span> and a bonus of <span class="preview-var" data-var="quiz_bonus">‹quiz_bonus›</span>
+        plus a show-up fee of <span class="preview-var" data-var="payment_show_up">‹payment_show_up›</span> and a bonus of <span class="preview-var" data-var="payment_quiz_bonus">‹payment_quiz_bonus›</span>
         if you answer every quiz question on the instructions correctly on
         your first attempt.
     </p>
@@ -2906,9 +3462,9 @@ body.preview-interactive .preview-screen.is-active { display: flex; }
         row and your column.
     </p>
     </span></span>
-</div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
-<section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block">
-    <h2>What this means in practice</h2>
+
+    
+    <h3>What this means in practice</h3>
     <ul>
         <li>If <strong>both</strong> of you choose Stag, you each earn <span class="preview-var" data-var="stag_payoff">‹stag_payoff›</span> points.</li>
         <li>If <strong>both</strong> of you choose Hare, you each earn <span class="preview-var" data-var="hare_payoff">‹hare_payoff›</span> points.</li>
@@ -2935,23 +3491,21 @@ body.preview-interactive .preview-screen.is-active { display: flex; }
 </div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
 <section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="instruction-block prequiz-block">
     <h2>Before the quiz</h2>
-    {% if is_reread_pass %}
-    <p>
-        You will next see the quiz again.
-    </p>
-    {% else %}
+    
     <p>
         You will next see a quiz. If you get all questions on the instructions
-        correct on the first attempt you get <strong><span class="preview-var" data-var="quiz_bonus">‹quiz_bonus›</span></strong>.
+        correct on the first attempt you get <strong><span class="preview-var" data-var="payment_quiz_bonus">‹payment_quiz_bonus›</span></strong>.
     </p>
-    {% endif %}
+    
+    
+    
     <p>
         Would you like to reread the instructions first?
     </p>
 </div></div><div class="instruction-controls"><button type="button" class="next-button preview-nav-prev">Back</button><button type="button" class="next-button preview-nav-next">Next</button></div></div></div></div></section>
 <section class="experimental-screen preview-screen" ><div class="screen-card"><div class="experimental-header"><h2 class="header-title">Quiz</h2><p class="header-text">Answer the questions below before starting the experiment.</p></div><div class="experimental-content"><div class="instructions"><div class="instruction-wrapper"><div class="quiz-block"><div class="stacked-form"><p>Did you read and understand the instructions?</p><div><div class="form-check"><input type="radio" name="quiz1" value="YES" disabled><label>YES</label></div><div class="form-check"><input type="radio" name="quiz1" value="NO" disabled><label>NO</label></div></div><p>What is ice when it melts?</p><div><div class="form-check"><input type="radio" name="quiz2" value="Metal" disabled><label>Metal</label></div><div class="form-check"><input type="radio" name="quiz2" value="Water" disabled><label>Water</label></div><div class="form-check"><input type="radio" name="quiz2" value="Nothing" disabled><label>Nothing</label></div></div></div></div><div class="button-row"><input type="submit" value="Next" class="next-button" disabled></div></div></div></div></div></section><script>
 (function () {
-    var data = {"treatments": ["Row player", "Column player"], "values": {"treatment": ["row", "column"], "stag_payoff": ["4", "4"], "hare_payoff": ["2", "2"], "stag_alone": ["0", "0"], "num_experimental_rounds": ["10", "10"], "showup": ["€2.50", "€2.50"], "quiz_bonus": ["€5.00", "€5.00"]}, "pdf_treatment": "Row player"};
+    var data = {"treatments": ["Row player", "Column player"], "values": {"treatment": ["row", "column"], "stag_payoff": ["4", "4"], "hare_payoff": ["2", "2"], "stag_alone": ["0", "0"], "num_experimental_rounds": ["10", "10"], "payment_show_up": ["€2.50", "€2.50"], "payment_quiz_bonus": ["€5.00", "€5.00"]}, "pdf_treatment": "Row player", "flags": {"is_prolific": false, "is_reread_pass": false}};
     var currentTreatment = 0;
 
     function applyTreatment(idx) {
