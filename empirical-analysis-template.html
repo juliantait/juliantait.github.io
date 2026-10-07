@@ -101,23 +101,39 @@
     </div>
 
     <p>
-      A self-contained R + LaTeX template for a single-study empirical paper. Provides the
-      analysis-pipeline scripts, data-source adapters, paper template, and figure/table style
-      conventions — set up your <code>Data/</code>, run <code>main.R</code>, write up in
-      <code>LaTeX/</code>. Use it manually; no automation required.
+      A self-contained R + LaTeX template for a single-study empirical paper. It provides the
+      analysis-pipeline scripts, data-source adapters, a paper template, and figure and table
+      style conventions. Put your data in <code>data/</code>, run <code>main.R</code>, and write
+      up in <code>LaTeX/</code>. It is built to be used by hand; an AI agent is optional.
     </p>
 
     <section id="structure">
       <div class="section-header">
         <h2>Structure</h2>
       </div>
+      <p>All folder names are lower-case except <code>LaTeX/</code>.</p>
       <ul class="resource-structure">
-        <li><strong><code>Data/</code></strong> — raw and cleaned data folders</li>
-        <li><strong><code>Helper/</code></strong> — pluggable data-source adapters (<code>otree.R</code>, <code>csv.R</code>)</li>
-        <li><strong><code>Scripts/</code></strong> — <code>config_init</code>, <code>config_cleaning</code> (orchestrator), <code>descriptives</code>, <code>hypotheses</code>, <code>balance_table</code>, <code>robustness</code>, <code>sample_restrictions</code>, <code>exploratory</code></li>
-        <li><strong><code>LaTeX/</code></strong> — paper source. Analysis outputs land in <code>LaTeX/Output/{Figures,Tables,Text}/</code>, so the <code>LaTeX</code> folder is self-contained.</li>
-        <li><strong><code>Literature/</code></strong> — drop your reading material here</li>
-        <li><strong><code>Flow/</code></strong> — codebook, research_log, timeline, todo, personality, plus <code>Flow/Tools/</code> (skill references for graphs and tables) — designed as both a human style guide and a drop-in point for integrating with Claude or other LLM agents.</li>
+        <li><strong><code>data/</code></strong>: <code>datasets/</code> holds the anonymised raw exports (tracked, so everything rebuilds from GitHub); <code>raw_SENSITIVE/</code> holds anything with identifiers and is gitignored. The cleaned dataset sits at the root of <code>data/</code> as CSV and RData, next to <code>README.md</code> and <code>CODEBOOK.md</code>.</li>
+        <li><strong><code>scripts/</code></strong>: <code>config_init</code>, <code>config_toolkit</code> (shared plotting, table and number-formatting helpers), <code>config_cleaning</code>, <code>sample_restrictions</code>, <code>balance_table</code>, <code>descriptives</code>, <code>hypotheses</code>, <code>robustness</code>, <code>exploratory</code>, plus <code>further_analysis/</code>.</li>
+        <li><strong><code>scripts/helper/</code></strong>: pluggable data-source adapters (<code>otree.R</code>, <code>csv.R</code>).</li>
+        <li><strong><code>LaTeX/</code></strong>: paper source. Figures and tables land in <code>LaTeX/output/{figures,tables}/</code>. Every number quoted in the text goes into one values file, <code>LaTeX/output/values.{tex,json}</code>, and the paper prints it with <code>\val{name}</code>. A <code>.latexmkrc</code> routes build files to <code>.build/</code>, so the folder stays clean and self-contained.</li>
+        <li><strong><code>literature/</code></strong>: papers and reading notes.</li>
+        <li><strong><code>flow/</code></strong>: codebook, research log, timeline, to-do list and project profile, plus the skill files <code>skill_graphs.md</code>, <code>skill_tables.md</code> and <code>lessons_from_mistakes_paper.md</code>. They work as a style guide for you and as reference material for an AI agent.</li>
+        <li><strong><code>feedback/</code></strong>: referee reports, seminar comments and meeting notes, named <code>meetings_YYYY-MM-DD.md</code>.</li>
+        <li><strong><code>DECISIONS.md</code></strong>: project decisions, newest first, each with date and reason.</li>
+        <li><strong><code>_ai/</code></strong>: scratch space for an AI agent. Gitignored.</li>
+      </ul>
+    </section>
+
+    <section id="conventions">
+      <div class="section-header">
+        <h2>Conventions</h2>
+      </div>
+      <ul>
+        <li><strong>Sensitive data check</strong>: a pre-commit hook in <code>.githooks/pre-commit</code> refuses any commit that contains Prolific IDs, emails, IP addresses, user agents or identifying CSV columns. Turn it on once per clone with <code>git config core.hooksPath .githooks</code>.</li>
+        <li><strong>House style</strong>: the paper front matter sets 1in margins and <code>\onehalfspacing</code>.</li>
+        <li><strong>Reporting</strong>: bar charts of means with &plusmn;1 SE whiskers, booktabs tables run as one block with no panels, and p-values to three decimals with the test and sidedness stated.</li>
+        <li><strong>One output folder</strong>: all outputs go to <code>LaTeX/output/</code>, with no per-study subfolders.</li>
       </ul>
     </section>
 
@@ -127,6 +143,12 @@
       </div>
       <p>Clone the repository to get a working copy:</p>
       <pre class="code-block"><code>git clone https://github.com/juliantait/Template_Analysis.git</code></pre>
+      <p>
+        If you work with an AI agent, the <code>CLAUDE.md</code> at the repository root is its
+        entry point: it points the agent at the conventions and the project state in
+        <code>flow/</code>. For how I use Claude in a project folder, see
+        <a href="ai-workflow.html">AI Workflow in My Project Folder</a>.
+      </p>
     </section>
 
     <section id="sync-to-overleaf">
@@ -139,9 +161,9 @@
         </summary>
         <div class="latex-body">
           <p>
-            Sync sends the entire <code>LaTeX/</code> folder — including the R-generated
-            <code>Output/</code> subfolder of Figures, Tables, and Text — up to a new Overleaf
-            project as a git push. After the initial push, future
+            Sync sends the entire <code>LaTeX/</code> folder, including the R-generated
+            <code>output/</code> folder of figures, tables and the values file, up to a new
+            Overleaf project as a git push. After the initial push, future
             <code>git push overleaf main:master</code> from inside <code>LaTeX/</code> ships
             subsequent edits; <code>git pull overleaf master</code> brings collaborator changes
             back.
@@ -153,7 +175,7 @@
               <li>Create a new empty project in Overleaf (web UI).</li>
               <li>
                 In the project sidebar, open <strong>Integrations &rarr; Git</strong> and copy the
-                project's git URL — e.g.
+                project's git URL, for example
                 <code>https://git.overleaf.com/&lt;project-id&gt;</code>.
               </li>
               <li>
@@ -175,34 +197,17 @@
               </li>
             </ol>
             <p class="note">
-              Overleaf's git integration is a premium feature — available on paid individual or
+              Overleaf's git integration is a premium feature, available on paid individual or
               group subscriptions and to Overleaf Commons participants. Free-plan projects will
               not show a Git option in Integrations.
             </p>
             <p class="note">
               Full Overleaf-side guide:
-              <a href="https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/git-integration" target="_blank" rel="noopener noreferrer">docs.overleaf.com — Git integration</a>.
+              <a href="https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/git-integration" target="_blank" rel="noopener noreferrer">docs.overleaf.com: Git integration</a>.
             </p>
           </div>
         </div>
       </details>
-    </section>
-
-    <section id="claude-variant">
-      <div class="section-header">
-        <h2>Claude-orchestrated variant</h2>
-      </div>
-      <p>
-        If you want this template wrapped in a Claude-Code-orchestrated workflow
-        (researcher-personality profiles, phase walks from pre-analysis plan to submission,
-        structured <code>Context/</code> documents), see the Claude variant:
-        <a href="https://github.com/juliantait/Template_Analysis_Claude" class="github-btn" target="_blank" rel="noopener noreferrer">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-          </svg>
-          Template_Analysis_Claude on GitHub
-        </a>
-      </p>
     </section>
 
     <section id="related">
@@ -210,8 +215,8 @@
         <h2>Related</h2>
       </div>
       <p>
-        The wide-to-long reshaping script lives in this template's <code>Helper/</code> directory
-        as one of the pluggable data-source adapters — see
+        The wide-to-long reshaping script lives in this template's <code>scripts/helper/</code>
+        folder as one of the pluggable data-source adapters. See
         <a href="otree-template.html#making-data-usable">Making oTree data usable</a> on the oTree
         Template page for context on what it does and how it fits with the oTree session output.
       </p>

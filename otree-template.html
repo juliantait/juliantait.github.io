@@ -95,10 +95,10 @@
       An oTree template for running experiments in the lab and online.
     </p>
     <ul>
-      <li><strong>A participant flow, built and styled</strong> — with an adaptable payment rule.</li>
-      <li><strong>Lab and Prolific from one setting</strong> — the same study, recruited either way.</li>
-      <li><strong>Three screening layers</strong> — comprehension, device, and tab-switching for web studies.</li>
-      <li><strong>A test suite and bots</strong> — functional checks and visual ones on how pages render.</li>
+      <li><strong>A participant flow, built and styled</strong>, with an adaptable payment rule.</li>
+      <li><strong>Lab and Prolific from one setting</strong>: the same study, recruited either way.</li>
+      <li><strong>Four screening layers</strong> for web studies: comprehension, device, tab-switching, and AI bot and inattention detection.</li>
+      <li><strong>A test suite and bots</strong>: functional checks and visual ones on how pages render.</li>
     </ul>
     <p>
       Bring your <strong>instructions</strong> &amp; <strong>game</strong>, and you are ready to run.
@@ -110,28 +110,28 @@
       </div>
       <p>A session moves through the four apps in order:</p>
       <ul>
-        <li><strong>before</strong> — landing page, welcome message, and informed consent.</li>
-        <li><strong>intro</strong> — task instructions followed by a comprehension quiz.</li>
-        <li><strong>main</strong> — the experimental task you build yourself; the app arrives empty and takes your game pages, including any treatment-specific ones.</li>
-        <li><strong>outro</strong> — demographic questionnaire, debrief, and the earnings tracked for that participant, together with the bank details a lab session needs to pay them later.</li>
+        <li><strong>before</strong>: landing page, welcome message, and informed consent.</li>
+        <li><strong>intro</strong>: task instructions followed by a comprehension quiz.</li>
+        <li><strong>main</strong>: the experimental task. It ships with a slider elicitation as the reference task, plus the round loop, a progress strip and the payoff plumbing. You replace the task with your game.</li>
+        <li><strong>outro</strong>: demographic questionnaire, debrief, and the earnings tracked for that participant, together with the bank details a lab session needs to pay them later.</li>
       </ul>
 
       <div class="preview-grid">
         <figure>
           <iframe src="otree-preview-consent-lab.html" title="lab welcome and consent screen preview"></iframe>
-          <figcaption><strong>before</strong> app — welcome &amp; consent, lab variant: consent by continuing, no box to tick</figcaption>
+          <figcaption><strong>before</strong> app: welcome &amp; consent, lab variant (consent by continuing, no box to tick)</figcaption>
         </figure>
         <figure>
           <iframe src="otree-preview-instructions.html" title="instructions page preview"></iframe>
-          <figcaption><strong>intro</strong> app — an instructions page</figcaption>
+          <figcaption><strong>intro</strong> app: an instructions page</figcaption>
         </figure>
         <figure>
           <iframe src="otree-preview-game.html" title="example decision screen preview"></iframe>
-          <figcaption><strong>main</strong> app — an example decision screen</figcaption>
+          <figcaption><strong>main</strong> app: an example decision screen</figcaption>
         </figure>
         <figure>
           <iframe src="otree-preview-results-lab.html" title="lab results screen preview"></iframe>
-          <figcaption><strong>outro</strong> app — results screen, lab variant</figcaption>
+          <figcaption><strong>outro</strong> app: results screen, lab variant</figcaption>
         </figure>
       </div>
     </section>
@@ -149,11 +149,11 @@
       </p>
       <p>Then edit the files relevant to your experiment. The intended entry points are:</p>
       <ul>
-        <li><strong>Instructions</strong> — edit <code>intro/instructions_text.html</code>. Each <code>&lt;div class="instruction-block"&gt;</code> renders as one participant page.</li>
-        <li><strong>Comprehension quiz</strong> — define quiz items (prompt, choices, correct answer) in <code>intro/quiz_items.py</code>.</li>
-        <li><strong>Treatment assignment</strong> — set up your conditions in <code>before/treatment_assignment.py</code>. Treatments are assigned at session creation via <code>creating_session</code> in the <code>before</code> app.</li>
-        <li><strong>Game</strong> — build your economic game and its pages in the <code>main</code> app, with its settings (rounds, decisions, payoffs) in <code>main/__init__.py</code>.</li>
-        <li><strong>Earnings rule</strong> — <code>outro/payment_rule.py</code> chooses what is paid out of the tracked earnings ledger; set that with your own rule.</li>
+        <li><strong>Instructions</strong>: edit <code>intro/instructions_text.html</code>. Each <code>&lt;div class="instruction-block"&gt;</code> renders as one participant page.</li>
+        <li><strong>Comprehension quiz</strong>: define quiz items (prompt, choices, correct answer) in <code>intro/quiz_items.py</code>.</li>
+        <li><strong>Treatment assignment</strong>: list your cells in <code>settings.TREATMENT_CELLS</code>. A participant is assigned a cell on arrival at the first instructions page (<code>intro.instructing</code>), to the least-filled cell first, so the cells stay balanced. The assignment is safe when many people arrive at once (<code>assign_on_arrival</code> in <code>before/treatment_assignment.py</code>). People who drop out at consent or fail the device check never take up a cell.</li>
+        <li><strong>Game</strong>: replace the slider task in the <code>main</code> app with your economic game and its pages, with its settings (rounds, decisions, payoffs) in <code>main/__init__.py</code>.</li>
+        <li><strong>Earnings rule</strong>: <code>outro/payment_rule.py</code> chooses what is paid out of the tracked earnings ledger; set that with your own rule.</li>
       </ul>
     </section>
 
@@ -168,17 +168,19 @@
 
       <h3>Running in the lab</h3>
       <ul>
-        <li><strong>Cubicle number</strong> — which participant is at which cubicle, so a row on the monitor page maps to a seat in the room.</li>
-        <li><strong>Bank details and demographics</strong> — collected in the outro app alongside the debrief, so the session can be paid afterwards.</li>
-        <li><strong>Earnings tracking</strong> — a single ledger of what the participant has earned, from which your own rule decides what is paid.</li>
+        <li><strong>Cubicle number</strong>: which participant is at which cubicle, so a row on the monitor page maps to a seat in the room.</li>
+        <li><strong>Bank details and demographics</strong>: collected in the outro app alongside the debrief, so the session can be paid afterwards.</li>
+        <li><strong>Earnings tracking</strong>: a single ledger of what the participant has earned, from which your own rule decides what is paid.</li>
+        <li><strong>CREED lab support</strong>: the <a href="otree-lab-launcher.html">lab launcher</a> appends a block to <code>settings.py</code>, active only when <code>CREED_LABEL_FILE</code> is set. It sets the room and its label file, the database, the admin password, the auth level and <code>DEBUG</code>.</li>
       </ul>
 
       <h3>Running on Prolific</h3>
       <ul>
-        <li><strong>Participant ID capture</strong> — the Prolific ID the link carries is recorded on arrival.</li>
-        <li><strong>Three screening layers</strong> — comprehension, device and tab-switching, with a completion code per route, so a screened-out participant stays distinguishable from one who finished.</li>
-        <li><strong>Earnings tracking</strong> — a single ledger of what the participant has earned, from which your own rule decides what is paid.</li>
-        <li><strong>Ready to deploy</strong> — a Dockerfile that runs on <strong>Railway</strong> or <strong>TreeHost</strong>.</li>
+        <li><strong>Participant ID capture</strong>: the Prolific ID the link carries is recorded on arrival.</li>
+        <li><strong>Four screening layers</strong>: comprehension, device, tab-switching, and AI bot and inattention detection, with a code per route, so a screened-out participant stays distinguishable from one who finished.</li>
+        <li><strong>Bot detection</strong>: a decoy on the welcome page and a DOT-BI visual check catch AI agents and inattentive participants, who get their own Prolific return code. It is on by default; <code>BOT_DETECTION_ARMED</code> turns it off for the whole study.</li>
+        <li><strong>Earnings tracking</strong>: a single ledger of what the participant has earned, from which your own rule decides what is paid.</li>
+        <li><strong>Ready to deploy</strong>: tested on <strong>Railway</strong>. <code>docs/hosting_railway.md</code> covers the setup and includes a performance report from a live pilot, and <code>docs/running_on_prolific.md</code> covers the Prolific side. The server answers <code>GET /health</code>, which a post-deploy check uses to confirm the deployed build.</li>
       </ul>
 
       <div class="section-header monitor-header">
@@ -192,10 +194,24 @@
         them has got. What an experimenter needs to know sits on one page, rather than being pieced
         together from several.
       </p>
+      <ul>
+        <li>A session overview above the table, and a sticky header that stays in view while you scroll.</li>
+        <li>Sortable columns, sorted by default so participants are grouped by state.</li>
+        <li>Two timers per participant.</li>
+        <li>An indicator of how stale the dashboard data is, counting the time since the last refresh.</li>
+        <li>A timeline built from each session's <code>app_sequence</code>, so it matches whatever apps you run.</li>
+      </ul>
       <figure class="preview-full">
         <iframe src="otree-preview-monitor.html" title="experimenter monitor page preview"></iframe>
-        <figcaption><strong>monitor</strong> page — a lab session in progress, one row per participant</figcaption>
+        <figcaption><strong>monitor</strong> page: a lab session in progress, one row per participant</figcaption>
       </figure>
+
+      <h3>Checks under the hood</h3>
+      <ul>
+        <li><strong>Build stamp</strong>: each participant records the build of the code they ran, so you can tell which version produced which rows.</li>
+        <li><strong>Focus trace</strong>: a passive record of when the participant's tab lost and regained focus.</li>
+        <li><strong>Boot guards</strong>: <code>fee_guard</code> and <code>payoff_guard</code> stop the server at start-up if a non-zero oTree participation fee is set or an app writes <code>player.payoff</code>, so all payments go through the one earnings ledger.</li>
+      </ul>
     </section>
 
     <section id="instructions-preview">
@@ -207,7 +223,7 @@
       </div>
       <p>
         Working on instruction copy inside a running server is awkward, so the template ships a
-        preview generator that renders your instructions as standalone files — an interactive page
+        preview generator that renders your instructions as standalone files: an interactive page
         you click through like a participant, and <code>instructions_preview.pdf</code> to send a
         coauthor for comment.
       </p>
@@ -221,7 +237,7 @@
         All apps inherit a shared HTML/CSS layer that gives sessions a consistent look without
         per-app styling. The reference layout lives at
         <code>_static/global/html/template.html</code> and demonstrates the standard card layout
-        used across pages — header, body content, and a navigation footer. Extending or restyling
+        used across pages: header, body content, and a navigation footer. Extending or restyling
         the experiment is a matter of editing this one template and the accompanying stylesheet.
       </p>
     </section>
@@ -247,8 +263,9 @@
       <p>
         An R script that reshapes oTree's wide session CSVs into long format (one row per
         participant × app × round), pre-configured for the variable names used in this template.
-        It is one helper from the <em>Empirical Analysis Template</em> — a self-contained R +
-        LaTeX pipeline for a single-study empirical paper.
+        It is one helper from the <em>Empirical Analysis Template</em>, a self-contained R +
+        LaTeX pipeline for a single-study empirical paper, adapted here for this template's
+        <code>main</code> app.
       </p>
     </section>
 
