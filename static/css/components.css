@@ -90,6 +90,22 @@ a[role='button']:hover,
   text-decoration: none;
 }
 
+/* Dark mode: --text-primary is near-white, so the default hover would flip
+   into a white box. Use the same accent fill as the View details button. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .github-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+}
+
+[data-theme="dark"] .github-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
 .download-btn svg,
 .github-btn svg {
   width: 16px;
