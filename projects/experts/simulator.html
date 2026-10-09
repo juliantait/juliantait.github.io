@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/projects/shared/shell.css?v=14">
 <link rel="stylesheet" href="simulation.css?v=21">
-<link rel="stylesheet" href="game.css?v=13">
+<link rel="stylesheet" href="game.css?v=14">
 </head>
 <body>
 
@@ -79,22 +79,23 @@
                   </div>
                   <!-- Growth arm: writes β₂ = (amount gained per 100 years) / 100,
                        i.e. the per-year slope. DISCRETE TOGGLE over exactly the two
-                       arms the pilot ran — 2 vs 3 per 100 yrs (β = 0.02 / 0.03),
-                       default 2 (0.02). β₂ stays the source of truth (readonly below). -->
+                       arms Pilot 2 runs — 3 vs 4 per 100 yrs (β = 0.03 / 0.04;
+                       settings.py pilot2 beta_pairs), default 3 (0.03). β₂ stays the
+                       source of truth (readonly below). -->
                   <div class="input-group">
                     <label>growth &middot; per 100 yrs</label>
                     <div class="seg" id="seg-growth">
-                      <button class="active" data-g="2">2</button>
-                      <button data-g="3">3</button>
+                      <button class="active" data-g="3">3</button>
+                      <button data-g="4">4</button>
                     </div>
                   </div>
                 </div>
                 <div class="beta-grid">
                   <div class="input-group"><label><i class="mvar">&beta;</i><sub>1</sub></label><input id="b1" type="text" value="0"></div>
-                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.02" readonly title="set by the growth toggle (0.02 / 0.03)"></div>
+                  <div class="input-group"><label><i class="mvar">&beta;</i><sub>2</sub></label><input id="b2" type="text" value="0.03" readonly title="set by the growth toggle (0.03 / 0.04)"></div>
                   <div class="input-group" id="b3-group"><label><i class="mvar">&beta;</i><sub>3</sub></label><input id="b3" type="text" value="-0.02"></div>
-                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.75"></div>
-                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.25"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>1</sub></label><input id="p1" type="text" value="0.5"></div>
+                  <div class="input-group"><label>prior <i class="mvar">&pi;</i><sub>2</sub></label><input id="p2" type="text" value="0.5"></div>
                   <div class="input-group" id="p3-group"><label>prior <i class="mvar">&pi;</i><sub>3</sub></label><input id="p3" type="text" value="0"></div>
                 </div>
               </div>
@@ -334,127 +335,159 @@
 
   </div><!-- /view-groups -->
 
-  <!-- ===================== VIEW 2: GAME (single-player betting / prediction task) ===================== -->
-  <!-- ===================== GAME OVERLAY (full-screen experiment over Simulated Groups) ===================== -->
-  <div id="game-overlay" hidden role="dialog" aria-modal="true" aria-label="Betting game">
+  <!-- ===================== GAME OVERLAY (full-screen experiment over Simulated Groups) =====================
+       A playable copy of the REAL oTree task (Pilot 2 config, settings.py name='pilot2'):
+       2 parts × 8 islands, the role switching between parts (NOVICE = 3 records,
+       EXPERT = 20), the two-step Stable/Growing bet, and the same chart. The task
+       card mirrors main/AllocationScreen.html + main/widget_allocation.html and
+       uses the experiment's own palette/type (game.css, scoped to #sec-game).
+       Unlike the experiment, the site shows feedback after every round and a
+       summary against the Bayesian ideal observer at the end. -->
+  <div id="game-overlay" hidden role="dialog" aria-modal="true" aria-label="Coconut islands game">
     <section id="sec-game" class="exp">
 
-      
-
-      <!-- SCREEN 0: intro -->
-      <div class="game-intro" id="game-intro">
+      <!-- SCREEN 0: intro (the setting + the task, as in the pilot2 instructions) -->
+      <div class="screen-card narrative-card" id="game-intro">
         <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
-        <div class="game-eyebrow">Single-player experiment</div>
-        <h2>The betting game</h2>
-        <div class="intro-block">
-          <p class="intro-h"><b>The data</b> — each round, a fresh cloud of noisy <i class="mvar">(x, y)</i> points from one analyst. No line is fitted; you read the slope yourself.</p>
-          <p class="intro-sub">The candidate slopes, their prior and the noise are whatever the <b>Simulation</b> panel is set to — by default <i class="mvar">β</i> is <b>0</b> or <b>+0.02</b> (+2 per 100 units of x), flat <b>3 times in 4</b>, with <i class="mvar">σ</i> = 2.0 and <b>integer</b> y values.</p>
-          <ul>
-            <li><b>EXPERT</b> = lots of data; <b>NOVICE</b> = only a few.</li>
-          </ul>
+        <div class="experimental-header">
+          <div class="xp-eyebrow">Play the experiment &middot; Pilot 2</div>
+          <h2 class="header-title">Coconut islands</h2>
         </div>
-        <div class="intro-block">
-          <p class="intro-h"><b>Your task each round:</b> read the chart, then place one bet.</p>
-          <ul>
-            <li>your <b>bet</b> — 100 points split <b>Stable</b> vs <b>Growing</b> <span class="muted-cite">— scored by a proper rule, so backing the true posterior pays best (paired-uniform, Vespa &amp; Wilson 2017)</span>.</li>
-          </ul>
+        <div class="experimental-content">
+          <p class="section-text">Imagine a group of <strong>1,000 islands</strong>, each growing coconuts. An island&rsquo;s yearly production changes because of the <strong>weather</strong>: it is usually close to the island&rsquo;s average, typically within 2 coconuts of it. Over 100 years, production is exactly at the average in about <strong id="gi-noise0">20</strong> years, 1 coconut away in about <span id="gi-noise1">17</span> each side, 2 away in about <span id="gi-noise2">12</span>, and 3 or more in about <span id="gi-noise3">11</span>.</p>
+          <div class="xp-panel">
+            <p><strong><span id="gi-nstable">500</span> of the 1,000 islands have a stable production:</strong> their average production stays the same over time.</p>
+            <p><strong><span id="gi-ngrow">500</span> of the 1,000 islands have a growing production:</strong> their average production goes up by <strong><span id="gi-arm">3</span> coconuts every 100 years</strong>.</p>
+          </div>
+          <p class="section-text">Each round you see the surviving yearly records of one island, picked at random. Decide whether it is <strong>stable or growing</strong> and bet your <strong>100 points</strong> on it: the more points on the island&rsquo;s actual type, the higher your chance of winning (100 &minus; (100 &minus; <i>a</i>)<sup>2</sup>/100 percent with <i>a</i> points on the actual type). There are <strong>2 parts of 8 islands</strong>; in one part only a few years&rsquo; records survive, in the other many.</p>
+          <p class="xp-hint">Same parameters, chart and bet control as the real experiment (the growth arm, <span id="gi-arm2">+3</span> per century, is drawn for you at random, as it is for participants). Unlike the experiment, you see the answer after each island, and at the end your score is compared with a Bayesian ideal observer who saw the same charts.</p>
         </div>
-        <div class="game-intro-foot">
-          <button type="button" class="game-play" id="game-play">Play</button>
-          <span class="game-intro-hint">or press <b>Enter</b> &middot; <b>Esc</b> / <b>✕</b> leaves the game</span>
+        <div class="button-row">
+          <button type="button" class="next-button" id="game-play">Start</button>
         </div>
       </div>
 
-      <!-- SCREEN 1 (bet) → SCREEN 2 (reveal): same layout, the experiment panel -->
-      <div class="game-panel" id="game-panel" hidden>
+      <!-- SCREEN 1: block start (main/BlockStart.html wording) -->
+      <div class="screen-card narrative-card" id="game-block" hidden>
         <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
-
-        <!-- header -->
-        <div class="game-go-row">
-          <span class="game-title">Place your bet on this island</span>
-          <span class="game-role expert" id="game-role">EXPERT · n=20</span>
+        <div class="experimental-header">
+          <div class="xp-eyebrow" id="gb-eyebrow">Part 1 of 2</div>
+          <h2 class="header-title" id="gb-title">Ready to start</h2>
         </div>
-
-        <!-- TOP panel: the data — one scatter, full width. The round is BET-ONLY
-             now (no β-estimate, no belief elicitation), matching the live
-             experiment: see the chart, place the two-step bet, see results. -->
-        <div class="game-top">
-          <div class="game-scatter-wrap"><canvas id="game-scatter"></canvas></div>
+        <div class="experimental-content">
+          <p class="section-text" id="gb-text"></p>
+          <div class="xp-panel xp-panel--hug">Remember: we pick a new island at random for every chart, so the last island tells you nothing about the next.</div>
         </div>
+        <div class="button-row">
+          <button type="button" class="next-button" id="game-block-start">Start</button>
+        </div>
+      </div>
 
-        <!-- BOTTOM panel: the two-step bet, full width -->
-        <div class="game-bottom">
-          <!-- bet — TWO-STEP widget, mirroring the live experiment elicitation:
-               STEP 1 a Stable/Growing direction; STEP 2 a 0–100 points-on-Growing
-               slider, gated by step 1 and clamped to the chosen half (50 reachable
-               from both sides, the blocked half greyed, no pre-set value). The
-               recorded bet is unchanged in meaning: points on Growing, 0–100. -->
-          <div class="bet-area">
-            <div class="ctl-title">Your bet <span class="q">— 100 points, Stable vs Growing (this is scored)</span></div>
-            <div class="bet-body">
-              <!-- STEP 1: direction (two segmented buttons backed by real radios) -->
-              <div class="bet2-step bet2-step--dir">
-                <p class="bet2-label"><span class="bet2-badge">1</span>Is this island&rsquo;s production stable or growing?</p>
-                <div class="bet2-seg" id="bet2-seg" role="radiogroup" aria-label="Is this island's production stable or growing?">
-                  <label class="bet2-btn bet2-btn--stable">
-                    <input type="radio" name="bet2_dir" id="bet2_stable" value="STABLE">
-                    <span class="bet2-face"><span class="bet2-swatch stable"></span>Stable</span>
-                  </label>
-                  <label class="bet2-btn bet2-btn--growing">
-                    <input type="radio" name="bet2_dir" id="bet2_growing" value="GROWING">
-                    <span class="bet2-face">Growing<span class="bet2-swatch growing"></span></span>
-                  </label>
-                </div>
-              </div>
-              <!-- STEP 2: the points slider, gated + clamped by step 1 -->
-              <div class="bet2-step bet2-step--bet">
-                <p class="bet2-label"><span class="bet2-badge">2</span><span id="bet2-step2-text">How confident are you?</span></p>
-                <div class="bet2-gate locked" id="bet2-gate">
-                  <div class="bet2-readout">
-                    <div class="bet2-side stable"><span class="bet2-sname"><span class="bet2-swatch stable"></span>Stable</span><span class="bet2-num" id="bet2-pts-stable">—</span><span class="bet2-unit">pts</span></div>
-                    <div class="bet2-side growing"><span class="bet2-sname">Growing<span class="bet2-swatch growing"></span></span><span class="bet2-num" id="bet2-pts-growing">—</span><span class="bet2-unit">pts</span></div>
-                  </div>
-                  <div class="bet2-slider-wrap" id="bet2-slider-wrap">
-                    <div class="bet2-track-bg dir-none" id="bet2-track-bg"><div class="dead"></div><div class="mid"></div></div>
-                    <input type="range" class="bet2-slider is-unset" id="bet2-slider" min="0" max="100" step="1" value="50" aria-label="Points on Growing">
-                    <div class="bet2-opt" id="bet2-opt"><span></span></div>
-                    <div class="bet2-shield" id="bet2-shield"></div>
-                    <div class="bet2-toast" id="bet2-toast" role="status" aria-live="polite" hidden></div>
-                  </div>
-                  <div class="bet2-scale">
-                    <span>Fully confident stable</span>
-                    <span class="bet2-scale-mid">Not sure</span>
-                    <span>Fully confident growing</span>
-                  </div>
-                </div>
-              </div>
+      <!-- SCREEN 2: the task round (main/AllocationScreen.html) -->
+      <div class="screen-card task-card" id="game-panel" hidden>
+        <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
+        <div class="task-top">
+          <div class="progress-strip">
+            <div class="progress-line">
+              <div class="progress-count" id="game-progress">Part 1 of 2<span class="sep">&middot;</span>Round 1 of 8</div>
             </div>
-            <div class="bet-earn" id="bet-earn"></div>
+            <div class="progress-track"><div class="progress-fill" id="game-progress-fill" style="width:0%"></div></div>
           </div>
         </div>
 
-        <!-- footer: "Submit" turns into "Next round" in place on reveal; "See results"
-             appears beside it on the results screen -->
-        <div class="game-foot">
-          <button type="button" class="game-submit" id="game-submit">Submit</button>
-          <button type="button" class="game-results-btn" id="game-results-btn">See results</button>
+        <div class="task-main">
+          <div class="task-plot">
+            <div class="stimulus-plot" id="game-chart"></div>
+          </div>
+
+          <div class="task-right">
+            <div class="view-lock-note" id="game-lock-note">Look at the chart, unlocking in 2s</div>
+            <div class="task-elicit" id="game-elicit">
+              <div class="elicit-stack">
+                <!-- the two-step bet (main/widget_allocation.html) -->
+                <section class="elicit bet-widget bet-unset" id="bet_widget" style="--bet-block-pct:50%">
+                  <div class="elicit-head">
+                    <span class="info-anchor">
+                      <button type="button" class="xp-info-btn" id="info_btn" aria-expanded="false" aria-controls="info_panel" title="How the points pay">?</button>
+                      <div id="info_panel" class="info-panel" role="dialog" aria-label="How the points pay">
+                        <p class="info-intuition">The more of your 100 points are on the island's <strong>actual type</strong>, the higher your chance of winning.</p>
+                        <p class="info-formula">With <span class="info-a">a</span> of your 100 points on the actual type, your chance of winning is<br>100 &minus; (100 &minus; <span class="info-a">a</span>)<sup>2</sup> / 100 percent.</p>
+                        <p class="info-deriv">For example, if you put 70 of your 100 points on the actual type your chance of winning is 100 &minus; 900 / 100 = 91 percent.</p>
+                        <p class="info-reminder">You won't know which rounds pay, so answer every round as if it pays.</p>
+                      </div>
+                    </span>
+                  </div>
+
+                  <div class="bet-step bet-step--direction">
+                    <p class="bet-step-label"><span id="bet_step1_text">Is this island&rsquo;s production stable or growing?</span></p>
+                    <div class="xp-segmented" id="bet_direction" role="radiogroup" aria-labelledby="bet_step1_text">
+                      <label class="seg-btn seg-btn--stable">
+                        <input type="radio" name="allocation_direction" id="allocation_direction_stable" value="STABLE" data-word="stable">
+                        <span class="seg-face"><span class="swatch"></span>Stable</span>
+                      </label>
+                      <label class="seg-btn seg-btn--growing">
+                        <input type="radio" name="allocation_direction" id="allocation_direction_growing" value="GROWING" data-word="growing">
+                        <span class="seg-face">Growing<span class="swatch"></span></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="bet-step bet-step--bet">
+                    <p class="bet-step-label" id="bet_step2_label">
+                      <span class="bet-step2-slot"><span class="bet-step2-ghost" aria-hidden="true">How confident are you that it is growing?</span><span id="bet_step2_text" class="bet-step2-text">How confident are you that it is growing?</span></span>
+                    </p>
+                    <div class="bet-gate is-gated" id="bet_gate">
+                      <div class="alloc-readout">
+                        <div class="alloc-side zero">
+                          <span class="alloc-name"><span class="swatch"></span>Stable</span>
+                          <span class="alloc-num" id="pts_zero">—</span>
+                          <span class="alloc-unit">points</span>
+                        </div>
+                        <div class="alloc-side pos">
+                          <span class="alloc-name">Growing<span class="swatch"></span></span>
+                          <span class="alloc-num" id="pts_pos">—</span>
+                          <span class="alloc-unit">points</span>
+                        </div>
+                      </div>
+                      <div class="bet-slider-wrap" id="bet_slider_wrap">
+                        <input type="range" id="allocation_pos_pct" min="0" max="100" step="1" aria-label="Points on Growing" aria-disabled="true">
+                        <div class="bet-opt" id="bet_opt" hidden><span></span></div>
+                      </div>
+                      <div class="scale-ends">
+                        <span>Fully confident stable</span>
+                        <span class="scale-mid">Not confident at all</span>
+                        <span>Fully confident growing</span>
+                      </div>
+                      <div class="bet-shield" id="bet_shield" hidden aria-hidden="true"></div>
+                      <div class="popup--toast" id="bet_toast" role="status" aria-live="polite" hidden>Choose <strong>Stable</strong> or <strong>Growing</strong> first.</div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+            <!-- site-only: per-round feedback, shown after "Next island" -->
+            <div class="round-feedback" id="game-feedback" hidden></div>
+            <div class="view-lock-note view-lock-balance" id="game-lock-balance" aria-hidden="true">Look at the chart, unlocking in 2s</div>
+          </div>
         </div>
 
+        <div class="errors" id="game-error" role="alert" hidden></div>
+        <div class="task-foot button-row">
+          <button type="button" class="next-button" id="game-submit">Next island</button>
+        </div>
       </div>
 
-      <!-- SESSION SUMMARY screen (in-memory accumulators; reset on page reload) -->
-      <div class="game-summary" id="game-summary" hidden>
+      <!-- SCREEN 3: summary (site-only) -->
+      <div class="screen-card narrative-card" id="game-summary" hidden>
         <button type="button" class="card-x" aria-label="Leave the game and return to Simulated Groups">✕</button>
-        <div class="game-eyebrow">Session results</div>
-        <h2>This session</h2>
-        <div class="summary-grid">
-          <div class="sum-stat won"><span class="v" id="sum-won">€0.00</span><span class="k">total money won</span></div>
-          <div class="sum-stat"><span class="v" id="sum-rounds">0</span><span class="k">rounds played</span></div>
-          <div class="sum-stat acc wide"><span class="v" id="sum-bethit">0 of 0 (0%)</span><span class="k">bet hit-rate <span class="sk">largest stake on the true slope</span></span></div>
+        <div class="experimental-header">
+          <div class="xp-eyebrow">Results</div>
+          <h2 class="header-title">How you did</h2>
         </div>
-        <div class="summary-foot">
-          <button type="button" class="game-play" id="game-keepplaying">Keep playing</button>
-          <button type="button" class="game-secondary" id="game-exit">Exit</button>
+        <div class="experimental-content" id="game-summary-body"></div>
+        <div class="button-row">
+          <button type="button" class="next-button ghost" id="game-exit">Exit</button>
+          <button type="button" class="next-button" id="game-keepplaying">Play again</button>
         </div>
       </div>
 
@@ -463,9 +496,9 @@
 
 </main>
 
-<script src="simulation.js?v=23"></script>
+<script src="simulation.js?v=24"></script>
 
-<script src="game.js?v=18"></script>
+<script src="game.js?v=19"></script>
 
 </body>
 </html>

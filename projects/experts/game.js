@@ -27,452 +27,507 @@
 
 
 /* ============================================================================
-   GAME — single-player betting / prediction task.
-   Reuses the page's existing generators, constants and posterior math:
-     X_SPAN, BASELINE_LO/HI, observe, analysisSigma, linspaceArr, makeNormal,
-     olsBetaHat, ssOfX, posteriorOverCandidates, readPriors, candCount, fmtSigned.
-   The candidate slopes, their prior, σ and the EXPERT/NOVICE sample sizes are all
-   read LIVE from the Simulation controls, so the Game always runs the design the
-   panel shows (2 states, prior 0.75 / 0.25, β₂ = 0.02 by default), with these
-   fallbacks if the panel is unreadable. The belief bars, the €1 allocation bar
-   and its handles are therefore built per round, one slot per candidate.
+   GAME — a playable copy of the REAL oTree task, Pilot 2 configuration.
+
+   Every design number below is copied from the experiment repo (copies in
+   _ai/otree_ref/templates/; line numbers refer to those files). Nothing is
+   read from the Simulation panel any more: the game always runs the design
+   participants ran.
+
+   ┌──────────────────────────┬────────────────────┬───────────────────────────────────────────┐
+   │ quantity                 │ value              │ source                                    │
+   ├──────────────────────────┼────────────────────┼───────────────────────────────────────────┤
+   │ prior P(stable),P(grow)  │ 0.5 / 0.5          │ settings.py:694  'prior': [0.5, 0.5]      │
+   │ islands (story)          │ 1000 → 500 / 500   │ settings.py:195  islands_total=1000       │
+   │ growth arms (per year)   │ 0.03 / 0.04        │ settings.py:695  beta_pairs [[0,.03],[0,.04]] │
+   │   (participant wording)  │ +3 / +4 per 100 yr │ settings.py:181-182 (coconuts per century)│
+   │ stable slope             │ 0                  │ settings.py:695  (first of each pair)     │
+   │ noise SD sigma_eps       │ 2.0                │ settings.py:214  sigma_eps=2.0            │
+   │ baseline (integer)       │ U{40..80}          │ settings.py:215-216; stimulus.py:81 randint│
+   │ x window                 │ 0 … 100, even grid │ settings.py:223-225; stimulus.py:56-67    │
+   │ trend centre t_mid       │ 50                 │ stimulus.py:80  (x_min + x_max) / 2       │
+   │ displayed production     │ round(y) integers  │ stimulus.py:84  int(round(y))             │
+   │ NOVICE dots              │ 3 (years 0/50/100) │ settings.py:700 'n_novice': [3]           │
+   │ EXPERT dots              │ 20                 │ settings.py:701 'n_expert': [20]          │
+   │ n per block              │ one n per block    │ settings.py:699 role_switch_n_mode        │
+   │ blocks × rounds          │ 2 × 8 = 16         │ settings.py:697 role_switch_blocks=2; :288 rounds_per_block=8 │
+   │ role switch, order       │ yes, random order  │ settings.py:696 role_switch=True; :649-651│
+   │ y window                 │ baseline ± 10      │ settings.py:389 y_half_window=10; stimulus.py:231-239 │
+   │ chart geometry           │ 480×340, m 52/18/34/44 │ stimulus.py:292-293                   │
+   │ x padding                │ 5 % of window      │ stimulus.py:297                           │
+   │ tick steps               │ _tick_step(span,6/8)│ stimulus.py:321-323, 256-261             │
+   │ dots                     │ r 5, #2c6fbb, .75  │ stimulus.py:382-383                       │
+   │ fitted line (examples)   │ #d1495b, 2.5       │ stimulus.py:370-377 (reveal only here)    │
+   │ bet block point          │ 50                 │ settings.py:427 bet_block_point=50        │
+   │ forced view              │ 2 s                │ settings.py:361 min_view_seconds=2        │
+   │ lock note                │ "Look at the chart, unlocking in {s}s" │ __init__.py:40        │
+   │ win chance               │ 1 − (1 − a/100)²   │ widget_allocation.html:101-104 (scoring.py)│
+   │ prize per paid round     │ £0.50              │ settings.py:315 scoring_prize=0.50        │
+   │ paid rounds              │ 2 of all rounds    │ settings.py:316 paid_rounds_total=2       │
+   │ Bayesian posterior       │ LLR, centred data  │ stimulus.py:117-155 (sigma = sigma_eps)   │
+   └──────────────────────────┴────────────────────┴───────────────────────────────────────────┘
+   Python's round() is round-half-even and Math.round is half-up; the two differ
+   only on an exact .5, which a continuous Gaussian draw hits with probability 0.
+
+   SITE-ONLY (not in the experiment, kept on purpose): feedback after every
+   round and an end summary comparing the player with the Bayesian ideal
+   observer on the same charts, by role.
    ============================================================================ */
 (function(){
   'use strict';
 
-  var FALLBACK_BETAS  = [0, 0.02];
-  var FALLBACK_PRIORS = [0.75, 0.25];
-
-  // ---- mutable round + control state ----
-  // The round is BET-ONLY (matches the live experiment): see the chart, place the
-  // two-step Stable/Growing bet, see results. There is no β-estimate input and no
-  // separate belief/confidence elicitation.
-  var round = null;          // { sigma, n, isExpert, states, trueIdx, trueBeta, baseline, x, y, betaHat, se, posterior }
-  var revealed = false;      // false on the bet screen, true on the results screen
-
-  // ---- TWO-STEP BET (mirrors the live elicitation) ----
-  // The recorded bet is POINTS ON GROWING, 0–100 (unchanged in meaning). It is
-  // set in two steps: a Stable/Growing direction, then a slider clamped to the
-  // chosen half. Both start UNSET each round — there is no pre-filled value, so
-  // an untouched submission records nothing (Submit nudges instead).
-  var BLOCK = 50;            // the physical centre / block point; 50 on both halves
-  var betDir = null;         // null | 'STABLE' | 'GROWING'
-  var betPts = null;         // null | integer 0–100 (points on Growing)
-  var bet2ToastT = null;
-
-  // ---- in-memory session accumulators (reset on page reload) ----
-  var sess = { rounds: 0, won: 0, betHits: 0 };
-  var scoredThisRound = false;  // guard so each revealed round is counted once
+  var P = {
+    prior: [0.5, 0.5],
+    islandsTotal: 1000,
+    arms: [0.03, 0.04],
+    sigma: 2.0,
+    baselineMin: 40, baselineMax: 80,
+    xMin: 0, xMax: 100,
+    nNovice: 3, nExpert: 20,
+    blocks: 2, roundsPerBlock: 8,
+    yHalfWindow: 10,
+    blockPoint: 50,
+    minViewSeconds: 2,
+    scoringPrize: 0.50,
+    paidRoundsTotal: 2
+  };
+  var TOTAL = P.blocks * P.roundsPerBlock;
+  var LOCK_NOTE_TPL = 'Look at the chart, unlocking in {s}s';
+  var CONFIDENCE_TPL = 'How confident are you that it is {type}?';
+  var MSG_DIRECTION_MISSING = 'Choose "Stable" or "Growing" first, then set your bet with the slider.';
+  var MSG_BET_MISSING = 'Now set your bet: move the slider to show how confident you are.';
+  var TOAST_MS = 2600;
 
   function gid(id){ return document.getElementById(id); }
-  function eur(x){ return '€' + x.toFixed(2); }
-  // β is a per-year slope on a 0.01–0.04 scale — use the page's shared formatter
-  // (3 decimals) so the Game and the Simulation print the same numbers.
-  function signed(v){ return fmtSigned(v); }
 
-  function readParam(id, fallback){
-    var el = gid(id);
-    var v = el ? parseFloat(el.value) : NaN;
-    return (isFinite(v) && v > 0) ? v : fallback;
+  // ---------------------------------------------------------------- maths ----
+  function gauss(){                       // Box–Muller, N(0,1)
+    var u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   }
-
-  // ---- candidate slopes + prior, live from the Simulation controls ----
-  function readStates(){
-    var k = (typeof candCount === 'number') ? candCount : 2;
-    var ids = (k === 3) ? ['b1','b2','b3'] : ['b1','b2'];
-    var betas = ids.map(function(id){ var el = gid(id); return el ? parseFloat(el.value) : NaN; });
-    var priors = readPriors(k);
-    var ok = betas.every(function(v){ return isFinite(v); })
-          && new Set(betas).size === betas.length
-          && priors.every(function(p){ return isFinite(p) && p >= 0; });
-    if (!ok){ betas = FALLBACK_BETAS.slice(); priors = FALLBACK_PRIORS.slice(); }
-    // sort ascending so bars / bet segments read left→right like the rest of the page
-    var order = betas.map(function(b, i){ return i; })
-                     .sort(function(a, b){ return betas[a] - betas[b]; });
-    return { betas: order.map(function(i){ return betas[i]; }),
-             priors: order.map(function(i){ return priors[i]; }) };
+  function randint(lo, hi){ return lo + Math.floor(Math.random() * (hi - lo + 1)); }
+  // stimulus.make_x_grid, 'fixed_even'
+  function xGrid(n){
+    if (n === 1) return [(P.xMin + P.xMax) / 2];
+    var step = (P.xMax - P.xMin) / (n - 1), xs = [];
+    for (var i = 0; i < n; i++) xs.push(P.xMin + i * step);
+    return xs;
   }
+  // stimulus.sample_points
+  function samplePoints(n, trueBeta){
+    var xs = xGrid(n), tMid = (P.xMin + P.xMax) / 2;
+    var baseline = randint(P.baselineMin, P.baselineMax);
+    var ys = xs.map(function(x){ return Math.round(baseline + trueBeta * (x - tMid) + P.sigma * gauss()); });
+    return { xs: xs, ys: ys, baseline: baseline };
+  }
+  function mean(a){ var s = 0; for (var i = 0; i < a.length; i++) s += a[i]; return s / a.length; }
+  // stimulus.ols_slope_se (slope only)
+  function olsSlope(xs, ys){
+    var xb = mean(xs), yb = mean(ys), sxx = 0, sxy = 0;
+    for (var i = 0; i < xs.length; i++){ sxx += (xs[i] - xb) * (xs[i] - xb); sxy += (xs[i] - xb) * (ys[i] - yb); }
+    return sxx === 0 ? 0 : sxy / sxx;
+  }
+  // stimulus.log_likelihood_ratio + posterior_pos (baseline marginalised: centred data)
+  function posteriorGrowing(xs, ys, pair){
+    var xb = mean(xs), yb = mean(ys);
+    function rss(b){ var s = 0; for (var i = 0; i < xs.length; i++){ var r = (ys[i] - yb) - b * (xs[i] - xb); s += r * r; } return s; }
+    var llr = (rss(pair[0]) - rss(pair[1])) / (2 * P.sigma * P.sigma);
+    var logOdds = llr + Math.log(P.prior[1] / P.prior[0]);
+    if (logOdds > 700) return 1;
+    return 1 / (1 + Math.exp(-logOdds));
+  }
+  // stimulus.noise_years_table (largest-remainder rounding to 100)
+  function erf(x){
+    var s = x < 0 ? -1 : 1; x = Math.abs(x);
+    var t = 1 / (1 + 0.3275911 * x);
+    var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return s * y;
+  }
+  function phi(z){ return 0.5 * (1 + erf(z / Math.SQRT2)); }
+  function noiseYearsTable(sigma){
+    var p0 = phi(0.5 / sigma) - phi(-0.5 / sigma), p1 = phi(1.5 / sigma) - phi(0.5 / sigma),
+        p2 = phi(2.5 / sigma) - phi(1.5 / sigma), p3 = 1 - phi(2.5 / sigma);
+    var raw = [p3, p2, p1, p0, p1, p2, p3].map(function(p){ return 100 * p; });
+    var out = raw.map(Math.floor);
+    var left = 100 - out.reduce(function(a, b){ return a + b; }, 0);
+    var order = [0,1,2,3,4,5,6].sort(function(a, b){ return (raw[b] - out[b]) - (raw[a] - out[a]); });
+    for (var k = 0; k < left; k++) out[order[k]] += 1;
+    return out;
+  }
+  // scoring: binarised quadratic. a = points on the ACTUAL type (0–100) → percent
+  function winPct(a){ return 100 - (100 - a) * (100 - a) / 100; }
+  function winPctFor(betGrow, trueGrow){ return winPct(trueGrow ? betGrow : 100 - betGrow); }
+  function expWinPct(betGrow, pGrow){ return pGrow * winPctFor(betGrow, true) + (1 - pGrow) * winPctFor(betGrow, false); }
 
-  // ---- generate one fresh round ----
-  function genRound(){
-    var sigma = readParam('sigma', 2.0);
-    var nNov  = Math.round(readParam('nNov', 3));
-    var nExp  = Math.round(readParam('nExp', 20));
-    var states = readStates();
-
-    var isExpert = Math.random() < 0.5;        // P(expert) = P(novice) = ½
-    var n = isExpert ? nExp : nNov;
-
-    // draw the true state from the prior (0.75 flat / 0.25 growing by default)
-    var u = Math.random(), acc = 0, trueIdx = states.betas.length - 1;
-    for (var k = 0; k < states.betas.length; k++){
-      acc += states.priors[k];
-      if (u < acc){ trueIdx = k; break; }
+  // ------------------------------------------------- chart (stimulus.py) ----
+  function fmt(v){ var s = v.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''); return (s === '' || s === '-0') ? '0' : s; }
+  function tickStep(span, maxTicks){
+    var steps = [1, 2, 5, 10, 20, 25, 50, 100];
+    for (var i = 0; i < steps.length; i++) if (span / steps[i] <= maxTicks) return steps[i];
+    return span;
+  }
+  function yWindow(yCenter){ var c = Math.round(yCenter); return [c - P.yHalfWindow, c + P.yHalfWindow]; }
+  // Exact port of stimulus.scatter_svg(xs, ys, cfg, y_center=baseline, plot_id='task'),
+  // plus show_fit (the instructions-example line) used here only on the reveal.
+  function scatterSvg(xs, ys, yCenter, showFit){
+    var W = 480, H = 340, ml = 52, mr = 18, mt = 34, mb = 44;
+    var pw = W - ml - mr, ph = H - mt - mb;
+    var pad = 0.05 * (P.xMax - P.xMin), xlo = P.xMin - pad, xhi = P.xMax + pad;
+    var yw = yWindow(yCenter), yLo = yw[0], yHi = yw[1];
+    function px(x){ return ml + (x - xlo) / (xhi - xlo) * pw; }
+    function py(y){ return mt + (yHi - y) / (yHi - yLo) * ph; }
+    var F = 'font-family="system-ui,sans-serif"';
+    var parts = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + fmt(W) + ' ' + fmt(H) + '" role="img" aria-label="Chart of one island\'s coconut production in ' + xs.length + ' recorded years" style="width:100%;height:auto;display:block;">',
+      '<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>',
+      '<text x="' + fmt(W / 2) + '" y="21" text-anchor="middle" ' + F + ' font-size="16" font-weight="600" fill="#333">This island&#8217;s coconut production</text>'
+    ];
+    var xStep = tickStep(P.xMax - P.xMin, 6), xticks = [];
+    for (var i = 0; i <= Math.floor((P.xMax - P.xMin) / xStep); i++) xticks.push(P.xMin + i * xStep);
+    var yStep = tickStep(yHi - yLo, 8), yticks = [];
+    for (var yt = yStep * Math.ceil(yLo / yStep); yt <= yHi; yt += yStep) yticks.push(yt);
+    xticks.forEach(function(xt){
+      var X = px(xt);
+      parts.push('<line x1="' + fmt(X) + '" y1="' + fmt(mt) + '" x2="' + fmt(X) + '" y2="' + fmt(mt + ph) + '" stroke="#eceff3" stroke-width="1"/>');
+      parts.push('<text x="' + fmt(X) + '" y="' + fmt(mt + ph + 19) + '" text-anchor="middle" ' + F + ' font-size="14" fill="#555">' + xt + '</text>');
+    });
+    yticks.forEach(function(v){
+      var Y = py(v);
+      parts.push('<line x1="' + fmt(ml) + '" y1="' + fmt(Y) + '" x2="' + fmt(ml + pw) + '" y2="' + fmt(Y) + '" stroke="#eceff3" stroke-width="1"/>');
+      parts.push('<text x="' + fmt(ml - 9) + '" y="' + fmt(Y + 5) + '" text-anchor="end" ' + F + ' font-size="14" fill="#555">' + v + '</text>');
+    });
+    parts.push('<rect x="' + fmt(ml) + '" y="' + fmt(mt) + '" width="' + fmt(pw) + '" height="' + fmt(ph) + '" fill="none" stroke="#ccd5e0" stroke-width="1"/>');
+    parts.push('<text x="' + fmt(ml + pw / 2) + '" y="' + fmt(H - 6) + '" text-anchor="middle" ' + F + ' font-size="15" fill="#333">Year</text>');
+    parts.push('<text x="14" y="' + fmt(mt + ph / 2) + '" text-anchor="middle" ' + F + ' font-size="15" fill="#333" transform="rotate(-90 14 ' + fmt(mt + ph / 2) + ')">Coconuts</text>');
+    // marks, CLIPPED to the plot frame (stimulus.py CLIP POLICY)
+    parts.push('<clipPath id="clip-game"><rect x="' + fmt(ml) + '" y="' + fmt(mt) + '" width="' + fmt(pw) + '" height="' + fmt(ph) + '"/></clipPath>');
+    parts.push('<g clip-path="url(#clip-game)">');
+    if (showFit && xs.length >= 2){
+      var bh = olsSlope(xs, ys), xb = mean(xs), yb = mean(ys), ic = yb - bh * xb;
+      parts.push('<line x1="' + fmt(px(xlo)) + '" y1="' + fmt(py(ic + bh * xlo)) + '" x2="' + fmt(px(xhi)) + '" y2="' + fmt(py(ic + bh * xhi)) + '" stroke="#d1495b" stroke-width="2.5" stroke-linecap="round"/>');
     }
-    var trueBeta = states.betas[trueIdx];
-
-    // fixed design x = linspace(0, 100, n): n evenly spaced observation years
-    // across the window (the page's default fixed-x mode). y = baseline + β·x +
-    // N(0, σ²) using the page's Box–Muller generator, with an integer baseline so
-    // the dots sit at realistic heights — and rounded to whole numbers at this
-    // simulation step whenever the page's y-values toggle is on integers.
-    var baseline = BASELINE_LO + Math.floor(Math.random() * (BASELINE_HI - BASELINE_LO + 1));
-    var x = linspaceArr(0, X_SPAN, n);
-    var norm = makeNormal(Math.random);
-    var y = new Array(n);
-    for (var i = 0; i < n; i++) y[i] = observe(baseline + trueBeta * x[i] + sigma * norm());
-
-    // β̂ and everything derived from it therefore come from the REALISED dots.
-    var betaHat = olsBetaHat(x, y);
-    var se = analysisSigma(sigma) / Math.sqrt(ssOfX(x));
-    // optimal allocation = posterior P(state | data), exactly the page's closed form.
-    // Renormalise defensively so the optimal bet ALWAYS sums to exactly 1 (€1.00).
-    var posterior = posteriorOverCandidates(betaHat, se, states.betas, states.priors);
-    var pz = posterior.reduce(function(a, b){ return a + b; }, 0);
-    posterior = posterior.map(function(v){ return v / pz; });
-
-    return { sigma:sigma, n:n, isExpert:isExpert, states:states, trueIdx:trueIdx,
-             trueBeta:trueBeta, baseline:baseline, x:x, y:y, betaHat:betaHat, se:se,
-             posterior:posterior };
-  }
-
-  // ---- renderers ----
-  // STABLE is the lowest-β candidate (flat / least-growing, index 0 after the
-  // ascending sort); GROWING is everything above it. In the pilot's two-state
-  // world these are exactly {flat, +β}. The posterior mass on the growing side is
-  // 1 − P(stable), so the bet's "optimal points on Growing" is 100·pGrowing().
-  function pGrowing(){ return 1 - round.posterior[0]; }
-
-  // ---- two-step bet: helpers --------------------------------------------------
-  function bet2Toast(msg){
-    var t = gid('bet2-toast');
-    t.innerHTML = msg; t.hidden = false;
-    clearTimeout(bet2ToastT);
-    bet2ToastT = setTimeout(function(){ t.hidden = true; }, 2600);
-  }
-  function bet2Readout(){
-    gid('bet2-pts-growing').textContent = (betPts == null) ? '—' : betPts;
-    gid('bet2-pts-stable').textContent  = (betPts == null) ? '—' : (100 - betPts);
-  }
-  // Reset to the fully-unset first-view state: no direction, no bet, slider parked
-  // at the block point with a hidden thumb, both readouts em-dashes, gate greyed
-  // and the shield armed so a slider-first touch gets the nudge.
-  function bet2Reset(){
-    betDir = null; betPts = null;
-    var radios = document.querySelectorAll('#bet2-seg input');
-    for (var k = 0; k < radios.length; k++) radios[k].checked = false;
-    var s = gid('bet2-slider');
-    s.value = BLOCK; s.classList.add('is-unset');
-    gid('bet2-step2-text').textContent = 'How confident are you?';
-    gid('bet2-track-bg').className = 'bet2-track-bg dir-none';
-    gid('bet2-gate').classList.add('locked');
-    gid('bet2-shield').hidden = false;
-    gid('bet2-toast').hidden = true;
-    bet2Readout();
-  }
-  // Choosing a direction opens the gate and clamps the slider to that half. It
-  // CLEARS any prior bet (never mirrors the old value across the centre), exactly
-  // as the live widget does.
-  function bet2SetDirection(dir){
-    if (revealed) return;
-    betDir = dir; betPts = null;
-    var s = gid('bet2-slider');
-    s.value = BLOCK; s.classList.add('is-unset');
-    gid('bet2-step2-text').textContent =
-      'How confident are you that it is ' + (dir === 'GROWING' ? 'growing' : 'stable') + '?';
-    gid('bet2-track-bg').className =
-      'bet2-track-bg ' + (dir === 'GROWING' ? 'dir-growing' : 'dir-stable');
-    gid('bet2-gate').classList.remove('locked');
-    gid('bet2-shield').hidden = true;
-    bet2Readout();
-  }
-  // The slider moved: clamp to the chosen half (block reachable from both) and
-  // record it. Any move reveals the thumb and sets the bet.
-  function bet2OnInput(){
-    if (revealed || !betDir) return;
-    var v = parseInt(gid('bet2-slider').value, 10);
-    if (betDir === 'GROWING') v = Math.max(BLOCK, v);
-    else                      v = Math.min(BLOCK, v);
-    betPts = v;
-    var s = gid('bet2-slider');
-    s.value = v; s.classList.remove('is-unset');
-    bet2Readout();
-  }
-  // On reveal: an orange marker at the optimal points-on-Growing (100·pGrowing),
-  // positioned to match the thumb-centre travel (track inset 10px each side).
-  function bet2RenderOptimal(){
-    var opt = Math.round(100 * pGrowing());
-    var m = gid('bet2-opt');
-    m.style.left = 'calc(10px + ' + (opt / 100) + ' * (100% - 20px))';
-    m.querySelector('span').textContent = opt + ' opt';
-  }
-
-  function drawGameScatter(){
-    var c = gid('game-scatter');
-    if (!c || !round) return;
-    // cap the backing-store scale at 2: dpr 3 triples the buffer's pixel count
-    // squared, and WebKit reclaims discarded canvas memory lazily
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    // Layout size is owned by CSS (width:100% + fixed height); here we ONLY (re)size
-    // the drawing buffer. We must NOT write c.style.width/height: writing the measured
-    // clientWidth back onto the canvas (with the 1px border under border-box) made the
-    // border-box shrink ~2px on every redraw, so it ratcheted down each Submit/Next.
-    var w = c.clientWidth || (c.parentElement ? c.parentElement.clientWidth : 0) || 560;
-    var h = c.clientHeight || 200;
-    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
-    var ctx = c.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-
-    var pad = { top:16, right:14, bottom:28, left:44 };
-    var pw = w - pad.left - pad.right, ph = h - pad.top - pad.bottom;
-    var x = round.x, y = round.y;
-    // one 100-year observation window; ticks are abstract year labels, not dates
-    var xLo = -0.03 * X_SPAN, xHi = 1.03 * X_SPAN;
-    var ymin = Math.min.apply(null, y), ymax = Math.max.apply(null, y);
-    var span = Math.max(ymax - ymin, 1);
-    ymin -= 0.12 * span; ymax += 0.12 * span;
-    var tx = function(v){ return pad.left + (v - xLo) / (xHi - xLo) * pw; };
-    var ty = function(v){ return pad.top + (1 - (v - ymin) / (ymax - ymin)) * ph; };
-    var font = getComputedStyle(document.body).fontFamily;
-    var niceStep = function(raw){ var e = Math.pow(10, Math.floor(Math.log10(raw))); var b = raw / e; var n = b < 1.5 ? 1 : b < 3 ? 2 : b < 7 ? 5 : 10; return n * e; };
-
-    // gridlines + NUMERIC tick labels on both axes
-    ctx.font = '9.5px ' + font; ctx.lineWidth = 1;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    var xTick = X_SPAN / 5;
-    for (var xv = 0; xv <= X_SPAN + 1e-9; xv += xTick){
-      var pxv = tx(xv);
-      ctx.strokeStyle = '#eef2f7'; ctx.beginPath(); ctx.moveTo(pxv, pad.top); ctx.lineTo(pxv, pad.top + ph); ctx.stroke();
-      ctx.fillStyle = '#94a3b8'; ctx.fillText(String(Math.round(xv)), pxv, pad.top + ph + 6);
+    for (var k = 0; k < xs.length; k++){
+      parts.push('<circle cx="' + fmt(px(xs[k])) + '" cy="' + fmt(py(ys[k])) + '" r="5" fill="#2c6fbb" fill-opacity="0.75"/>');
     }
-    var yStep = niceStep((ymax - ymin) / 4);
-    var yDec = yStep < 1 ? 1 : 0;
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    for (var yv = Math.ceil(ymin / yStep) * yStep; yv <= ymax; yv += yStep){
-      var pyv = ty(yv);
-      ctx.strokeStyle = '#eef2f7'; ctx.beginPath(); ctx.moveTo(pad.left, pyv); ctx.lineTo(pad.left + pw, pyv); ctx.stroke();
-      ctx.fillStyle = '#94a3b8'; ctx.fillText(yv.toFixed(yDec), pad.left - 5, pyv);
-    }
-    ctx.textBaseline = 'alphabetic';
-
-    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
-    ctx.strokeRect(pad.left, pad.top, pw, ph);
-    if (ymin <= 0 && 0 <= ymax){
-      ctx.strokeStyle = '#cbd5e1'; ctx.setLineDash([4, 4]);
-      ctx.beginPath(); ctx.moveTo(pad.left, ty(0)); ctx.lineTo(pad.left + pw, ty(0)); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // RESULTS screen: overlay the OLS fit β̂ (green) through the data centroid, as
-    // truth feedback on what the dots implied.
-    if (revealed){
-      var nn = x.length, xbar = 0, ybar = 0, k;
-      for (k = 0; k < nn; k++){ xbar += x[k]; ybar += y[k]; }
-      xbar /= nn; ybar /= nn;
-      ctx.save();
-      ctx.beginPath(); ctx.rect(pad.left, pad.top, pw, ph); ctx.clip();
-      ctx.strokeStyle = '#0e7d54'; ctx.lineWidth = 2; ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(tx(xLo), ty(ybar + round.betaHat * (xLo - xbar)));
-      ctx.lineTo(tx(xHi), ty(ybar + round.betaHat * (xHi - xbar)));
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.fillStyle = round.isExpert ? 'rgba(37,99,235,0.72)' : 'rgba(220,38,38,0.72)';
-    var r = x.length > 20 ? 2.8 : 5;
-    for (var i = 0; i < x.length; i++){
-      ctx.beginPath(); ctx.arc(tx(x[i]), ty(y[i]), r, 0, Math.PI * 2); ctx.fill();
-    }
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '11px ' + font;
-    ctx.textAlign = 'center';
-    ctx.fillText('year in window', pad.left + pw / 2, h - 4);
-    ctx.save(); ctx.translate(11, pad.top + ph / 2); ctx.rotate(-Math.PI / 2);
-    ctx.fillText('y', 0, 0); ctx.restore();
-
-    // RESULTS overlays: realised true β (top-right) + β̂ on the OLS line (top-left),
-    // with a white halo so they stay legible over the cloud.
-    if (revealed){
-      ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 4;
-      ctx.textAlign = 'left'; ctx.font = 'bold 11px ' + font;
-      ctx.fillStyle = '#0e7d54'; ctx.fillText('β̂ = ' + signed(round.betaHat) + '  (OLS fit)', pad.left + 6, pad.top + 13);
-      ctx.textAlign = 'right'; ctx.font = 'bold 12px ' + font; ctx.fillStyle = '#111827';
-      ctx.fillText('realised  β = ' + signed(round.trueBeta), pad.left + pw - 6, pad.top + 13);
-      ctx.restore();
-    }
+    parts.push('</g></svg>');
+    return parts.join('');
   }
-  window.__gameRedraw = drawGameScatter;
+  window.__expertsScatterSvg = scatterSvg;   // used by the chart-parity check in _ai/
 
-  // ---- scoring: binarised quadratic (paired-uniform) on the TWO-STEP bet ----
-  // With m = (points on the ACTUAL type)/100, the win probability is 1 − (1−m)²
-  // (main/scoring.py's binarised_win_prob, and the widget's info panel). One
-  // Uniform(0,1) draw binarises it: pay €1 iff U < w, else €0. Expected payoff = w,
-  // maximised truthfully at bet = 100·P(Growing) — a strictly proper rule. For the
-  // two-state pilot this is identical to the old K=2 quadratic-loss rule.
-  function winProbFor(bet, trueGrow){
-    var m = (trueGrow ? bet : (100 - bet)) / 100;   // share on the type that occurred
-    return 1 - (1 - m) * (1 - m);
+  // ------------------------------------------------------------ the game ----
+  var game = null;      // { arm, pair, roleOrder, rounds:[…], idx, results:[…] }
+  var bet = null;       // points on Growing, or null (unset)
+  var direction = null; // null | 'STABLE' | 'GROWING'
+  var viewLocked = false, revealed = false;
+  var lockTimer = null, tickTimer = null, toastTimer = null;
+
+  function newGame(){
+    var arm = P.arms[Math.random() < 0.5 ? 0 : 1];
+    var pair = [0, arm];
+    var roleOrder = Math.random() < 0.5 ? ['NOVICE', 'EXPERT'] : ['EXPERT', 'NOVICE'];
+    var rounds = [];
+    for (var b = 0; b < P.blocks; b++){
+      var role = roleOrder[b], n = role === 'EXPERT' ? P.nExpert : P.nNovice;
+      for (var r = 1; r <= P.roundsPerBlock; r++){
+        // stimulus.draw_true_beta: fresh state from the prior every round
+        var trueBeta = Math.random() < P.prior[0] ? pair[0] : pair[1];
+        var s = samplePoints(n, trueBeta);
+        rounds.push({ block: b + 1, roundInBlock: r, role: role, n: n, trueBeta: trueBeta,
+                      trueGrow: trueBeta === pair[1], xs: s.xs, ys: s.ys, baseline: s.baseline,
+                      posterior: posteriorGrowing(s.xs, s.ys, pair) });
+      }
+    }
+    game = { arm: arm, pair: pair, roleOrder: roleOrder, rounds: rounds, idx: 0, results: [] };
   }
-  // Expected win probability of a bet under the posterior (P(Growing) = pGrowing()).
-  function expWinFor(bet){
-    var pg = pGrowing();
-    return pg * winProbFor(bet, true) + (1 - pg) * winProbFor(bet, false);
+  function armCoconuts(){ return Math.round(game.arm * (P.xMax - P.xMin)); }
+
+  function show(id){
+    ['game-intro', 'game-block', 'game-panel', 'game-summary'].forEach(function(s){ gid(s).hidden = (s !== id); });
+    var ov = gid('game-overlay'); if (ov) ov.scrollTop = 0;
   }
 
-  // ---- Submit → results screen: same layout, truth revealed in place ----
-  function submit(){
-    if (revealed || !round) return;
-    // Two-step gate: name the step that is unfinished, like the live widget.
-    if (!betDir){ bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.'); return; }
-    if (betPts == null){ bet2Toast('Now set your bet: move the slider.'); return; }
-    revealed = true;
-    gid('sec-game').classList.add('revealed');
+  // ---- intro ----
+  function renderIntro(){
+    var t = noiseYearsTable(P.sigma);
+    gid('gi-noise0').textContent = t[3]; gid('gi-noise1').textContent = t[2];
+    gid('gi-noise2').textContent = t[1]; gid('gi-noise3').textContent = t[0];
+    gid('gi-nstable').textContent = Math.round(P.prior[0] * P.islandsTotal);
+    gid('gi-ngrow').textContent = Math.round(P.prior[1] * P.islandsTotal);
+    gid('gi-arm').textContent = armCoconuts();
+    gid('gi-arm2').textContent = '+' + armCoconuts();
+  }
+  function showIntro(){ newGame(); renderIntro(); show('game-intro'); }
 
-    var trueGrow = round.trueIdx > 0;            // STABLE is the lowest-β candidate
-
-    // realised binarised payout, scored against the side that occurred
-    var winChance = winProbFor(betPts, trueGrow);
-    var payout = (Math.random() < winChance) ? 1 : 0;
-
-    // ex-ante expected score under the posterior — maximised at bet = 100·P(Growing)
-    var optPts = Math.round(100 * pGrowing());
-    var wYou = expWinFor(betPts), wOpt = expWinFor(optPts);
-
-    bet2RenderOptimal();     // orange optimal-points marker on the bet slider (posterior)
-    drawGameScatter();       // β̂ (OLS) + realised β revealed on the scatter
-
-    gid('bet-earn').innerHTML =
-      '<div class="earn-stat paid"><span class="v">' + eur(payout) + '</span><span class="k">paid this round</span></div>' +
-      '<div class="earn-stat"><span class="v">' + eur(wYou) + '</span><span class="k">your bet · expected</span></div>' +
-      '<div class="earn-stat opt"><span class="v">' + eur(wOpt) + '</span><span class="k">optimal · expected</span></div>';
-
-    // ---- accumulate this round into the session (once) ----
-    if (!scoredThisRound){
-      scoredThisRound = true;
-      sess.rounds  += 1;
-      sess.won     += payout;
-      // bet "hit" = the side you leant toward matches the realised side (50 = no call)
-      var hit = (betPts > 50 && trueGrow) || (betPts < 50 && !trueGrow);
-      sess.betHits += hit ? 1 : 0;
-    }
-
-    // the Submit button becomes "Next round" in place (realised slope is now on the chart)
-    gid('game-submit').textContent = 'Next round →';
+  // ---- block start (main/BlockStart.html) ----
+  function showBlockStart(){
+    var r = game.rounds[game.idx], first = r.block === 1;
+    gid('gb-eyebrow').textContent = 'Part ' + r.block + ' of ' + P.blocks;
+    gid('gb-title').textContent = first ? 'Ready to start' : 'Next part';
+    gid('gb-text').innerHTML = first
+      ? 'This is the start of the game. In the first part you will see <strong>' + P.roundsPerBlock + '</strong> islands.'
+      : 'You have finished part <strong>' + (r.block - 1) + '</strong>. In the next part you will see <strong>' + P.roundsPerBlock + '</strong> islands. <strong>The number of years with surviving records has changed</strong> for the next ' + P.roundsPerBlock + ' rounds.';
+    show('game-block');
   }
 
-  // ---- new round: regenerate everything and reset the controls ----
-  function newRound(){
-    round = genRound();
+  // ---- the two-step bet widget (elicit.js behaviour) ----
+  function renderWidget(){
+    var root = gid('bet_widget'), gated = !direction;
+    root.classList.toggle('bet-dir-stable', direction === 'STABLE');
+    root.classList.toggle('bet-dir-growing', direction === 'GROWING');
+    root.classList.toggle('bet-unset', bet === null);
+    gid('bet_gate').classList.toggle('is-gated', gated);
+    var slider = gid('allocation_pos_pct');
+    if (gated) slider.setAttribute('aria-disabled', 'true'); else slider.removeAttribute('aria-disabled');
+    gid('bet_shield').hidden = !(gated && !viewLocked && !revealed);
+    var st = gid('bet_step2_text');
+    if (gated) st.classList.remove('is-visible');
+    else { st.textContent = CONFIDENCE_TPL.replace('{type}', direction === 'GROWING' ? 'growing' : 'stable'); st.classList.add('is-visible'); }
+    gid('pts_pos').textContent = bet === null ? '—' : String(bet);
+    gid('pts_zero').textContent = bet === null ? '—' : String(100 - bet);
+    slider.setAttribute('aria-valuetext', bet === null ? 'No bet set yet' : (100 - bet) + ' points on Stable, ' + bet + ' points on Growing');
+  }
+  function showToast(){
+    var t = gid('bet_toast');
+    t.hidden = false; t.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('is-visible'); t.hidden = true; }, TOAST_MS);
+  }
+  function applyDirection(value){
+    if (revealed || viewLocked) return;
+    direction = value;
+    bet = null;                                  // cleared, never mirrored
+    gid('allocation_pos_pct').value = P.blockPoint;
+    gid('game-error').hidden = true;
+    clearTimeout(toastTimer); gid('bet_toast').classList.remove('is-visible'); gid('bet_toast').hidden = true;
+    renderWidget();
+  }
+  function onSlider(){
+    if (revealed || viewLocked) return;
+    var s = gid('allocation_pos_pct');
+    if (!direction){ s.value = P.blockPoint; showToast(); return; }
+    var v = parseInt(s.value, 10);
+    v = direction === 'GROWING' ? Math.max(P.blockPoint, v) : Math.min(P.blockPoint, v);
+    s.value = v; bet = v;
+    gid('game-error').hidden = true;
+    renderWidget();
+  }
+  function resetWidget(){
+    direction = null; bet = null;
+    document.querySelectorAll('#bet_direction input').forEach(function(r){ r.checked = false; r.disabled = false; });
+    var s = gid('allocation_pos_pct'); s.value = P.blockPoint; s.disabled = false;
+    gid('bet_opt').hidden = true;
+    gid('bet_toast').hidden = true;
+    gid('info_panel').classList.remove('open'); gid('info_btn').setAttribute('aria-expanded', 'false');
+    renderWidget();
+  }
+
+  // ---- forced minimum viewing time (AllocationScreen.html) ----
+  function startViewLock(){
+    clearTimeout(lockTimer); clearInterval(tickTimer);
+    var secs = P.minViewSeconds, note = gid('game-lock-note'), half = gid('game-elicit'), btn = gid('game-submit');
+    var msg = function(s){ return LOCK_NOTE_TPL.replace('{s}', s); };
+    gid('game-lock-balance').textContent = msg(secs);
+    if (!(secs > 0)){ viewLocked = false; note.classList.remove('is-visible'); return; }
+    viewLocked = true;
+    half.classList.add('locked'); btn.disabled = true;
+    note.textContent = msg(secs); note.classList.add('is-visible');
+    var remaining = secs;
+    tickTimer = setInterval(function(){ remaining -= 1; if (remaining > 0) note.textContent = msg(remaining); }, 1000);
+    lockTimer = setTimeout(function(){
+      clearInterval(tickTimer);
+      viewLocked = false;
+      half.classList.remove('locked'); btn.disabled = false;
+      note.classList.remove('is-visible');
+      renderWidget();
+    }, secs * 1000);
+    renderWidget();
+  }
+
+  // ---- a round ----
+  function showRound(){
+    var r = game.rounds[game.idx];
     revealed = false;
-    scoredThisRound = false;
-    gid('sec-game').classList.remove('revealed');
-    // the two-step bet starts UNSET — no direction, no points.
-    bet2Reset();
-
-    var rl = gid('game-role');
-    rl.textContent = (round.isExpert ? 'EXPERT' : 'NOVICE') + ' · n=' + round.n;
-    rl.className = 'game-role ' + (round.isExpert ? 'expert' : 'novice');
-
-    gid('game-submit').textContent = 'Submit';   // reset the in-place button label
-    drawGameScatter();
+    gid('game-progress').innerHTML = 'Part ' + r.block + ' of ' + P.blocks + '<span class="sep">&middot;</span>Round ' + r.roundInBlock + ' of ' + P.roundsPerBlock;
+    gid('game-progress-fill').style.width = Math.round(100 * (game.idx + 1) / TOTAL) + '%';
+    gid('game-chart').innerHTML = scatterSvg(r.xs, r.ys, r.baseline, false);
+    gid('game-elicit').classList.remove('revealed');
+    gid('game-feedback').hidden = true;
+    gid('game-error').hidden = true;
+    gid('game-submit').textContent = 'Next island';
+    resetWidget();
+    show('game-panel');
+    startViewLock();
   }
 
-  // ---- session summary screen ----
-  function pctStr(hits, n){ return hits + ' of ' + n + ' (' + (n ? Math.round(hits / n * 100) : 0) + '%)'; }
+  function submit(){
+    if (viewLocked || revealed) return;
+    var err = gid('game-error');
+    if (!direction){ err.textContent = MSG_DIRECTION_MISSING; err.hidden = false; return; }
+    if (bet === null){ err.textContent = MSG_BET_MISSING; err.hidden = false; return; }
+    err.hidden = true;
+    revealed = true;
+    var r = game.rounds[game.idx];
+    var idealBet = Math.round(100 * r.posterior);
+    var res = {
+      role: r.role, n: r.n, trueGrow: r.trueGrow, posterior: r.posterior, bet: bet, direction: direction, idealBet: idealBet,
+      you: winPctFor(bet, r.trueGrow), ideal: winPctFor(idealBet, r.trueGrow),
+      youExp: expWinPct(bet, r.posterior), idealExp: expWinPct(idealBet, r.posterior)
+    };
+    game.results.push(res);
+    revealFeedback(r, res);
+  }
+
+  function sideScore(b, trueGrow){ return b === 50 ? 0.5 : ((b > 50) === trueGrow ? 1 : 0); }
+
+  function revealFeedback(r, res){
+    gid('game-elicit').classList.add('revealed');
+    document.querySelectorAll('#bet_direction input').forEach(function(x){ x.disabled = true; });
+    gid('allocation_pos_pct').disabled = true;
+    renderWidget();
+    gid('game-chart').innerHTML = scatterSvg(r.xs, r.ys, r.baseline, true);
+    // ideal observer's bet on the track (thumb centre travels 15px … 100%−15px)
+    var m = gid('bet_opt');
+    m.style.left = 'calc(15px + ' + (res.idealBet / 100) + ' * (100% - 30px))';
+    m.querySelector('span').textContent = 'ideal ' + res.idealBet;
+    m.hidden = false;
+
+    var truthWord = r.trueGrow ? 'Growing (+' + armCoconuts() + ' coconuts every 100 years)' : 'Stable';
+    var side = sideScore(res.bet, r.trueGrow);
+    var cls = side === 1 ? 'ok' : side === 0 ? 'bad' : '';
+    var actualYou = r.trueGrow ? res.bet : 100 - res.bet, actualIdeal = r.trueGrow ? res.idealBet : 100 - res.idealBet;
+    gid('game-feedback').innerHTML =
+      '<p class="fb-truth ' + cls + '">This island was ' + truthWord + '.</p>' +
+      '<div class="fb-grid">' +
+        '<span></span><span class="h">You</span><span class="h opt">Ideal observer</span>' +
+        '<span>Points on Growing</span><span class="v">' + res.bet + '</span><span class="v opt">' + res.idealBet + '</span>' +
+        '<span>Points on actual type</span><span class="v">' + actualYou + '</span><span class="v opt">' + actualIdeal + '</span>' +
+        '<span>Chance of winning</span><span class="v">' + Math.round(res.you) + '%</span><span class="v opt">' + Math.round(res.ideal) + '%</span>' +
+      '</div>' +
+      '<p class="fb-note">Part ' + r.block + ' &middot; ' + r.role + ': ' + r.n + ' recorded years. The ideal observer (Bayes, same chart, 50/50 prior, &sigma; = 2) puts P(growing) at ' + (100 * r.posterior).toFixed(1) + '%. Red line: least-squares fit to the dots.</p>';
+    gid('game-feedback').hidden = false;
+    var last = game.idx === TOTAL - 1;
+    gid('game-submit').textContent = last ? 'See results' : 'Continue';
+  }
+
+  function advance(){
+    game.idx += 1;
+    if (game.idx >= TOTAL){ showSummary(); return; }
+    if (game.rounds[game.idx].roundInBlock === 1) showBlockStart(); else showRound();
+  }
+
+  // ---- summary (site-only) ----
+  function agg(list){
+    var n = list.length || 1, o = { k: list.length, you: 0, ideal: 0, youExp: 0, idealExp: 0, sideYou: 0, sideIdeal: 0 };
+    list.forEach(function(r){
+      o.you += r.you; o.ideal += r.ideal; o.youExp += r.youExp; o.idealExp += r.idealExp;
+      o.sideYou += sideScore(r.bet, r.trueGrow); o.sideIdeal += sideScore(r.idealBet, r.trueGrow);
+    });
+    ['you','ideal','youExp','idealExp'].forEach(function(k){ o[k] /= n; });
+    return o;
+  }
   function showSummary(){
-    gid('sum-won').textContent = eur(sess.won);
-    gid('sum-rounds').textContent = sess.rounds;
-    gid('sum-bethit').textContent = pctStr(sess.betHits, sess.rounds);
-    gid('game-panel').hidden = true;
-    gid('game-intro').hidden = true;
-    gid('game-summary').hidden = false;
+    var res = game.results;
+    var all = agg(res);
+    var rows = game.roleOrder.map(function(role){
+      var a = agg(res.filter(function(r){ return r.role === role; }));
+      var n = role === 'EXPERT' ? P.nExpert : P.nNovice;
+      return '<tr><td>' + role + ' <span style="color:var(--ink-mute)">(' + n + ' yrs)</span></td><td>' + Math.round(a.you) + '%</td><td class="opt">' + Math.round(a.ideal) + '%</td><td>' + fmtSide(a.sideYou, a.k) + '</td><td class="opt">' + fmtSide(a.sideIdeal, a.k) + '</td></tr>';
+    }).join('');
+    // the experiment's payment draw: 2 rounds from all 16, each a lottery for £0.50
+    var picks = [], pool = res.map(function(_, i){ return i; });
+    for (var k = 0; k < Math.min(P.paidRoundsTotal, pool.length); k++) picks.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    picks.sort(function(a, b){ return a - b; });
+    var wonYou = 0, wonIdeal = 0;
+    picks.forEach(function(i){ var u = 100 * Math.random(); if (u < res[i].you) wonYou += P.scoringPrize; if (u < res[i].ideal) wonIdeal += P.scoringPrize; });
+    gid('game-summary-body').innerHTML =
+      '<p class="section-text">The game ran the Pilot 2 design: growing islands gained <strong>' + armCoconuts() + ' coconuts per 100 years</strong>, and you played the ' + game.roleOrder[0] + ' part first. Your score in a round is your chance of winning (100 &minus; (100 &minus; <i>a</i>)<sup>2</sup>/100 with <i>a</i> points on the actual type). The <strong>ideal observer</strong> saw the same charts and bet its exact Bayesian posterior.</p>' +
+      '<div class="sum-big">' +
+        '<div class="sum-stat"><span class="v">' + Math.round(all.you) + '%</span><span class="k">your average chance of winning</span></div>' +
+        '<div class="sum-stat"><span class="v opt">' + Math.round(all.ideal) + '%</span><span class="k">ideal observer, same charts</span></div>' +
+      '</div>' +
+      '<div class="sum-wrap"><table class="sum-table"><thead><tr><th>Part</th><th>You</th><th class="opt">Ideal</th><th>Right side (you)</th><th class="opt">Right side (ideal)</th></tr></thead><tbody>' + rows +
+      '<tr class="all"><td>All 16</td><td>' + Math.round(all.you) + '%</td><td class="opt">' + Math.round(all.ideal) + '%</td><td>' + fmtSide(all.sideYou, all.k) + '</td><td class="opt">' + fmtSide(all.sideIdeal, all.k) + '</td></tr></tbody></table></div>' +
+      '<p class="xp-hint">Luck matters in 16 rounds. Judged by the ideal observer&rsquo;s own beliefs, your bets were worth <strong>' + Math.round(all.youExp) + '%</strong> on average against its <strong>' + Math.round(all.idealExp) + '%</strong> (the most any bet can be worth on these charts). &ldquo;Right side&rdquo; counts a bet that leaned towards the actual type; 50/50 counts half.</p>' +
+      '<p class="xp-hint">In the experiment, ' + P.paidRoundsTotal + ' random rounds pay: here rounds ' + picks.map(function(i){ return i + 1; }).join(' and ') + ' were drawn, each a lottery for £' + P.scoringPrize.toFixed(2) + ' at its chance of winning. Your bonus would have been <strong>£' + wonYou.toFixed(2) + '</strong> (ideal observer, same draws: £' + wonIdeal.toFixed(2) + ').</p>';
+    show('game-summary');
   }
-  function keepPlaying(){      // leave the summary, back to a fresh bet (totals preserved)
-    gid('game-summary').hidden = true;
-    gid('game-intro').hidden = true;
-    gid('game-panel').hidden = false;
-    newRound();
-  }
+  function fmtSide(x, k){ return (x % 1 ? x.toFixed(1) : x) + ' / ' + k; }
 
-  // ---- overlay open / close (the Game lives over the Simulated Groups page) ----
-  function showIntro(){ gid('game-intro').hidden = false; gid('game-panel').hidden = true; gid('game-summary').hidden = true; }
-  function play(){
-    gid('game-intro').hidden = true;
-    gid('game-summary').hidden = true;
-    gid('game-panel').hidden = false;
-    newRound();                         // fresh realisation; the panel now has real width
-  }
+  // ---- overlay open / close ----
+  function stopTimers(){ clearTimeout(lockTimer); clearInterval(tickTimer); clearTimeout(toastTimer); viewLocked = false; }
   function openOverlay(){
     gid('game-overlay').hidden = false;
     document.body.classList.add('game-open');
-    showIntro();                        // every entry starts at the intro screen
+    stopTimers();
+    showIntro();                        // every entry starts a fresh game at the intro
     if (window.__gameSetActive) window.__gameSetActive('view-game');
   }
   function closeOverlay(){
+    stopTimers();
     gid('game-overlay').hidden = true;
     document.body.classList.remove('game-open');
     if (window.__gameSetActive) window.__gameSetActive('view-groups');
   }
   window.__gameOpen = openOverlay;
   window.__gameClose = closeOverlay;
-  // honour a deep link straight into the game (e.g. simulator.html#game),
-  // both on load and when the hash changes within the page
   if (location.hash === '#game') openOverlay();
-  window.addEventListener('hashchange', function(){
-    if (location.hash === '#game') openOverlay();
-  });
-  // read-only snapshot for E2E tests (in-memory only; no behaviour/persistence change)
+  window.addEventListener('hashchange', function(){ if (location.hash === '#game') openOverlay(); });
+  // read-only snapshot for E2E tests
   window.__gameState = function(){
+    var r = game && game.rounds[game.idx];
     return {
-      round: round ? { trueIdx: round.trueIdx, trueBeta: round.trueBeta, isExpert: round.isExpert, n: round.n } : null,
-      bet: { dir: betDir, pts: betPts }, revealed: revealed,
-      sess: { rounds: sess.rounds, won: sess.won, betHits: sess.betHits }
+      params: P, arm: game && game.arm, roleOrder: game && game.roleOrder, idx: game && game.idx,
+      round: r ? { block: r.block, roundInBlock: r.roundInBlock, role: r.role, n: r.n, trueBeta: r.trueBeta,
+                   baseline: r.baseline, xs: r.xs, ys: r.ys, posterior: r.posterior } : null,
+      bet: { direction: direction, pts: bet }, viewLocked: viewLocked, revealed: revealed,
+      results: game ? game.results.slice() : []
     };
   };
 
-  // ---- init ----
-  // The two-step bet controls are permanent elements, wired once here.
-  // two-step bet: step 1 opens the gate + clamps step 2; the shield turns a
-  // slider-first touch into the nudge instead of silence.
-  document.querySelectorAll('#bet2-seg input').forEach(function(r){
-    r.addEventListener('change', function(){ bet2SetDirection(r.value); });
+  // ---- wiring ----
+  document.querySelectorAll('#bet_direction input').forEach(function(r){
+    r.addEventListener('change', function(){ applyDirection(r.value); });
   });
-  (function(){
-    var s = gid('bet2-slider');
-    s.addEventListener('input', bet2OnInput);
-    s.addEventListener('keydown', function(e){
-      if (!betDir){ e.preventDefault(); bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.'); }
-    });
-    gid('bet2-shield').addEventListener('pointerdown', function(e){
-      e.preventDefault(); bet2Toast('Choose <b>Stable</b> or <b>Growing</b> first.');
-    });
-  })();
-  // one footer button: Submit on the bet screen, Next round on the results screen
-  gid('game-submit').addEventListener('click', function(){ if (revealed) newRound(); else submit(); });
-  gid('game-results-btn').addEventListener('click', showSummary);   // reveal screen → session summary
-  gid('game-keepplaying').addEventListener('click', keepPlaying);   // summary → next bet (totals preserved)
-  gid('game-exit').addEventListener('click', closeOverlay);         // summary → leave to Simulated Groups
-  gid('game-play').addEventListener('click', play);
+  var slider = gid('allocation_pos_pct');
+  slider.addEventListener('input', onSlider);
+  slider.addEventListener('change', onSlider);
+  slider.addEventListener('keydown', function(e){
+    if (!direction && !revealed && !viewLocked){ e.preventDefault(); showToast(); }
+  });
+  gid('bet_shield').addEventListener('pointerdown', function(e){ e.preventDefault(); showToast(); });
+  gid('info_btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    var p = gid('info_panel'), open = !p.classList.contains('open');
+    p.classList.toggle('open', open); this.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e){
+    var p = gid('info_panel');
+    if (p.classList.contains('open') && !p.contains(e.target)){ p.classList.remove('open'); gid('info_btn').setAttribute('aria-expanded', 'false'); }
+  });
+  gid('game-submit').addEventListener('click', function(){ if (revealed) advance(); else submit(); });
+  gid('game-play').addEventListener('click', showBlockStart);
+  gid('game-block-start').addEventListener('click', showRound);
+  gid('game-keepplaying').addEventListener('click', showIntro);
+  gid('game-exit').addEventListener('click', closeOverlay);
   document.querySelectorAll('#sec-game .card-x').forEach(function(b){ b.addEventListener('click', closeOverlay); });
 
-  // Keyboard, only while the overlay is open: Esc leaves the game, Enter advances
-  // the intro (= Play). Capture phase + stopImmediatePropagation keeps the
-  // Simulated-Groups Enter→Go handler underneath from also firing.
+  // Keyboard, only while the overlay is open: Esc leaves (or closes the "?" panel
+  // first); Enter starts from the intro / block screens. Capture phase +
+  // stopImmediatePropagation keeps the page's Enter→Go handler from firing.
   document.addEventListener('keydown', function(e){
     if (gid('game-overlay').hidden) return;
-    if (e.key === 'Escape'){ e.preventDefault(); e.stopImmediatePropagation(); closeOverlay(); return; }
-    if (e.key === 'Enter' && !e.isComposing){
+    if (e.key === 'Escape'){
       e.preventDefault(); e.stopImmediatePropagation();
-      if (!gid('game-intro').hidden) play();
+      var p = gid('info_panel');
+      if (p.classList.contains('open')){ p.classList.remove('open'); gid('info_btn').setAttribute('aria-expanded', 'false'); return; }
+      closeOverlay(); return;
+    }
+    if (e.key === 'Enter' && !e.isComposing){
+      if (!gid('game-intro').hidden){ e.preventDefault(); e.stopImmediatePropagation(); showBlockStart(); }
+      else if (!gid('game-block').hidden){ e.preventDefault(); e.stopImmediatePropagation(); showRound(); }
+      else { e.stopImmediatePropagation(); }
     }
   }, true);
-
-  var gResizeT;
-  window.addEventListener('resize', function(){
-    clearTimeout(gResizeT);
-    gResizeT = setTimeout(function(){ if (round && !gid('game-overlay').hidden) drawGameScatter(); }, 80);
-  });
 })();

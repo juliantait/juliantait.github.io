@@ -3,17 +3,21 @@
 // observation years across the window (the remaining years are missing records),
 // labelled abstractly (yr 0 … yr 100) rather than as calendar years.
 //
-//   y_i = baseline + β · x_i + ε_i,   ε_i ~ N(0, σ²),   x_i ∈ [0, 100]
+//   y_i = baseline + β · (x_i − 50) + ε_i,   ε_i ~ N(0, σ²),   x_i ∈ [0, 100]
 //
-// β is therefore a per-year slope: the pilot's two growth arms are 2 or 3 per 100
-// years, i.e. β = 0.02 / 0.03, default 0.02, against a flat state β = 0
-// (prior 0.75 / 0.25).
+// (the experiment's DGP, oTree main/stimulus.py sample_points: the trend is
+// centred at the window midpoint, so `baseline` is the island's mid-window average.)
+// β is therefore a per-year slope: Pilot 2's two growth arms are 3 or 4 per 100
+// years, i.e. β = 0.03 / 0.04, default 0.03, against a flat state β = 0
+// (prior 0.5 / 0.5) — settings.py, config name='pilot2'.
 // The baseline is an integer draw ~ Uniform[40, 80] per series so the dots sit at
 // realistic heights; it shifts a series bodily and leaves β̂, SE and every
 // downstream quantity untouched.
 const WINDOW_YEARS = 100;                   // x-window length, in years
 const X_SPAN = WINDOW_YEARS;                // x runs 0 … 100
 const BASELINE_LO = 40, BASELINE_HI = 80;   // integer Uniform baseline level
+const T_MID = X_SPAN / 2;                   // trend centre (settings x_min/x_max midpoint)
+const Y_HALF_WINDOW = 10;                   // chart y window = baseline ± this (settings y_half_window)
 
 // Integer y values. ON by default, matching the real experiment. The rounding
 // happens at the DOT SIMULATION step (see observe()), so every downstream number
@@ -290,7 +294,7 @@ document.querySelectorAll('#seg-count button').forEach(b => {
 });
 
 // Growth-arm selector: the discrete amount gained over the 100-year window,
-// 1–4 (default 2), written into the β₂ box as the per-year slope arm/100. β₂
+// 3 or 4 (default 3, the Pilot 2 arms), written into the β₂ box as the per-year slope arm/100. β₂
 // stays the single source of truth — type a value there and the buttons simply
 // fall out of sync until one matches again (syncGrowthSeg, called by recompute).
 document.querySelectorAll('#seg-growth button').forEach(b => {
@@ -844,7 +848,7 @@ function niceStep(rawStep) {
 // ============ Examples ============
 // Fully dynamic: one row per user-typed candidate β. Each row = 1 EXPERT
 // (n = nExpert input) + NOVICES (n = nNovice input). Data is sampled fresh from
-// y = baseline + trueBeta * x + N(0, sigma^2) using a per-(row,member) seed, with
+// y = baseline + trueBeta * (x - T_MID) + N(0, sigma^2) using a per-(row,member) seed, with
 // its own integer baseline and — when the y-values toggle is on — integer y.
 
 let N_NOVICES_PER_GROUP = 2;   // group size − 1 (1 EXPERT + this many NOVICES); set by #seg-size
@@ -913,7 +917,7 @@ function simulateMember(rowIdx, memberIdx, trueBeta, n, sigma, baseSeed) {
     x = linspaceArr(0, X_SPAN, n);
   }
   const y = new Array(n);
-  for (let i = 0; i < n; i++) y[i] = observe(baseline + trueBeta * x[i] + sigma * norm());
+  for (let i = 0; i < n; i++) y[i] = observe(baseline + trueBeta * (x[i] - T_MID) + sigma * norm());
   return { x, y, baseline, betaHat: olsBetaHat(x, y) };
 }
 
@@ -943,11 +947,11 @@ function monotonicityStats(rowIdx, trueBeta, n, sigma, nSims, baseSeed) {
     } else {
       xs = fixedXs;
     }
-    let prev = observe(trueBeta * xs[0] + sigma * norm());
+    let prev = observe(trueBeta * (xs[0] - T_MID) + sigma * norm());
     let inc = true, dec = true;
     let upJumps = 0;
     for (let i = 1; i < n; i++) {
-      const yi = observe(trueBeta * xs[i] + sigma * norm());
+      const yi = observe(trueBeta * (xs[i] - T_MID) + sigma * norm());
       if (yi > prev) upJumps++;
       if (yi <= prev) inc = false;
       if (yi >= prev) dec = false;
@@ -1385,11 +1389,11 @@ function drawScatter(canvasId, x, y, role, trueBeta, sigma, baseline) {
   const ph = h - pad.top - pad.bottom;
 
   const xLo = -0.03 * X_SPAN, xHi = 1.03 * X_SPAN;
-  // y is a level around this series' own baseline: baseline (+ the drift over the
-  // window) ± 3σ, widened so an extreme realised dot can never fall outside.
-  const lo = baseline + Math.min(0, trueBeta * X_SPAN);
-  const hi = baseline + Math.max(0, trueBeta * X_SPAN);
-  let yLo = lo - (3 * sigma + 1), yHi = hi + (3 * sigma + 1);
+  // y window as in the experiment (stimulus.py y_window): a CONSTANT-height
+  // window baseline ± Y_HALF_WINDOW centred on the mid-window average, so a slope
+  // looks equally steep on every card; widened only if a dot falls outside
+  // (possible when σ is set far above the experiment's 2.0).
+  let yLo = baseline - Y_HALF_WINDOW, yHi = baseline + Y_HALF_WINDOW;
   for (let i = 0; i < y.length; i++) {
     if (y[i] - 1 < yLo) yLo = y[i] - 1;
     if (y[i] + 1 > yHi) yHi = y[i] + 1;
