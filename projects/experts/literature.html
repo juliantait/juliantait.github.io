@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Unlisted working page for the Experts coauthors. Not linked from any nav. -->
+<title>Experts and Dispersed Information: Literature</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/projects/shared/shell.css?v=14">
+<link rel="stylesheet" href="/projects/shared/infocard.css?v=1">
+<link rel="stylesheet" href="literature.css?v=8">
+<script src="/projects/shared/infocard.js?v=1"></script>
+</head>
+<body>
+
+<!-- ===================== SHARED SHELL ===================== -->
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">LITERATURE</span>
+    <h1 class="hero-title">Experts and Dispersed Information</h1>
+    <p class="hero-sub">Where each paper sits on the chain</p>
+  </div>
+</header>
+<div id="hdr-sentinel" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <!-- Coauthor-only island: no site-wide links, same as simulator.html. -->
+    <span class="topbar-title">Experts and Dispersed Information</span>
+    <nav>
+      <a href="literature.html" class="active">Literature</a>
+      <a href="simulator.html">Simulator</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== 1. THE CHAIN ===================== -->
+  <section class="panelcard lit-sec" id="chain">
+    <h2 class="card-title">The chain</h2>
+    <p class="card-note">Three links. Every paper below tests one or more of them; the Experts design tests all three in one experiment.</p>
+    <ol class="chain">
+      <li class="chain-box" data-link="1">
+        <span class="chain-num">1</span>
+        <span class="chain-head">Information <span class="arr">→</span> confidence</span>
+        <span class="chain-body">Assigned amount and noise of evidence; incentivised belief; Bayesian benchmark.</span>
+      </li>
+      <li class="chain-arrow" aria-hidden="true">→</li>
+      <li class="chain-box" data-link="2">
+        <span class="chain-num">2</span>
+        <span class="chain-head">Confidence <span class="arr">→</span> sharing</span>
+        <span class="chain-body">The decision, or price, to pass what you know to someone else.</span>
+      </li>
+      <li class="chain-arrow" aria-hidden="true">→</li>
+      <li class="chain-box" data-link="3">
+        <span class="chain-num">3</span>
+        <span class="chain-head">Sharing <span class="arr">→</span> receiver learning</span>
+        <span class="chain-body">What the receiver does with what arrives, scored against the Bayesian value of every message.</span>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ===================== 1b. SENDER TO RECEIVER ===================== -->
+  <section class="panelcard lit-sec" id="chain-papers">
+    <h2 class="card-title">Sender to receiver: what each paper established</h2>
+    <p class="card-note">Six papers placed on the chain. Each cell says what the paper showed, not how.</p>
+    <div class="s2r">
+      <div class="s2r-schema">
+        <div class="s2r-box s2r-sender">
+          <span class="s2r-role">Sender</span>
+          <span class="s2r-node s2r-info">information</span>
+          <span class="s2r-arr s2r-arr1"><span class="s2r-line" aria-hidden="true"><span class="s2r-num">1</span></span><span class="s2r-lab">information <span class="arr">→</span> confidence</span></span>
+          <span class="s2r-node s2r-conf">confidence</span>
+        </div>
+        <span class="s2r-arr s2r-arr2"><span class="s2r-line" aria-hidden="true"><span class="s2r-num">2</span></span><span class="s2r-lab">confidence <span class="arr">→</span> sharing</span></span>
+        <div class="s2r-box s2r-receiver">
+          <span class="s2r-role">Receiver</span>
+          <span class="s2r-arr s2r-arr3"><span class="s2r-line" aria-hidden="true"><span class="s2r-num">3</span></span><span class="s2r-lab">sharing <span class="arr">→</span> learning</span></span>
+          <span class="s2r-node s2r-learn">learning</span>
+        </div>
+      </div>
+
+      <div class="s2r-cols">
+        <div class="s2r-col" data-link="1">
+          <h3 class="s2r-col-head"><span class="s2r-n">1</span>Information <span class="arr">→</span> confidence</h3>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="gt">Griffin and Tversky (1992)</button><p>Confidence follows the proportion of the evidence, not its weight: 3 of 3 heads 85 per cent, 6 of 9 heads 67 per cent, same posterior. Strength counts about twice weight.</p></article>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="eg">Enke and Graeber (2023)</button><p>With sample size randomised and beliefs paid, more balls raise uncertainty about one's own answer at a fixed posterior, and the response to evidence falls with n. The stated belief itself barely moves with mixed versus pure samples.</p></article>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="hu">Hu (2026)</button><p>People compare samples by proportion and neglect sample size in 39 per cent of choices, and neglect goes with more confidence. Confidence is measured as a demand to learn, not to send.</p></article>
+          <article class="s2r-card muted"><button type="button" class="lp-name" data-paper="gr">Grabova (2023)</button><p>Confidence shifted exogenously by an easy or hard test, but about one's rank, not about the data held.</p></article>
+          <article class="s2r-card muted"><button type="button" class="lp-name" data-paper="vw">Vespa and Weizsäcker (2026)</button><p>Precision is assigned and drawn on the screen, so confidence is handed over, not formed.</p></article>
+          <article class="s2r-card ours"><button type="button" class="lp-name" data-paper="ours">OURS</button><p>Precision must be inferred from the chart: 20 dots leave people no more sure than 3; visible noise moves confidence, about one point per SD in both roles.</p></article>
+        </div>
+        <div class="s2r-col" data-link="2">
+          <h3 class="s2r-col-head"><span class="s2r-n">2</span>Confidence <span class="arr">→</span> sharing</h3>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="ego">Enke, Graeber and Oprea (2023)</button><p>Confidence drives how much weight people put on their own answer (r = 0.89), and the weight is free: right answers get 75 votes, wrong ones 58.</p></article>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="gr">Grabova (2023)</button><p>A confidence shock raises free forwarding by 33 points; one point of belief buys 1.2 points of forwarding. The hard test silences the competent sender more than the incompetent one.</p></article>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="vw">Vespa and Weizsäcker (2026)</button><p>The sharing rule is a cutoff on one's own posterior, about 0.65, ignoring the partner. Common precision up: more talking, 48 to 53 per cent. Asymmetric: the precise type sits on the Bayesian cutoff, the imprecise type talks three times too often and only half learn.</p></article>
+          <article class="s2r-card ours"><button type="button" class="lp-name" data-paper="ours">OURS</button><p>A BDM price to send, against a Bayesian value per message: the informed pay for 60 per cent of what they hold, the uninformed overpay.</p></article>
+        </div>
+        <div class="s2r-col" data-link="3">
+          <h3 class="s2r-col-head"><span class="s2r-n">3</span>Sharing <span class="arr">→</span> learning</h3>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="ego">Enke, Graeber and Oprea (2023)</button><p>Letting the confident weigh in helps the aggregate only in tasks where confidence tracks accuracy.</p></article>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="gr">Grabova (2023)</button><p>Receiver accuracy follows who talks: the efficient outcome, the right sender talking, happens 28 per cent of the time without feedback and 83 per cent with.</p></article>
+          <article class="s2r-card"><button type="button" class="lp-name" data-paper="vw">Vespa and Weizsäcker (2026)</button><p>Forced draws show talk choices are on the right side on average: forcing the opposite raises error. Symmetric arms only.</p></article>
+          <article class="s2r-card ours"><button type="button" class="lp-name" data-paper="ours">OURS</button><p>The receiver's loss from unsent messages is a closed form from the senders' prices.</p></article>
+        </div>
+      </div>
+      <p class="note s2r-note">Link 1 is full. Link 2 has two papers with a sender who chooses, and in both the confidence or precision is given to the sender rather than formed from the information; neither has a price or a value per message. Link 3 has only reduced forms.</p>
+    </div>
+  </section>
+
+  <!-- ===================== 2. THE MATRIX ===================== -->
+  <section class="panelcard lit-sec" id="matrix">
+    <div class="card-head-row">
+      <h2 class="card-title">Who tests which link</h2>
+      <div class="segmented mx-toggle" role="group" aria-label="Matrix layout">
+        <button type="button" class="on" data-layout="wide" aria-pressed="true">Papers as columns</button>
+        <button type="button" data-layout="tall" aria-pressed="false">Transpose</button>
+      </div>
+    </div>
+    <p class="card-note">Each filled cell says what the paper measures on that link; a tall cell spans every link the paper tests. Blank means the paper does not touch the link. <b>Hover a paper name</b> (tap on a phone) for what it did and what its outcomes actually measure; click to pin the card.</p>
+    <p class="mx-hint" id="mx-hint" hidden>Scroll sideways for the sharing papers and OURS →</p>
+    <div class="mx-scroll" id="mx-scroll">
+      <div class="mx" id="mx" data-layout="wide"></div>
+    </div>
+    <p class="mx-legend">
+      <span><i class="sw sw-1"></i>Link 1 only</span>
+      <span><i class="sw sw-2"></i>Sharing papers</span>
+      <span><i class="sw sw-ours"></i>Ours</span>
+    </p>
+  </section>
+
+  <!-- ===================== 3. CLAIM ===================== -->
+  <section class="panelcard hyp-card lit-sec" id="claim">
+    <div class="hyp-head">
+      <span class="hyp-tag">Claim</span>
+      <span class="hyp-headline">Information does not travel in proportion to its worth.</span>
+    </div>
+    <p class="hyp-text">We give one person a lot of evidence and another a little, pay both for an honest belief, and let each buy the right to pass their advice to someone who has nothing. A Bayesian pays in proportion to how far the message would move the receiver, so <b>the well-informed should pay about twice as much</b>. Our pilots say they will not: <b>seven times the data leaves people no more sure</b>, and sureness is mostly a trait of the person. If people pay by how sure they feel, <b>the best-informed under-share and the least-informed over-share</b> relative to what they know, and <b>the receiver learns less than the information in the room allows</b>. Within a role it is <b>the noise in the chart</b>, not the amount of evidence, that moves confidence: <b>about one point of confidence per SD of visible noise</b>, the same in both roles, while the side of the bet barely moves.</p>
+  </section>
+
+  <!-- ===================== 4. CONTRIBUTION ===================== -->
+  <section class="panelcard hyp-card lit-sec" id="contribution">
+    <div class="hyp-head">
+      <span class="hyp-tag">Contribution</span>
+      <span class="hyp-headline">The first end-to-end test with the information held fixed.</span>
+    </div>
+    <p class="hyp-text">Each link is known on its own. More evidence raises confidence far less than Bayes says (<button type="button" class="lp-name" data-paper="gt">Griffin and Tversky</button>; <button type="button" class="lp-name" data-paper="kp">Kvam and Pleskac</button>; <button type="button" class="lp-name" data-paper="eg">Enke and Graeber</button>; <button type="button" class="lp-name" data-paper="alt">Augenblick, Lazarus and Thaler</button>; <button type="button" class="lp-name" data-paper="hu">Hu</button>). Confidence drives who speaks (<button type="button" class="lp-name" data-paper="gr">Grabova</button>; <button type="button" class="lp-name" data-paper="vw">Vespa and Weizsäcker</button>; <button type="button" class="lp-name" data-paper="ego">Enke, Graeber and Oprea</button>) and people pay for communication beyond its value (<button type="button" class="lp-name" data-paper="he">Hertz et al.</button>; <button type="button" class="lp-name" data-paper="aa">Aarts et al.</button>). Communication helps only when confidence tracks accuracy (<button type="button" class="lp-name" data-paper="ego">Enke, Graeber and Oprea</button>; <button type="button" class="lp-name" data-paper="aa">Aarts et al.</button>; <button type="button" class="lp-name" data-paper="ka">Kawamura</button>). <b>What nobody has done is run the chain end to end with the information held fixed by the experimenter</b>: assign the amount of evidence, measure the belief it produces, price the decision to pass it on to someone uninformed, and score what the receiver learns against the Bayesian value of every message. That lets us say, round by round, <b>who shares too little and who too much</b>, <b>whether the price follows confidence or value</b>, and <b>what that costs the receiver</b>.</p>
+    <div class="pill-row">
+      <a class="pill-btn" href="#benchmarks">The benchmarks</a>
+      <a class="pill-btn" href="#design">The design</a>
+      <a class="pill-btn" href="#reanalysis">Other people's data</a>
+      <a class="pill-btn" href="#vw-arm">The asymmetric arm</a>
+    </div>
+  </section>
+
+  <!-- ===================== 5. BENCHMARKS ===================== -->
+  <section class="panelcard lit-sec" id="benchmarks">
+    <h2 class="card-title">Two benchmarks and the pilot numbers</h2>
+    <div class="prose">
+      <p>With aligned pay, the SENDER's value of sending is the expected improvement in the RECEIVER's score. Moving a RECEIVER from 50/50 to <code>p</code> is worth <code>X(p − ½)²</code> under a quadratic rule, or <code>X(max(p, 1−p) − ½)</code> if the RECEIVER places a binary bet.</p>
+      <div class="bench-pair">
+        <div class="bench">
+          <span class="bench-name">Pricing by how sure you feel</span>
+          <code>V_conf = X(q − ½)²</code>
+          <span class="bench-note"><code>q</code> is the SENDER's own stated bet.</span>
+        </div>
+        <div class="bench">
+          <span class="bench-name">Pricing the information you hold</span>
+          <code>V_true = X(p − ½)²</code>
+          <span class="bench-note"><code>p</code> is the Bayesian posterior of the chart.</span>
+        </div>
+      </div>
+      <p>With a BDM the message arrives if and only if the stated price clears the random draw, so the RECEIVER's expected gain is <code>V × P(c ≤ w)</code>, and under a uniform draw every point of under-pricing costs the RECEIVER <code>V × (V − w) / c_max</code>. The social cost of under-sharing is a closed form from the SENDERs' prices alone.</p>
+    </div>
+
+    <div class="bench-table-wrap">
+      <p class="tbl-cap"><b>Pilot 2, block 1.</b> Between-person: 512 NOVICE and 520 EXPERT rounds, 129 people, <code>X = 100</code>.</p>
+      <table class="bench-table">
+        <thead>
+          <tr><th></th><th>NOVICE</th><th>EXPERT</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="lab">Bayesian confidence</td><td>73</td><td>87</td></tr>
+          <tr><td class="lab">Stated confidence</td><td>79</td><td>78</td></tr>
+          <tr class="hl"><td class="lab">Value of the message, Bayesian (<code>V_true</code>)
+            <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="V_true" data-ic-content="ic-vtrue">i</button></td><td>7.2</td><td>16.0</td></tr>
+          <tr class="hl"><td class="lab">Value priced from the own bet (<code>V_conf</code>)
+            <button type="button" class="ic-btn" aria-expanded="false" data-ic-title="V_conf" data-ic-content="ic-vconf">i</button></td><td>10.4</td><td>10.0</td></tr>
+        </tbody>
+      </table>
+      <span id="ic-vtrue" hidden>What a risk-neutral SENDER with aligned pay should pay to send: <code>X(p − ½)²</code> at the Bayesian posterior <code>p</code> of the chart they saw, averaged over rounds.</span>
+      <span id="ic-vconf" hidden>The same formula at the SENDER's own stated bet <code>q</code>: what they would pay if the price follows how sure they feel.</span>
+    </div>
+
+    <div class="prose">
+      <p><b>Reading.</b> A Bayesian pays about twice as much to send an EXPERT message; a SENDER who pays by how sure they feel pays the same for both. NOVICES overpay; EXPERTS pay for about 60 per cent of what they hold. We do not need EXPERTS to feel less sure than NOVICES, only that the confidence gap is smaller than the value gap. In the pilot the confidence gap is zero.</p>
+    </div>
+    <p class="note">Pilot numbers are descriptive and will be regenerated from the pipeline.</p>
+  </section>
+
+  <!-- ===================== 6. DESIGN SKETCH ===================== -->
+  <section class="panelcard lit-sec" id="design">
+    <h2 class="card-title">Design sketch</h2>
+    <p class="card-note">2 ROLE (EXPERT, NOVICE; within person, order between) × MESSAGE TYPE. All with aligned pay: SENDER and RECEIVER are paid by the RECEIVER's outcome, and the SENDER's own bet stays paid.</p>
+
+    <div class="msg-grid">
+      <article class="msg">
+        <h3 class="msg-name">DECISION</h3>
+        <p class="msg-what">"Growing" or "Stable".</p>
+        <code class="msg-val">X(max(p, 1−p) − ½)</code>
+        <p>Confidence cannot travel; the RECEIVER can only follow. The value is the same for a sure and an unsure SENDER on the same side.</p>
+        <p class="msg-id"><span>Identifies</span> If WTP still tracks confidence here, confidence drives the price even where the RECEIVER cannot use it.</p>
+      </article>
+      <article class="msg">
+        <h3 class="msg-name">BET</h3>
+        <p class="msg-what">The 0 to 100 number.</p>
+        <code class="msg-val">X(p − ½)²</code>
+        <p>Confidence travels with the advice.</p>
+        <p class="msg-id"><span>Identifies</span> Under-confident EXPERTS send messages that are too weak as well as too rarely.</p>
+      </article>
+      <article class="msg">
+        <h3 class="msg-name">CHART</h3>
+        <p class="msg-what">The dots themselves.</p>
+        <code class="msg-val">RECEIVER re-judges</code>
+        <p>The SENDER's confidence drops out.</p>
+        <p class="msg-id"><span>Identifies</span> If EXPERTS price the CHART above NOVICES but price their BET the same, people know what they hold and do not put it in the bet.</p>
+      </article>
+    </div>
+
+    <div class="design-extra">
+      <div class="dx">
+        <span class="dx-tag">Control</span>
+        <p><b>No-consequence control.</b> Same price list, but the message arrives after the RECEIVER has decided. Nets out paying for nothing (<button type="button" class="lp-name" data-paper="he">Hertz</button>; <button type="button" class="lp-name" data-paper="aa">Aarts</button> "for fun" 0.28 euro).</p>
+      </div>
+      <div class="dx">
+        <span class="dx-tag muted">Dropped</span>
+        <p><b>RECEIVER SEES WTP</b> (the RECEIVER never sees the price). <b>SELF-INTERESTED</b> (later).</p>
+      </div>
+      <div class="dx">
+        <span class="dx-tag open">Open</span>
+        <p>Which message types are in. What the RECEIVER is paid on in DECISION.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 7. RE-ANALYSIS ===================== -->
+  <section class="panelcard lit-sec" id="reanalysis">
+    <h2 class="card-title">What we learnt from other people's data</h2>
+    <p class="card-note">Three public datasets re-analysed, all on link 1.</p>
+    <div class="re-grid">
+      <article class="re">
+        <h3><button type="button" class="lp-name" data-paper="kp">Kvam and Pleskac</button></h3>
+        <p>Order of the stream moves confidence at identical composition: <b>+3.5 points</b> when the majority leads throughout. Strength beats weight 2 to 1.</p>
+        <p class="re-take">The look of the evidence matters.</p>
+      </article>
+      <article class="re">
+        <h3><button type="button" class="lp-name" data-paper="eg">Enke and Graeber</button></h3>
+        <p>The stated belief does <b>not</b> move with mixed versus pure samples at the same posterior; only cognitive uncertainty does. Response to evidence falls with n.</p>
+        <p class="re-take">Noise in numeric counts does not reach the belief.</p>
+      </article>
+      <article class="re">
+        <h3><button type="button" class="lp-name" data-paper="alt">Augenblick, Lazarus and Thaler</button></h3>
+        <p><b>No conflict penalty</b> once weak-signal overweighting is controlled. Three cards count for less than one.</p>
+        <p class="re-take">Amount of data is discounted, conflict is not.</p>
+      </article>
+    </div>
+    <p class="note"><b>Reading across them:</b> noise moves confidence in perceptual streams and charts, not in numeric counts. That is the case for scatterplots over urns.</p>
+  </section>
+
+  <!-- ===================== 8. VESPA AND WEIZSÄCKER ===================== -->
+  <section class="panelcard lit-sec" id="vw-arm">
+    <h2 class="card-title">The <button type="button" class="lp-name lp-title" data-paper="vw">Vespa and Weizsäcker</button> asymmetric arm</h2>
+    <p class="card-note">Reported in the April 2026 manuscript as a "robustness treatment" (pp. 11-12 and 17, Appendix C pp. 25-27).</p>
+
+    <div class="vw-cols">
+      <div>
+        <h3 class="sub-title">What it is</h3>
+        <p class="prose-p">80 subjects, fixed types A and B with precision 0.9 against 0.6, always matched with the other type, neutral labels. 30 periods, strategy-method thresholds from period 6, forced TALK and forced LISTEN in a sixth of rounds each, beliefs paid after communication.</p>
+        <p class="prose-p">Theory: the precise type should TALK from a hint of 0.69 outward, the imprecise type only beyond 0.93.</p>
+        <div class="cutoff" aria-label="Theoretical talk cutoffs and observed talk rates by type">
+          <div class="cut-row">
+            <span class="cut-lab">A, τ = 0.9</span>
+            <span class="cut-track"><span class="cut-talk" style="--from:0.69"></span><span class="cut-mark" style="--at:0.69">0.69</span></span>
+            <span class="cut-obs">talks 55.9%</span>
+          </div>
+          <div class="cut-row">
+            <span class="cut-lab">B, τ = 0.6</span>
+            <span class="cut-track"><span class="cut-talk" style="--from:0.93"></span><span class="cut-mark" style="--at:0.93">0.93</span></span>
+            <span class="cut-obs">talks 37.5%</span>
+          </div>
+          <div class="cut-axis"><span>0.5</span><span>hint strength</span><span>1.0</span></div>
+          <p class="cut-key"><i class="sw sw-talk"></i>TALK region (theory). Right: observed share of rounds the type talks.</p>
+        </div>
+      </div>
+      <div>
+        <h3 class="sub-title">What the manuscript reports</h3>
+        <ul class="vw-list">
+          <li>The imprecise type talks <b>37.5%</b> of the time, the precise type <b>55.9%</b>, significant at the 1% level.</li>
+          <li>Empirically optimal cutoffs put the imprecise type at listen-to-almost-anything and the precise type at 70.</li>
+          <li>Learning types by signal type.</li>
+        </ul>
+        <p class="prose-p">So the better-informed type does talk more, in the right direction.</p>
+        <h3 class="sub-title">What it still does not report, and what we would ask for</h3>
+        <ul class="vw-list">
+          <li><b>Link 3</b>: the forced-draw value of talking in asymmetric pairs (their Table 4 is not run for this arm), the cost of each imprecise-type talk.</li>
+        </ul>
+        <h3 class="sub-title">What it cannot tell us</h3>
+        <p class="prose-p">Anything about a price, quantity against quality of evidence, or noise.</p>
+      </div>
+    </div>
+    <figure class="vw-fig">
+      <div class="vf-legend"><span><i class="vf-key vf-key-p9"></i>τ = 0.9 (precise)</span><span><i class="vf-key vf-key-p6"></i>τ = 0.6 (imprecise)</span><span><i class="vf-key vf-key-solid"></i>heads</span><span><i class="vf-key vf-key-dash"></i>tails</span></div>
+      <div class="vf-panels">
+        <div class="vf-panel"><p class="vf-title"><span class="vf-letter">A</span>Signal densities</p><svg class="vf-svg" viewBox="0 0 200 172" role="img" aria-label="Heads and tails hint densities for precision 0.9 and 0.6"><line class="vf-grid" x1="24" x2="172" y1="73" y2="73"/><path class="vf-axis" d="M24,8 V138 H172"/><line class="vf-axis" x1="21" x2="24" y1="138" y2="138"/><text class="vf-tick" x="19" y="138" dy="0.33em" text-anchor="end">0</text><line class="vf-axis" x1="21" x2="24" y1="73" y2="73"/><text class="vf-tick" x="19" y="73" dy="0.33em" text-anchor="end">1</text><line class="vf-axis" x1="21" x2="24" y1="8" y2="8"/><text class="vf-tick" x="19" y="8" dy="0.33em" text-anchor="end">2</text><line class="vf-axis" x1="24" x2="24" y1="138" y2="141"/><text class="vf-tick" x="24" y="151" text-anchor="middle">0</text><line class="vf-axis" x1="98" x2="98" y1="138" y2="141"/><text class="vf-tick" x="98" y="151" text-anchor="middle">50</text><line class="vf-axis" x1="172" x2="172" y1="138" y2="141"/><text class="vf-tick" x="172" y="151" text-anchor="middle">100</text><text class="vf-axt" x="98" y="164" text-anchor="middle">hint s</text><path class="vf-line vf-p9" d="M24,131.5 L172,14.5"/><path class="vf-line vf-p9 vf-tails" d="M24,14.5 L172,131.5"/><path class="vf-line vf-p6" d="M24,112 L172,34"/><path class="vf-line vf-p6 vf-tails" d="M24,34 L172,112"/><text class="vf-end vf-p9t" x="175" y="131.5" dy="0.33em">0.1</text><text class="vf-end vf-p9t" x="175" y="14.5" dy="0.33em">1.9</text><text class="vf-end vf-p6t" x="175" y="112" dy="0.33em">0.4</text><text class="vf-end vf-p6t" x="175" y="34" dy="0.33em">1.6</text></svg></div>
+        <div class="vf-panel"><p class="vf-title"><span class="vf-letter">B</span>CDFs</p><svg class="vf-svg" viewBox="0 0 200 172" role="img" aria-label="Cumulative distributions of the hint by state and precision"><path class="vf-axis" d="M24,8 V138 H172"/><line class="vf-axis" x1="21" x2="24" y1="138" y2="138"/><text class="vf-tick" x="19" y="138" dy="0.33em" text-anchor="end">0</text><line class="vf-axis" x1="21" x2="24" y1="73" y2="73"/><text class="vf-tick" x="19" y="73" dy="0.33em" text-anchor="end">0.5</text><line class="vf-axis" x1="21" x2="24" y1="8" y2="8"/><text class="vf-tick" x="19" y="8" dy="0.33em" text-anchor="end">1</text><line class="vf-axis" x1="24" x2="24" y1="138" y2="141"/><text class="vf-tick" x="24" y="151" text-anchor="middle">0</text><line class="vf-axis" x1="98" x2="98" y1="138" y2="141"/><text class="vf-tick" x="98" y="151" text-anchor="middle">50</text><line class="vf-axis" x1="172" x2="172" y1="138" y2="141"/><text class="vf-tick" x="172" y="151" text-anchor="middle">100</text><text class="vf-axt" x="98" y="164" text-anchor="middle">hint s</text><line class="vf-ref" x1="24.0" y1="138.0" x2="172.0" y2="8.0"/><path class="vf-line vf-p9" d="M24,138 L26.96,137.69 L29.92,137.29 L32.88,136.8 L35.84,136.21 L38.8,135.53 L41.76,134.76 L44.72,133.89 L47.68,132.92 L50.64,131.87 L53.6,130.72 L56.56,129.48 L59.52,128.14 L62.48,126.71 L65.44,125.19 L68.4,123.57 L71.36,121.86 L74.32,120.05 L77.28,118.16 L80.24,116.17 L83.2,114.08 L86.16,111.9 L89.12,109.63 L92.08,107.26 L95.04,104.8 L98,102.25 L100.96,99.6 L103.92,96.86 L106.88,94.03 L109.84,91.1 L112.8,88.08 L115.76,84.97 L118.72,81.76 L121.68,78.45 L124.64,75.06 L127.6,71.57 L130.56,67.99 L133.52,64.31 L136.48,60.54 L139.44,56.68 L142.4,52.72 L145.36,48.67 L148.32,44.52 L151.28,40.29 L154.24,35.96 L157.2,31.53 L160.16,27.01 L163.12,22.4 L166.08,17.69 L169.04,12.89 L172,8"/><path class="vf-line vf-p9 vf-tails" d="M24,138 L26.96,133.11 L29.92,128.31 L32.88,123.6 L35.84,118.99 L38.8,114.47 L41.76,110.04 L44.72,105.71 L47.68,101.48 L50.64,97.33 L53.6,93.28 L56.56,89.32 L59.52,85.46 L62.48,81.69 L65.44,78.01 L68.4,74.43 L71.36,70.94 L74.32,67.55 L77.28,64.24 L80.24,61.03 L83.2,57.92 L86.16,54.9 L89.12,51.97 L92.08,49.14 L95.04,46.4 L98,43.75 L100.96,41.2 L103.92,38.74 L106.88,36.37 L109.84,34.1 L112.8,31.92 L115.76,29.83 L118.72,27.84 L121.68,25.95 L124.64,24.14 L127.6,22.43 L130.56,20.81 L133.52,19.29 L136.48,17.86 L139.44,16.52 L142.4,15.28 L145.36,14.13 L148.32,13.08 L151.28,12.11 L154.24,11.24 L157.2,10.47 L160.16,9.79 L163.12,9.2 L166.08,8.71 L169.04,8.31 L172,8"/><path class="vf-line vf-p6" d="M24,138 L26.96,136.93 L29.92,135.8 L32.88,134.6 L35.84,133.34 L38.8,132.02 L41.76,130.64 L44.72,129.19 L47.68,127.68 L50.64,126.11 L53.6,124.48 L56.56,122.78 L59.52,121.03 L62.48,119.21 L65.44,117.32 L68.4,115.38 L71.36,113.37 L74.32,111.3 L77.28,109.17 L80.24,106.98 L83.2,104.72 L86.16,102.4 L89.12,100.02 L92.08,97.58 L95.04,95.07 L98,92.5 L100.96,89.87 L103.92,87.18 L106.88,84.42 L109.84,81.6 L112.8,78.72 L115.76,75.78 L118.72,72.77 L121.68,69.7 L124.64,66.57 L127.6,63.38 L130.56,60.12 L133.52,56.81 L136.48,53.43 L139.44,49.98 L142.4,46.48 L145.36,42.91 L148.32,39.28 L151.28,35.59 L154.24,31.84 L157.2,28.02 L160.16,24.14 L163.12,20.2 L166.08,16.2 L169.04,12.13 L172,8"/><path class="vf-line vf-p6 vf-tails" d="M24,138 L26.96,133.87 L29.92,129.8 L32.88,125.8 L35.84,121.86 L38.8,117.98 L41.76,114.16 L44.72,110.41 L47.68,106.72 L50.64,103.09 L53.6,99.52 L56.56,96.02 L59.52,92.57 L62.48,89.19 L65.44,85.88 L68.4,82.62 L71.36,79.43 L74.32,76.3 L77.28,73.23 L80.24,70.22 L83.2,67.28 L86.16,64.4 L89.12,61.58 L92.08,58.82 L95.04,56.13 L98,53.5 L100.96,50.93 L103.92,48.42 L106.88,45.98 L109.84,43.6 L112.8,41.28 L115.76,39.02 L118.72,36.83 L121.68,34.7 L124.64,32.63 L127.6,30.62 L130.56,28.68 L133.52,26.79 L136.48,24.97 L139.44,23.22 L142.4,21.52 L145.36,19.89 L148.32,18.32 L151.28,16.81 L154.24,15.36 L157.2,13.98 L160.16,12.66 L163.12,11.4 L166.08,10.2 L169.04,9.07 L172,8"/></svg></div>
+        <div class="vf-panel"><p class="vf-title"><span class="vf-letter">C</span>Posterior that the coin is heads</p><svg class="vf-svg" viewBox="0 0 200 172" role="img" aria-label="Posterior probability of heads as a function of the hint, with talk cutoffs at 69, 93 and 79"><path class="vf-axis" d="M24,8 V138 H172"/><line class="vf-axis" x1="21" x2="24" y1="138" y2="138"/><text class="vf-tick" x="19" y="138" dy="0.33em" text-anchor="end">0</text><line class="vf-axis" x1="21" x2="24" y1="73" y2="73"/><text class="vf-tick" x="19" y="73" dy="0.33em" text-anchor="end">0.5</text><line class="vf-axis" x1="21" x2="24" y1="8" y2="8"/><text class="vf-tick" x="19" y="8" dy="0.33em" text-anchor="end">1</text><line class="vf-axis" x1="24" x2="24" y1="138" y2="141"/><text class="vf-tick" x="24" y="151" text-anchor="middle">0</text><line class="vf-axis" x1="98" x2="98" y1="138" y2="141"/><text class="vf-tick" x="98" y="151" text-anchor="middle">50</text><line class="vf-axis" x1="172" x2="172" y1="138" y2="141"/><text class="vf-tick" x="172" y="151" text-anchor="middle">100</text><text class="vf-axt" x="98" y="164" text-anchor="middle">hint s</text><line class="vf-ref" x1="24" x2="172" y1="73.0" y2="73.0"/><path class="vf-line vf-p9" d="M24,131.5 L172,14.5"/><path class="vf-line vf-p6" d="M24,112 L172,34"/><line class="vf-cut vf-cut-sym" x1="140.92" x2="140.92" y1="138" y2="128"/><text class="vf-lab vf-lab-sym" x="143.92" y="125">79, equal</text><text class="vf-lab vf-lab-sym" x="143.92" y="134">precision</text><line class="vf-cut vf-p9t" x1="126.12" x2="126.12" y1="138" y2="50.77"/><circle class="vf-dot vf-p9f" cx="126.12" cy="50.77" r="2.4"/><text class="vf-lab vf-p9t" x="123.12" y="114" text-anchor="end">talk from 69,</text><text class="vf-lab vf-p9t" x="123.12" y="124" text-anchor="end">p = 0.67</text><line class="vf-cut vf-p6t" x1="161.64" x2="161.64" y1="25" y2="39.46"/><circle class="vf-dot vf-p6f" cx="161.64" cy="39.46" r="2.4"/><text class="vf-lab vf-p6t" x="158.64" y="12" text-anchor="end">talk from 93,</text><text class="vf-lab vf-p6t" x="158.64" y="22" text-anchor="end">p = 0.76</text></svg></div>
+      </div>
+      <figcaption class="vf-cap">Vespa and Weizsäcker: one hint per round, drawn from a straight-line density whose slope is the precision τ. Averaged over the two states the hint is uniform. The posterior is linear in the hint, so a τ = 0.6 player can never be more than 80 per cent sure and a τ = 0.9 player reaches 95.</figcaption>
+    </figure>
+    <div class="vw-compress">
+      <h3 class="sub-title">Read against their own benchmark <span class="ours-tag">our computation, not theirs</span></h3>
+      <p class="prose-p">The hint is uniform on 0 to 1, so the Bayesian cutoffs give predicted talk rates of about 62% for the precise type (outside 0.31 to 0.69) and 14% for the imprecise type (outside 0.07 to 0.93). Observed: 56% and 37.5%.</p>
+      <div class="bench-table-wrap">
+        <table class="bench-table vw-table">
+          <thead>
+            <tr><th></th><th>Imprecise, τ = 0.6</th><th>Precise, τ = 0.9</th><th>Gap</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="lab">Bayesian talk rate</td><td>14%</td><td>62%</td><td>48 points</td></tr>
+            <tr class="hl"><td class="lab">Observed talk rate</td><td>37.5%</td><td>56%</td><td>18 points</td></tr>
+            <tr><td class="lab">Threshold, period 6 to 30</td><td>74 to 83 (Bayes 93)</td><td>72 to 71 (Bayes 69)</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose-p"><b>Reading:</b> Appendix C shows where the gap sits. The precise type holds a threshold of about 71 throughout, next to the Bayesian 69 and the empirical optimum 70; the imprecise type starts near 74 and climbs to about 83 by the last period, against a Bayesian 93 and an empirical optimum of listening to everything. The informed type is calibrated; the compression is the less informed type talking far too much, as a fixed posterior cutoff that ignores the partner would produce (their footnote 10).</p>
+      <p class="prose-p"><b>What this means for us:</b> the less informed over-share even when precision is printed on the screen, so our NOVICES overpaying would replicate them. The better informed under-sharing is not in their data, because their precise type can see its precision; our EXPERT has to read it from 20 dots, and the pilots say that reading fails. Their arm is the displayed-precision control; ours is the perceived-precision treatment.</p>
+    </div>
+    <p class="note action"><b>Consequence for us:</b> the paper is about the informed sender who cannot see what they hold, priced, and charged to the receiver.</p>
+  </section>
+
+</main>
+
+<footer class="lit-foot">
+  <p>Working page, October 2026. Numbers from Pilot 2; the matrix follows the literature notes in the Experts repo.</p>
+</footer>
+
+<script src="literature.js?v=8"></script>
+</body>
+</html>
