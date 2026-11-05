@@ -203,6 +203,34 @@ strong { color: var(--ink); font-weight: 650; }
 
 a { color: var(--accent); }
 
+/* COMPONENT: screen lock. INTENTION: participant pages feel like a screen, not
+   a website. Scoped through html.screen-lock, which only _static/global/js/screen_lock.js
+   sets and only when the session&#x27;s `screen_lock` is on, so with the switch off,
+   on previews and on admin pages none of this applies. No layout property, so no
+   geometry can move.
+   Fields keep selecting; the cursor over them, over radios and over checkboxes
+   is the browser&#x27;s own rule for each type, which inheritance does not touch, so
+   no cursor rule is set on them here: a bare `input { cursor: text }` would give
+   radios and checkboxes a text cursor.
+   `.selectable` is the way out, for anything a participant must be able to copy
+   (a completion link, a code, a contact address). screen_lock.js gives it its
+   right-click and long-press menu back as well. Outside the lock it does nothing. */
+html.screen-lock body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: default;
+}
+html.screen-lock input,
+html.screen-lock textarea,
+html.screen-lock .selectable {
+    -webkit-user-select: text;
+    user-select: text;
+}
+html.screen-lock .selectable { -webkit-touch-callout: default; }
+html.screen-lock .selectable:not(a) { cursor: text; }
+html.screen-lock img { -webkit-user-drag: none; }
+
 /* --- neutralise oTree&#x27;s page chrome ------------------------------------------
    oTree wraps every page in &lt;div class=&quot;otree-body container&quot;&gt;: its theme CSS
    gives .otree-body a max-width and a top margin, and Bootstrap&#x27;s .container
@@ -3074,6 +3102,44 @@ tr.qm-unreadable td { color: var(--dash-amber); background: #fffceb; }
 .qm-legend span { display: inline-flex; align-items: center; gap: 5px; }
 @media (max-width: 720px) { .passes { grid-template-columns: 1fr; }
   .pass + .pass { border-left: none; border-top: 1px solid var(--line); } }
+
+/* DOWNLOAD DATA (data_download.py). The button sits at the far right of the
+   header row. The panel&#x27;s main action and its result are the loudest things in
+   it, on purpose: they say what is about to happen and what did. */
+.dl-open { font: inherit; font-size: .85rem; font-weight: 650; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--card-bg);
+  color: var(--accent); border-radius: var(--r-sm); padding: 5px 13px;
+  white-space: nowrap; }
+.dl-open:hover { background: var(--accent-soft); }
+.dl-panel { max-width: 860px; }
+.dl-lead { margin: 0 0 12px; font-size: 1.02rem; color: var(--ink); }
+.dl-note { margin: 10px 0 12px; font-size: .86rem; color: var(--ink-soft); }
+.dl-folder { font-weight: 650; color: var(--ink); overflow-wrap: anywhere; }
+.dl-files { list-style: none; margin: 0; padding: 0; }
+.dl-files li { border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 9px 13px; margin-bottom: 8px; font-size: .88rem; }
+.dl-files li.good { border-left: 4px solid var(--ok); }
+.dl-files li.bad { border-left: 4px solid var(--danger); }
+.dl-files li.none { border-left: 4px solid var(--line-strong); }
+.dl-kind { font-weight: 700; color: var(--ink); margin-right: 8px; }
+.dl-what { color: var(--ink-soft); }
+.dl-path { display: block; margin-top: 3px; color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas,
+               &quot;Liberation Mono&quot;, monospace;
+  font-size: .8rem; overflow-wrap: anywhere; }
+.dl-why { display: block; margin-top: 3px; color: var(--danger);
+  font-weight: 650; }
+.dl-said { display: block; margin-top: 3px; color: var(--ink); font-weight: 650; }
+.dl-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.dl-primary { font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer;
+  border: none; background: var(--accent); color: #fff;
+  border-radius: var(--r-sm); padding: 10px 22px; }
+.dl-primary:hover { background: var(--accent-hover); }
+.dl-primary:disabled { background: var(--line-strong); cursor: default; }
+.dl-verdict { margin: 0 0 12px; font-size: 1.15rem; font-weight: 700; }
+.dl-verdict.good { color: var(--ok); }
+.dl-verdict.bad { color: var(--danger); }
+
 &lt;/style&gt;&lt;/head&gt;
 &lt;body&gt;
 &lt;!-- THE OVERVIEW BLOCK: the header row, then the four condensed pills, then
@@ -3090,6 +3156,7 @@ tr.qm-unreadable td { color: var(--dash-amber); background: #fffceb; }
       &lt;input type=&quot;checkbox&quot; id=&quot;show-not-arrived&quot; checked=&quot;&quot;&gt;
       show not-arrived rows&lt;/label&gt;
     &lt;span class=&quot;dash-status&quot; id=&quot;status&quot;&gt;updated 10:42:18 AM&lt;/span&gt;
+    &lt;button class=&quot;dl-open&quot; id=&quot;dl-open&quot; type=&quot;button&quot; title=&quot;Save this database&#x27;s data as three CSV files. You confirm first.&quot;&gt;Download data&lt;/button&gt;
   &lt;/div&gt;
   &lt;div class=&quot;ov-strip&quot; id=&quot;ov-strip&quot;&gt;&lt;span class=&quot;ov ov-treat&quot; title=&quot;Treatment cells. Each pair is FINISHED of ASSIGNED, so the denominators side by side are the balance the assigner maintains (least-filled cell on arrival, random tie-break) and the numerators are completion. Assigned minus finished is NOT still going: it also holds anyone who abandoned or was ejected after the instructions. Names come from settings.TREATMENT_CELLS, so this can never show a treatment the code does not have.&quot;&gt;&lt;b class=&quot;ov-label&quot;&gt;Treatments&lt;/b&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;row&lt;/i&gt;&lt;em&gt;2&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;7&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-pair&quot;&gt;&lt;i&gt;column&lt;/i&gt;&lt;em&gt;1&lt;/em&gt;&lt;s&gt;/&lt;/s&gt;&lt;u&gt;6&lt;/u&gt;&lt;/span&gt;&lt;span class=&quot;ov-tail&quot;&gt;5 unassigned&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;ov ov-people&quot; title=&quot;THE STATE OF PEOPLE — the three buckets that partition everyone who has ARRIVED (the x of y above).
 IN PROGRESS 10, OF WHICH STALLED 2 — too long in one phase against that phase threshold. A CONDITION on people who are still going, NOT a fourth outcome, which is why it is nested inside the in-progress number rather than set beside it.
@@ -3152,6 +3219,11 @@ Tune them in settings.py (DASHBOARD_STALL_SECONDS_*).&quot;&gt;ⓘ&lt;/span&gt;
      panel JS fills it from one /quiz_mistakes fetch. Outside the table, so a
      broken panel cannot touch a single row. --&gt;
 &lt;div class=&quot;qm-overlay&quot; id=&quot;qm-overlay&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+&lt;!-- THE DOWNLOAD DATA OVERLAY (data_download.py). Empty until the button is
+     pressed. Its script is a separate block below, so a mistake in it cannot
+     stop the poll that paints this table. --&gt;
+&lt;div class=&quot;qm-overlay&quot; id=&quot;dl-overlay&quot; aria-hidden=&quot;true&quot;&gt;&lt;/div&gt;
+
 
 &lt;/body&gt;&lt;/html&gt;"></iframe>
 <script>(function(){var screen=document.getElementById("screen");if(!screen)return;function fit(){screen.style.transform="scale("+(document.body.clientWidth/1920)+")";}if(typeof ResizeObserver!=="undefined"){new ResizeObserver(fit).observe(document.body);}else if(window.addEventListener){window.addEventListener("resize",fit);}fit();})();</script>
