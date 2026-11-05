@@ -44,6 +44,7 @@ apps <- list(
 constant_variables <- c(
   participant_id      = "participant.code",
   session             = "participant.session",
+  lab_session         = "session.config.lab_session",  # lab session number from the oTree Lab Launcher
   participant_label   = "before.1.player.participant_label",
   treatment_group     = "before.1.player.treatment_group",
   num_failed_attempts = "intro.2.player.num_failed_attempts",  # quiz round in the intro app
@@ -55,6 +56,12 @@ constant_variables <- c(
   # bank   = "outro.1.player.bank",     # PII — usually strip before sharing
   # bic    = "outro.1.player.bic",      # PII — usually strip before sharing
 )
+
+# === TEXT COLUMNS ===
+# Identifiers that look like numbers but are text. Each is read as written, so
+# 217b, 007 and NA survive, and it stays character when sessions are stacked.
+# An empty cell is NA. A column missing from an export is NA on every row.
+text_columns <- c("session.config.lab_session")
 
 # === SESSION FILES ===
 # Leave empty to auto-detect all CSVs in the data subfolder.
@@ -91,6 +98,11 @@ load_data <- function(subfolder) {
   for (file in detected) {
     file_path <- paste0(subfolder, file, ".csv")
     raw <- read_csv(file_path, show_col_types = FALSE)
+    for (col in intersect(text_columns, names(raw))) {
+      raw[[col]] <- read_csv(file_path, col_select = all_of(col), na = "",
+                             col_types = cols(.default = col_character()),
+                             show_col_types = FALSE)[[col]]
+    }
     raw$participant.session <- file
     raw <- remove_columns(raw, columns_to_remove)
     data_list[[file]] <- raw
@@ -105,6 +117,11 @@ load_data <- function(subfolder) {
   })
 
   data <- do.call(rbind, data_list)
+
+  # Text columns stay character, also when no session has them
+  for (col in text_columns) {
+    data[[col]] <- if (col %in% names(data)) as.character(data[[col]]) else NA_character_
+  }
 
   # --- Reshape: one row per participant × app × round ---
   all_data <- lapply(names(apps), function(app_name) {
