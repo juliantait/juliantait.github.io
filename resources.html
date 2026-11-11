@@ -78,6 +78,26 @@
       line-height: 1.4;
     }
 
+    /* App card with its icon beside the title (Habit Forest) */
+    .resource-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 var(--space-1);
+      padding-right: 56px;
+    }
+    .resource-card-head .resource-card-title {
+      margin: 0;
+      padding: 0;
+    }
+    .resource-app-icon {
+      width: 48px;
+      height: 48px;
+      flex: none;
+      border-radius: 22%;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
     .card-btn-row {
       display: flex;
       flex-wrap: wrap;
@@ -103,6 +123,7 @@
 
     @media (max-width: 480px) {
       .resource-card-title { padding-right: 0; }
+      .resource-card-head { padding-right: 0; }
       .resource-badge {
         position: static;
         display: inline-block;
@@ -215,7 +236,10 @@
     <section class="teaching-section">
       <div class="teaching-card resource-card">
         <span class="resource-badge">App</span>
-        <h3 class="resource-card-title">Habit Forest</h3>
+        <div class="resource-card-head">
+          <img class="resource-app-icon" src="images/habit-forest-icon.png" alt="Habit Forest app icon" width="48" height="48" />
+          <h3 class="resource-card-title">Habit Forest</h3>
+        </div>
         <p>
           Time tracking with Habit Forest, a free iOS and macOS app I made to get a better
           overview of my productive time and balance multiple projects.
