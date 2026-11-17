@@ -37,67 +37,6 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow-soft);
     }
-
-    .lab-run {
-      margin: var(--space-4) 0;
-      padding: var(--space-4);
-      background: var(--accent-soft);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: var(--radius);
-    }
-    .lab-run h2 { margin-top: 0; }
-    .lab-run .lab-run-intro { margin-bottom: var(--space-3); }
-    .lab-steps { list-style: none; counter-reset: labstep; margin: 0; padding: 0; }
-    .lab-step {
-      counter-increment: labstep;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-      align-items: center;
-      padding: var(--space-3) 0;
-      border-top: 1px solid var(--border);
-    }
-    .lab-step:first-child { border-top: 0; padding-top: 0; }
-    .lab-step:nth-child(even) .lab-step-text { order: 2; }
-    .lab-step.no-pic { grid-template-columns: 1fr; }
-    .lab-step-text { display: flex; gap: var(--space-3); align-items: baseline; }
-    .lab-step-text::before {
-      content: counter(labstep);
-      font-size: 2.2em;
-      font-weight: 700;
-      line-height: 1;
-      color: var(--accent);
-      min-width: 1.1em;
-    }
-    .page-container section .lab-step-text h3 {
-      margin: 0 0 4px;
-      font-family: var(--font-sans);
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      text-transform: none;
-      color: var(--text-primary);
-    }
-    .lab-step-text p { margin: 0; }
-    .lab-step figure { margin: 0; text-align: center; }
-    .lab-step figure img {
-      display: inline-block;
-      max-width: min(100%, 340px);
-      height: auto;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: #fff;
-    }
-    .lab-step figure.icon img { max-width: 110px; border: 0; background: none; }
-    .lab-step figure.button img { max-width: 180px; border: 0; background: none; }
-    .lab-run .lab-run-note { margin: var(--space-3) 0 0; }
-
-    @media (max-width: 700px) {
-      .lab-run { padding: var(--space-3); }
-      .lab-step { grid-template-columns: 1fr; gap: var(--space-2); }
-      .lab-step:nth-child(even) .lab-step-text { order: 0; }
-    }
   </style>
 </head>
 <body>
@@ -131,58 +70,23 @@
 
     <img src="images/otree-lab-launcher.png" alt="oTree Lab Launcher main window" class="app-screenshot" />
 
-    <section class="lab-run" aria-labelledby="lab-run-title">
-      <h2 id="lab-run-title">Running in the lab</h2>
-      <p class="lab-run-intro">Put your oTree project on the lab computer, in a desktop folder with your name.</p>
-
-      <ol class="lab-steps">
-        <li class="lab-step">
-          <div class="lab-step-text">
-            <div>
-              <h3>Start oTree LabLauncher</h3>
-              <p>Double-click the shortcut on the desktop.</p>
-            </div>
-          </div>
-          <figure class="icon"><img src="images/launcher/step1_shortcut.png" alt="The Start oTree LabLauncher shortcut on the desktop" /></figure>
-        </li>
-        <li class="lab-step">
-          <div class="lab-step-text">
-            <div>
-              <h3>Browse</h3>
-              <p>Pick your study folder, or clone a study from your lab's GitHub organisation.</p>
-            </div>
-          </div>
-          <figure><img src="images/launcher/step2_project_card.png" alt="The oTree project card with the GitHub and Browse buttons" /></figure>
-        </li>
-        <li class="lab-step">
-          <div class="lab-step-text">
-            <div>
-              <h3>Get lab-ready</h3>
-              <p>One click wires up the database, participant links and seat labels.</p>
-            </div>
-          </div>
-          <figure><img src="images/launcher/step3_lab_ready.png" alt="The popup saying the project is not lab-ready yet, with a Get ready for the lab button" /></figure>
-        </li>
-        <li class="lab-step">
-          <div class="lab-step-text">
-            <div>
-              <h3>Launch</h3>
-              <p>The server starts and the oTree admin page opens. Check the summary.</p>
-            </div>
-          </div>
-          <figure class="button"><img src="images/launcher/step4_launch.png" alt="The Launch button" /></figure>
-        </li>
-        <li class="lab-step no-pic">
-          <div class="lab-step-text">
-            <div>
-              <h3>Join from the participant computers</h3>
-              <p>Open the room link on each seat, then create the session in the oTree admin page.</p>
-            </div>
-          </div>
-        </li>
-      </ol>
-
-      <p class="lab-run-note">Optional: save a <strong>one-click shortcut</strong> to the desktop for next time.</p>
+    <section id="using-lablauncher">
+      <div class="section-header">
+        <h2>Using the oTree Lab Launcher</h2>
+        <div class="btn-group">
+          <a href="CREED_lab/Using_oTree_LabLauncher.pdf" download class="download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            PDF
+          </a>
+        </div>
+      </div>
+      <p>
+        How to start your oTree study in the CREED lab with the Lab Launcher, step by step.
+        Download the guide or scroll the embedded copy below.
+      </p>
+      <iframe class="cv-embed" src="CREED_lab/Using_oTree_LabLauncher.pdf#view=FitH&amp;zoom=page-width"></iframe>
     </section>
 
     <p>Full details and setup are on GitHub.</p>
