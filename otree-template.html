@@ -171,7 +171,7 @@
         <li><strong>Cubicle number</strong>: which participant is at which cubicle, so a row on the monitor page maps to a seat in the room.</li>
         <li><strong>Bank details and demographics</strong>: collected in the outro app alongside the debrief, so the session can be paid afterwards.</li>
         <li><strong>Earnings tracking</strong>: a single ledger of what the participant has earned, from which your own rule decides what is paid.</li>
-        <li><strong>CREED lab support</strong>: the <a href="otree-lab-launcher.html">lab launcher</a> appends a block to <code>settings.py</code>, active only when <code>CREED_LABEL_FILE</code> is set. It sets the room and its label file, the database, the admin password, the auth level and <code>DEBUG</code>.</li>
+        <li><strong>Lab launcher support</strong>: the <a href="otree-lab-launcher.html">lab launcher</a> appends a block to the end of <code>settings.py</code> that redirects the room and its seat list, the database, the admin username and password, the auth level and <code>DEBUG</code>. Each override is active only when the launcher sets its environment variable; off the lab the project is unchanged.</li>
       </ul>
 
       <h3>Running on Prolific</h3>

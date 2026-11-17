@@ -211,6 +211,12 @@ ul.education-list li i {
   color: var(--text-primary);
 }
 
+.education-honours {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
 .education-location {
   font-size: 13px;
   color: var(--text-secondary);

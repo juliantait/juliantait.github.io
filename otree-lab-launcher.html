@@ -38,42 +38,65 @@
       box-shadow: var(--shadow-soft);
     }
 
-    .run-steps { margin: var(--space-2) 0 var(--space-4); }
-    .run-steps::after { content: ""; display: block; clear: both; }
-    .run-steps ol { margin: 0; padding-left: 1.4em; }
-    .run-steps li { margin-bottom: var(--space-2); }
-
-    .step-figure {
-      margin: 0 0 var(--space-2) 0;
-      max-width: 340px;
+    .lab-run {
+      margin: var(--space-4) 0;
+      padding: var(--space-4);
+      background: var(--accent-soft);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
     }
-    .step-figure img {
-      display: block;
-      width: 100%;
+    .lab-run h2 { margin-top: 0; }
+    .lab-run .lab-run-intro { margin-bottom: var(--space-3); }
+    .lab-steps { list-style: none; counter-reset: labstep; margin: 0; padding: 0; }
+    .lab-step {
+      counter-increment: labstep;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      align-items: center;
+      padding: var(--space-3) 0;
+      border-top: 1px solid var(--border);
+    }
+    .lab-step:first-child { border-top: 0; padding-top: 0; }
+    .lab-step:nth-child(even) .lab-step-text { order: 2; }
+    .lab-step.no-pic { grid-template-columns: 1fr; }
+    .lab-step-text { display: flex; gap: var(--space-3); align-items: baseline; }
+    .lab-step-text::before {
+      content: counter(labstep);
+      font-size: 2.2em;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent);
+      min-width: 1.1em;
+    }
+    .page-container section .lab-step-text h3 {
+      margin: 0 0 4px;
+      font-family: var(--font-sans);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      color: var(--text-primary);
+    }
+    .lab-step-text p { margin: 0; }
+    .lab-step figure { margin: 0; text-align: center; }
+    .lab-step figure img {
+      display: inline-block;
+      max-width: min(100%, 340px);
       height: auto;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-soft);
+      border-radius: var(--radius-sm);
+      background: #fff;
     }
-    .step-figure figcaption {
-      margin-top: var(--space-1);
-      font-size: 13px;
-      color: var(--text-muted, #666);
-    }
-    /* Step 1 shows just the small app icon, inline at the end of the line. */
-    .step-inline-icon {
-      height: 1.6em;
-      width: auto;
-      vertical-align: middle;
-      margin-left: 0.4em;
-    }
+    .lab-step figure.icon img { max-width: 110px; border: 0; background: none; }
+    .lab-step figure.button img { max-width: 180px; border: 0; background: none; }
+    .lab-run .lab-run-note { margin: var(--space-3) 0 0; }
 
-    @media (min-width: 700px) {
-      .step-figure {
-        float: right;
-        margin-left: var(--space-4);
-        max-width: 380px;
-      }
+    @media (max-width: 700px) {
+      .lab-run { padding: var(--space-3); }
+      .lab-step { grid-template-columns: 1fr; gap: var(--space-2); }
+      .lab-step:nth-child(even) .lab-step-text { order: 0; }
     }
   </style>
 </head>
@@ -92,33 +115,75 @@
     </div>
 
     <p>
-      Your lab manager sets it up once.
+      Your lab manager sets it up once, so everyone can use the same default infrastructure.
       <strong>Any future experiment works in just three clicks:</strong> point it to the new
-      oTree folder and run.
+      oTree folder, get it ready for the lab, and launch.
     </p>
 
     <ul>
-      <li><strong>Database handled for you.</strong> Use an existing or new Postgres database on each run.</li>
-      <li><strong>Rooms and participant links handled for you.</strong></li>
-      <li><strong>Save a config to launch a study in one click.</strong> Re-running an old study is fast.</li>
-      <li><strong>Set the launcher up once.</strong> The lab manager sets up the launcher once so all future studies can get running with no lab-adaptation hassle.</li>
+      <li><strong>Database management is handled for you.</strong> Use a default or new Postgres database on each run.</li>
+      <li><strong>Rooms and participant links are handled for you.</strong></li>
+      <li><strong>Use existing lab infrastructure easily.</strong> Run your own scripts, open websites and pass settings on launch from the Advanced card.</li>
+      <li><strong>Save a config to launch a study in one click.</strong> Re-starting a saved study is instant.</li>
+      <li><strong>Get studies from GitHub.</strong> Clone a study from your lab's GitHub organisation, and pull its updates before you launch.</li>
       <li><strong>Open source and free.</strong></li>
     </ul>
 
     <img src="images/otree-lab-launcher.png" alt="oTree Lab Launcher main window" class="app-screenshot" />
 
-    <h2>Running in the lab</h2>
-    <p>Put your oTree project on the lab computer, in a folder on the desktop identified with your name.</p>
+    <section class="lab-run" aria-labelledby="lab-run-title">
+      <h2 id="lab-run-title">Running in the lab</h2>
+      <p class="lab-run-intro">Put your oTree project on the lab computer, in a desktop folder with your name.</p>
 
-    <div class="run-steps">
-      <ol>
-        <li>Double-click "Start oTree LabLauncher" on the desktop.<img src="images/lablauncher-logo.png" alt="The oTree LabLauncher app icon" class="step-inline-icon" /></li>
-        <li>Click "Browse" and point it at your oTree study folder.</li>
-        <li>Get it ready for the lab.</li>
-        <li>Launch.</li>
-        <li>Optional: Save a one-click shortcut to the desktop for next time.</li>
+      <ol class="lab-steps">
+        <li class="lab-step">
+          <div class="lab-step-text">
+            <div>
+              <h3>Start oTree LabLauncher</h3>
+              <p>Double-click the shortcut on the desktop.</p>
+            </div>
+          </div>
+          <figure class="icon"><img src="images/launcher/step1_shortcut.png" alt="The Start oTree LabLauncher shortcut on the desktop" /></figure>
+        </li>
+        <li class="lab-step">
+          <div class="lab-step-text">
+            <div>
+              <h3>Browse</h3>
+              <p>Pick your study folder, or clone a study from your lab's GitHub organisation.</p>
+            </div>
+          </div>
+          <figure><img src="images/launcher/step2_project_card.png" alt="The oTree project card with the GitHub and Browse buttons" /></figure>
+        </li>
+        <li class="lab-step">
+          <div class="lab-step-text">
+            <div>
+              <h3>Get lab-ready</h3>
+              <p>One click wires up the database, participant links and seat labels.</p>
+            </div>
+          </div>
+          <figure><img src="images/launcher/step3_lab_ready.png" alt="The popup saying the project is not lab-ready yet, with a Get ready for the lab button" /></figure>
+        </li>
+        <li class="lab-step">
+          <div class="lab-step-text">
+            <div>
+              <h3>Launch</h3>
+              <p>The server starts and the oTree admin page opens. Check the summary.</p>
+            </div>
+          </div>
+          <figure class="button"><img src="images/launcher/step4_launch.png" alt="The Launch button" /></figure>
+        </li>
+        <li class="lab-step no-pic">
+          <div class="lab-step-text">
+            <div>
+              <h3>Join from the participant computers</h3>
+              <p>Open the room link on each seat, then create the session in the oTree admin page.</p>
+            </div>
+          </div>
+        </li>
       </ol>
-    </div>
+
+      <p class="lab-run-note">Optional: save a <strong>one-click shortcut</strong> to the desktop for next time.</p>
+    </section>
 
     <p>Full details and setup are on GitHub.</p>
 
