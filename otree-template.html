@@ -75,6 +75,19 @@
       margin: var(--space-2) 0 var(--space-3);
     }
     .code-block code { background: transparent; padding: 0; }
+
+    /* logo floated inside a bullet; the ::after clears it so the next block
+       starts below the logo (flow-root would drop the bullet marker) */
+    .logo-bullet::after { content: ""; display: block; clear: both; }
+    .bullet-logo {
+      float: right;
+      width: 80px;
+      height: auto;
+      margin: 0 0 var(--space-2) var(--space-3);
+    }
+    @media (max-width: 700px) {
+      .bullet-logo { width: 60px; }
+    }
   </style>
 </head>
 <body>
@@ -144,7 +157,7 @@
       <pre class="code-block"><code>git clone https://github.com/juliantait/Template_oTree.git</code></pre>
       <p>
         A root <code>CLAUDE.md</code> records the rules an agent must not break and why each exists,
-        alongside per-job authoring guides in <code>docs/skills_claude/</code>, so an LLM working in
+        alongside per-job authoring guides in <code>.claude/skills/</code>, so an LLM working in
         the repository starts with its conventions loaded rather than guessing at them.
       </p>
       <p>Then edit the files relevant to your experiment. The intended entry points are:</p>
@@ -167,11 +180,12 @@
       </p>
 
       <h3>Running in the lab</h3>
+      <p>To run a lab session, use the <a href="otree-lab-launcher.html">oTree Lab Launcher</a>.</p>
       <ul>
         <li><strong>Cubicle number</strong>: which participant is at which cubicle, so a row on the monitor page maps to a seat in the room.</li>
         <li><strong>Bank details and demographics</strong>: collected in the outro app alongside the debrief, so the session can be paid afterwards.</li>
         <li><strong>Earnings tracking</strong>: a single ledger of what the participant has earned, from which your own rule decides what is paid.</li>
-        <li><strong>Lab launcher support</strong>: the <a href="otree-lab-launcher.html">lab launcher</a> appends a block to the end of <code>settings.py</code> that redirects the room and its seat list, the database, the admin username and password, the auth level and <code>DEBUG</code>. Each override is active only when the launcher sets its environment variable; off the lab the project is unchanged.</li>
+        <li class="logo-bullet"><img src="images/lablauncher-logo.png" alt="oTree Lab Launcher logo" class="bullet-logo" width="80" height="91" /><strong>Lab Launcher support</strong>: the Lab Launcher makes launching a study in a lab easy. See <a href="otree-lab-launcher.html">here</a> for more information.</li>
       </ul>
 
       <h3>Running on Prolific</h3>
